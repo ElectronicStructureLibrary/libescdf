@@ -77,7 +77,7 @@ escdf_netcdf_libs_def="-lnetcdf"
 #
 
 # Default triggers for optional features must be yes or no, and not empty
-for escdf_cfg_default in debug timing; do
+for escdf_cfg_default in debug; do
   tmp_default=`eval echo \$\{escdf_${escdf_cfg_default}_enable_def\}`
   if test "${tmp_default}" != "no" -a \
           "${tmp_default}" != "yes"; then
@@ -188,7 +188,7 @@ AC_SUBST(with_mpi)
 #
 
 # All --enable-* options must be yes or no
-for escdf_cfg_option in debug timing; do
+for escdf_cfg_option in debug; do
   tmp_option=`eval echo \$\{enable_${escdf_cfg_option}\}`
   if test "${tmp_option}" != "" -a \
           "${tmp_option}" != "no" -a \
@@ -281,7 +281,6 @@ unset tmp_netcdf_vars
 
 # Defaults
 AC_SUBST(escdf_debug_enable_def)
-AC_SUBST(escdf_timing_enable_def)
 AC_SUBST(escdf_hdf5_enable_def)
 AC_SUBST(escdf_hdf5_ser_incs_def)
 AC_SUBST(escdf_hdf5_ser_libs_def)

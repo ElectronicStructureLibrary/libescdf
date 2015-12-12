@@ -9,12 +9,12 @@
 
 
 
-# VDW_HDF5_DETECT()
-# ------------------
+# ESCDF_HDF5_DETECT()
+# -------------------
 #
 # Check whether the HDF5 library is working.
 #
-AC_DEFUN([VDW_HDF5_DETECT],[
+AC_DEFUN([ESCDF_HDF5_DETECT],[
   dnl Init
   escdf_hdf5_ok="unknown"
   escdf_hdf5_has_hdrs="unknown"
@@ -62,4 +62,4 @@ AC_DEFUN([VDW_HDF5_DETECT],[
   dnl Restore environment
   CPPFLAGS="${escdf_saved_CPPFLAGS}"
   LIBS="${escdf_saved_LIBS}"
-]) # VDW_HDF5_DETECT
+]) # ESCDF_HDF5_DETECT

@@ -9,12 +9,12 @@
 
 
 
-# VDW_NETCDF_DETECT()
-# ------------------
+# ESCDF_NETCDF_DETECT()
+# ---------------------
 #
 # Check whether the NETCDF library is working.
 #
-AC_DEFUN([VDW_NETCDF_DETECT],[
+AC_DEFUN([ESCDF_NETCDF_DETECT],[
   dnl Init
   escdf_netcdf_ok="unknown"
   escdf_netcdf_has_hdrs="unknown"
@@ -62,4 +62,4 @@ AC_DEFUN([VDW_NETCDF_DETECT],[
   dnl Restore environment
   CPPFLAGS="${escdf_saved_CPPFLAGS}"
   LIBS="${escdf_saved_LIBS}"
-]) # VDW_NETCDF_DETECT
+]) # ESCDF_NETCDF_DETECT
