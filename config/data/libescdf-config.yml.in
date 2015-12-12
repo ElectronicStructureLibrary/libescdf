@@ -1,0 +1,63 @@
+%YAML 1.1
+---
+timestamp: "@escdf_timestamp@"
+
+target:
+    cpu: "@target_cpu@"
+    vendor: "@target_vendor@"
+    os: "@target_os@"
+
+compilers:
+    CPP: "@CPP@"
+    CPPFLAGS: "@CPPFLAGS@"
+    CC: "@CC@"
+    MPICC: "@MPICC@"
+    CFLAGS: "@CFLAGS@"
+    FC: "@FC@"
+    MPIFC: "@MPIFC@"
+    FCFLAGS: "@FCFLAGS@"
+    LDFLAGS: "@LDFLAGS@"
+    LIBS: "@LIBS@"
+
+defaults:
+    debug_enable: "@escdf_debug_enable_def@"
+    hdf5_enable: "@escdf_hdf5_enable_def@"
+    mpi_enable: "@escdf_mpi_enable_def@"
+    netcdf_enable: "@escdf_netcdf_enable_def@"
+    hdf5_ser_incs: "@escdf_hdf5_ser_incs_def@"
+    hdf5_ser_libs: "@escdf_hdf5_ser_libs_def@"
+    hdf5_mpi_incs: "@escdf_hdf5_mpi_incs_def@"
+    hdf5_mpi_libs: "@escdf_hdf5_mpi_libs_def@"
+    netcdf_incs: "@escdf_netcdf_incs_def@"
+    netcdf_libs: "@escdf_netcdf_libs_def@"
+
+options:
+    enable_debug: "@enable_debug@"
+    with_hdf5: "@with_hdf5@"
+    with_mpi: "@with_mpi@"
+    with_netcdf: "@with_netcdf@"
+
+triggers:
+    debug_enable: "@escdf_debug_enable@"
+    hdf5_enable: "@escdf_hdf5_enable@"
+    mpi_enable: "@escdf_mpi_enable@"
+    netcdf_enable: "@escdf_netcdf_enable@"
+
+inits:
+    debug: "@escdf_debug_type@"
+    hdf5: "@escdf_hdf5_type@"
+    mpi: "@escdf_mpi_type@"
+    netcdf: "@escdf_netcdf_type@"
+
+deps:
+    hdf5_incs: "@escdf_hdf5_incs@"
+    hdf5_libs: "@escdf_hdf5_libs@"
+    netcdf_incs: "@escdf_netcdf_incs@"
+    netcdf_libs: "@escdf_netcdf_libs@"
+
+mpi_internals:
+    cc_set: "@escdf_mpi_cc_set@"
+    cc_wrap: "@escdf_mpi_cc_wrap@"
+    fc_set: "@escdf_mpi_fc_set@"
+    fc_wrap: "@escdf_mpi_fc_wrap@"
+
