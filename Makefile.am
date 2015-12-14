@@ -12,7 +12,7 @@ AM_DISTCHECK_CONFIGURE_FLAGS = \
 SUBDIRS = src doc
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = config/data/libvdwxc.pc
+pkgconfig_DATA = config/data/libescdf.pc
 
 DISTCLEANFILES = \
   libescdf-*.tar.gz \
