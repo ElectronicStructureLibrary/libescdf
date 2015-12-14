@@ -5,11 +5,13 @@
 # Markdown sources
 escdf_mddocs = \
   configuring-libescdf.md \
+  contributing-to-libescdf.md \
   hacking-the-build-system.md
 
 # HTML documents
 escdf_htmldocs = \
   configuring-libescdf.html \
+  contributing-to-libescdf.html \
   hacking-the-build-system.html
 
                     ########################################
