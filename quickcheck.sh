@@ -45,32 +45,32 @@ echo "### SERIAL ###"
 ../configure \
   CC="gcc" CFLAGS="${DBGFLAGS}" FC="gfortran" FCFLAGS="${DBGFLAGS}"
 sleep 3
-echo ""
-echo "### MPI(def) ###"
-../configure \
-  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
-sleep 3
-echo ""
-echo "### MPI(dir) ###"
-../configure \
-  --with-mpi=/usr CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
-sleep 3
-echo ""
-echo "### MPI(env) ###"
-../configure \
-  MPICC="mpicc" MPIFC="mpif90" CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
-sleep 3
-echo ""
-echo "### MPI(wrap) ###"
-../configure \
-  CC="gcc" FC="gfortran" MPICC="mpicc" MPIFC="mpif90" \
-  CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
-sleep 3
-echo ""
-echo "### MPI(yon) ###"
-../configure \
-  --with-mpi CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
-sleep 3
+#echo ""
+#echo "### MPI(def) ###"
+#../configure \
+#  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
+#sleep 3
+#echo ""
+#echo "### MPI(dir) ###"
+#../configure \
+#  --with-mpi=/usr CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#sleep 3
+#echo ""
+#echo "### MPI(env) ###"
+#../configure \
+#  MPICC="mpicc" MPIFC="mpif90" CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#sleep 3
+#echo ""
+#echo "### MPI(wrap) ###"
+#../configure \
+#  CC="gcc" FC="gfortran" MPICC="mpicc" MPIFC="mpif90" \
+#  CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#sleep 3
+#echo ""
+#echo "### MPI(yon) ###"
+#../configure \
+#  --with-mpi CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#sleep 3
 cd ..
 
 # Check default build
@@ -87,17 +87,16 @@ make install DESTDIR="${PWD}/install-minimal"
 ls -lR install-minimal >install-minimal.log
 cd ..
 
-# Check parallel build (with timing)
-mkdir tmp-mpi
-cd tmp-mpi
-../configure \
-  --enable-timing \
-  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
-sleep 3
-make
-make clean && make -j4
-make check
-cd ..
+# Check parallel build
+#mkdir tmp-mpi
+#cd tmp-mpi
+#../configure \
+#  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
+#sleep 3
+#make
+#make clean && make -j4
+#make check
+#cd ..
 
 # Make distcheck
 mkdir tmp-distcheck
