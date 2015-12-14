@@ -463,30 +463,16 @@ if test "${escdf_netcdf_type}" != "dir"; then
   if test -n "${NETCDF_INCLUDES}"; then
     escdf_netcdf_incs="${NETCDF_INCLUDES}"
   else
-    if test "${escdf_mpi_enable}" = "yes"; then
-      escdf_netcdf_incs="${escdf_netcdf_mpi_incs_def}"
-    else
-      escdf_netcdf_incs="${escdf_netcdf_ser_incs_def}"
-    fi
+    escdf_netcdf_incs="${escdf_netcdf_incs_def}"
   fi
 fi
 
-# Set NETCDF libraries (requires MPI to be fully set)
-if test "${escdf_netcdf_type}" = "dir"; then
-  if test "${escdf_mpi_enable}" = "yes"; then
-    escdf_netcdf_libs="${escdf_netcdf_libs} ${escdf_netcdf_mpi_libs_def}"
-  else
-    escdf_netcdf_libs="${escdf_netcdf_libs} ${escdf_netcdf_ser_libs_def}"
-  fi
-else
+# Set NETCDF libraries
+if test "${escdf_netcdf_type}" != "dir"; then
   if test -n "${NETCDF_LIBS}"; then
     escdf_netcdf_libs="${NETCDF_LIBS}"
   else
-    if test "${escdf_mpi_enable}" = "yes"; then
-      escdf_netcdf_libs="${escdf_netcdf_mpi_libs_def}"
-    else
-      escdf_netcdf_libs="${escdf_netcdf_ser_libs_def}"
-    fi
+    escdf_netcdf_libs="${escdf_netcdf_libs_def}"
   fi
 fi
 

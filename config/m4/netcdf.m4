@@ -43,7 +43,8 @@ AC_DEFUN([ESCDF_NETCDF_DETECT],[
 #include <netcdf.h>
       ]],
       [[
-        Hdf5_Init();
+        int ncid;
+        nc_open("conftest.nc", NC_NOWRITE, &ncid);
       ]])], [escdf_netcdf_has_libs="yes"], [escdf_netcdf_has_libs="no"])
     AC_MSG_RESULT([${escdf_netcdf_has_libs}])
     AC_LANG_POP([C])

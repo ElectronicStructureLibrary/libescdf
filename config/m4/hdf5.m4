@@ -43,7 +43,8 @@ AC_DEFUN([ESCDF_HDF5_DETECT],[
 #include <hdf5.h>
       ]],
       [[
-        Hdf5_Init();
+        herr_t h5err;
+        h5err = H5open();
       ]])], [escdf_hdf5_has_libs="yes"], [escdf_hdf5_has_libs="no"])
     AC_MSG_RESULT([${escdf_hdf5_has_libs}])
     AC_LANG_POP([C])
