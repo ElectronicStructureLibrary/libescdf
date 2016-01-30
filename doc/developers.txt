@@ -1,0 +1,33 @@
+/**
+ * @mainpage Instructions for the developers of Libescdf
+ *
+ * @section intro Introduction
+ * 
+ * 
+ * 
+ * @section c_headers C headers
+ * 
+ * All headers containing data that will be accessed by the users of the
+ * library should be clearly identified and preserved from name clashes.
+ * They are thus always prefixed by "escdf_". They also have to include the
+ * minimum amount of data possible, i.e. the C headers required by the
+ * exported routines (e.g. stdio.h) are included in the C files only. These
+ * "escdf_*.h" headers are listed in the makefile in the "escdf_core_hdrs"
+ * variable.
+ *
+ * Headers which are strictly internal to Libescdf do not have a priori to
+ * follow strict naming conventions, but it is always a good idea to name
+ * them cleverly, so that their purpose is known from reading their name.
+ * These headers are listed in the makefile in the "escdf_hidden_hdrs"
+ * variable.
+ *
+ * The headers belonging to Libescdf are included using double quotes,
+ * while those coming from other libraries are included using the <toto.h>
+ * convention. The config.h file is included in the C files only and is
+ * always the last to be included, as it may fine-tune some already-defined
+ * parameters and work around some issues. One noticeable exception is
+ * the conditional including of headers, which should of course be
+ * placed after including config.h.
+ *
+ *
+ **/
