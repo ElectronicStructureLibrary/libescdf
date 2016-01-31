@@ -8,11 +8,17 @@ config.h
 config.log
 config.status
 configure
+libescdf-*.tar.bz2
+libescdf-*.tar.gz
+libescdf-*.tar.xz
 libtool
 stamp-h1
 tmp
 tmp-*
 *.tmp
+/config/data/libescdf
+/config/data/libescdf-config.yml
+/config/data/libescdf.pc
 /config/gnu/compile
 /config/gnu/config.guess
 /config/gnu/config.sub
@@ -26,6 +32,9 @@ tmp-*
 /config/m4/ltversion.m4
 /config/m4/lt~obsolete.m4
 /config/wrappers
+/doc/configuring-libescdf.html
+/doc/contributing-to-libescdf.html
+/doc/hacking-the-build-system.html
 /src/*.o
 /src/*.lo
 /src/.deps/
