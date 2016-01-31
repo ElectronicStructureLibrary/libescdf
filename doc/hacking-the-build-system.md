@@ -207,18 +207,17 @@ significant part of it. We thus recommend you to define clear specifications
 by answering to the following questions beforehand:
 
   1. Will the new dependency be mandatory or optional?
-     Examples: HDF5 and NETCDF are mandatory.
+     Examples: HDF5 is mandatory.
   2. Will the new dependency be auto-detected or ignored by default?
      Examples: MPI is auto-detected by default.
   3. Is the new dependency available through libraries, or does it use another
      mechanism?
-     Examples: HDF5 and NETCDF provide libraries, while MPI provides compilers.
+     Examples: HDF5 provides libraries, while MPI provides compilers.
   4. Does the new dependency require already known dependencies?
      Examples: MPI does not, HDF5 does for parallel I/O.
   5. Is the configuration of the new dependency affected by other
      dependencies?
-     Examples: NETCDF has only one configuration, while HDF5 provides
-     different libraries for the serial and MPI cases.
+     Examples: HDF5 provides different libraries for the serial and MPI cases.
 
 Adding an external dependency requires the writing of new M4 macros, stored in
 the *config/m4/* subdirectory of the source tree. Although M4 is a relatively

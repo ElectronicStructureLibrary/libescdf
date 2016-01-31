@@ -65,11 +65,6 @@ escdf_hdf5_ser_libs_def="-lhdf5"
 escdf_hdf5_mpi_incs_def=""
 escdf_hdf5_mpi_libs_def="-lhdf5_mpi -lhdf5"
 
-# NETCDF
-escdf_netcdf_enable_def="yes"
-escdf_netcdf_incs_def=""
-escdf_netcdf_libs_def="-lnetcdf"
-
                     # ------------------------------------ #
 
 #
@@ -86,7 +81,7 @@ for escdf_cfg_default in debug; do
 done
 
 # Default triggers for external dependencies must be yes, no, or auto
-for escdf_cfg_default in hdf5 mpi netcdf; do
+for escdf_cfg_default in hdf5 mpi; do
   tmp_default=`eval echo \$\{escdf_${escdf_cfg_default}_enable_def\}`
   if test "${tmp_default}" != "" -a \
           "${tmp_default}" != "auto" -a \
@@ -140,31 +135,6 @@ AC_ARG_VAR([HDF5_LIBS],
     [Library flags for HDF5. Please note that this variable conflicts with the --with-hdf5 option.])
 AC_SUBST(with_hdf5)
 
-# NETCDF (mandatory)
-AC_ARG_WITH([netcdf],
-  [AS_HELP_STRING([--with-netcdf],
-    [Install prefix of the NETCDF library (e.g. /usr/local). NETCDF support will be enabled only if you use this option. You may use --with-netcdf without argument if NETCDF is installed as a system library, and --without-netcdf to disable NETCDF support completely.])],
-  [ if test "${withval}" = "no" -o "${withval}" = "yes"; then
-      escdf_netcdf_enable="${withval}"
-      escdf_netcdf_type="yon"
-      if test "${escdf_netcdf_enable}" = "yes"; then
-        escdf_netcdf_incs="${escdf_netcdf_incs_def}"
-        escdf_netcdf_libs="${escdf_netcdf_libs_def}"
-      fi
-    else
-      escdf_netcdf_enable="yes"
-      escdf_netcdf_type="dir"
-      escdf_netcdf_incs="-I${withval}/include"
-      escdf_netcdf_libs="-L${withval}/lib ${escdf_netcdf_libs_def}"
-    fi],
-  [escdf_netcdf_enable="${escdf_netcdf_enable_def}"; escdf_netcdf_type="def";
-    escdf_netcdf_incs=""; escdf_netcdf_libs=""])
-AC_ARG_VAR([NETCDF_INCLUDES],
-  [Include flags for NETCDF. Please note that this variable conflicts with the --with-netcdf option.])
-AC_ARG_VAR([NETCDF_LIBS],
-    [Library flags for NETCDF. Please note that this variable conflicts with the --with-netcdf option.])
-AC_SUBST(with_netcdf)
-
 # MPI (optional)
 AC_ARG_WITH([mpi],
   [AS_HELP_STRING([--with-mpi],
@@ -209,17 +179,6 @@ if test "${escdf_hdf5_enable}" = "auto"; then
   escdf_hdf5_enable="yes"
 fi
 
-# NetCDF is mandatory
-if test "${escdf_netcdf_enable}" = "no"; then
-  AC_MSG_ERROR([Libescdf requires NETCDF
-                  Please see http://www.unidata.ucar.edu/netcdf/ for
-                  installation instructions.])
-fi
-if test "${escdf_netcdf_enable}" = "auto"; then
-  AC_MSG_NOTICE([setting NETCDF trigger to yes])
-  escdf_netcdf_enable="yes"
-fi
-
 # All *_INCLUDES and *_LIBS environment variables must be provided at once
 tmp_hdf5_vars="${HDF5_INCLUDES}${HDF5_LIBS}"
 if test -n "${tmp_hdf5_vars}" -a \
@@ -230,11 +189,6 @@ tmp_mpi_vars="${MPICC}${MPIFC}"
 if test -n "${tmp_mpi_vars}" -a \
         \( -z "${MPICC}" -o -z "${MPIFC}" \); then
   AC_MSG_ERROR([MPICC and MPIFC must both be set])
-fi
-tmp_netcdf_vars="${NETCDF_INCLUDES}${NETCDF_LIBS}"
-if test -n "${tmp_netcdf_vars}" -a \
-        \( -z "${NETCDF_INCLUDES}" -o -z "${NETCDF_LIBS}" \); then
-  AC_MSG_ERROR([NETCDF_INCLUDES and NETCDF_LIBS must both be set])
 fi
 
 # Environment variables conflict with --with-* options
@@ -248,11 +202,6 @@ if test -n "${tmp_mpi_vars}" -a -n "${with_mpi}"; then
                   Please use MPICC + MPIFC or --with-mpi,
                   not both.])
 fi
-if test -n "${tmp_netcdf_vars}" -a -n "${with_netcdf}"; then
-  AC_MSG_ERROR([conflicting option settings
-                  Please use NETCDF_INCLUDES + NETCDF_LIBS or --with-netcdf,
-                  not both.])
-fi
 
 # When using environment variables, triggers must be set to yes
 if test -n "${tmp_hdf5_vars}"; then
@@ -263,15 +212,10 @@ if test -n "${tmp_mpi_vars}"; then
   escdf_mpi_enable="yes"
   escdf_mpi_type="env"
 fi
-if test -n "${tmp_netcdf_vars}"; then
-  escdf_netcdf_enable="yes"
-  escdf_netcdf_type="env"
-fi
 
 # Clean-up
 unset tmp_hdf5_vars
 unset tmp_mpi_vars
-unset tmp_netcdf_vars
 
                     # ------------------------------------ #
 
@@ -287,21 +231,16 @@ AC_SUBST(escdf_hdf5_ser_libs_def)
 AC_SUBST(escdf_hdf5_mpi_incs_def)
 AC_SUBST(escdf_hdf5_mpi_libs_def)
 AC_SUBST(escdf_mpi_enable_def)
-AC_SUBST(escdf_netcdf_enable_def)
-AC_SUBST(escdf_netcdf_incs_def)
-AC_SUBST(escdf_netcdf_libs_def)
 
 # Triggers
 AC_SUBST(escdf_debug_enable)
 AC_SUBST(escdf_hdf5_enable)
 AC_SUBST(escdf_mpi_enable)
-AC_SUBST(escdf_netcdf_enable)
 
 # Initialization types
 AC_SUBST(escdf_debug_type)
 AC_SUBST(escdf_hdf5_type)
 AC_SUBST(escdf_mpi_type)
-AC_SUBST(escdf_netcdf_type)
 
 # Internal MPI parameters
 AC_SUBST(escdf_mpi_cc_set)
@@ -312,8 +251,6 @@ AC_SUBST(escdf_mpi_fc_wrap)
 # Build flags for external dependencies
 AC_SUBST(escdf_hdf5_incs)
 AC_SUBST(escdf_hdf5_libs)
-AC_SUBST(escdf_netcdf_incs)
-AC_SUBST(escdf_netcdf_libs)
 
                     # ------------------------------------ #
 
@@ -458,39 +395,6 @@ else
   AC_MSG_FAILURE([HDF5 is missing or incomplete])
 fi
 
-# Set NETCDF includes
-if test "${escdf_netcdf_type}" != "dir"; then
-  if test -n "${NETCDF_INCLUDES}"; then
-    escdf_netcdf_incs="${NETCDF_INCLUDES}"
-  else
-    escdf_netcdf_incs="${escdf_netcdf_incs_def}"
-  fi
-fi
-
-# Set NETCDF libraries
-if test "${escdf_netcdf_type}" != "dir"; then
-  if test -n "${NETCDF_LIBS}"; then
-    escdf_netcdf_libs="${NETCDF_LIBS}"
-  else
-    escdf_netcdf_libs="${escdf_netcdf_libs_def}"
-  fi
-fi
-
-# Look for NETCDF
-AC_MSG_CHECKING([how NETCDF parameters have been set])
-AC_MSG_RESULT([${escdf_netcdf_type}])
-AC_MSG_CHECKING([for NETCDF include flags])
-AC_MSG_RESULT([${escdf_netcdf_incs}])
-AC_MSG_CHECKING([for NETCDF library flags])
-AC_MSG_RESULT([${escdf_netcdf_libs}])
-ESCDF_NETCDF_DETECT
-if test "${escdf_netcdf_ok}" = "yes"; then
-  CPPFLAGS="${CPPFLAGS} ${escdf_netcdf_incs}"
-  LIBS="${escdf_netcdf_libs} ${LIBS}"
-else
-  AC_MSG_FAILURE([NETCDF is missing or incomplete])
-fi
-
                     # ------------------------------------ #
 
 # Write down YAML configuration
@@ -510,7 +414,6 @@ AC_MSG_NOTICE([DEBUG    = ${escdf_debug_enable} (init: ${escdf_debug_type})])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([MPI      = ${escdf_mpi_enable} (init: ${escdf_mpi_type})])
 AC_MSG_NOTICE([HDF5     = ${escdf_hdf5_enable} (init: ${escdf_hdf5_type})])
-AC_MSG_NOTICE([NETCDF   = ${escdf_netcdf_enable} (init: ${escdf_netcdf_type})])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([CPP      = ${CPP}])
 AC_MSG_NOTICE([CPPFLAGS = ${CPPFLAGS}])

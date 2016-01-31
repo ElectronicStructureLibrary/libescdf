@@ -194,58 +194,6 @@ stop with an error, and that using environment variables conflicts with the
 use of the `--with-hdf5` option.
 
 
-NETCDF parameters
-----------------
-
-### Default behaviour ###
-
-NETCDF is a requirement of Libescdf. If you do not specify any NETCDF-related
-option, or specify `--with-netdcf` without arguments, the build system will
-look for the include files and libraries using the information made available
-by the current development environment. If it fails to detect them, it will
-stop with an error.
-
-Please note, that, for obvious reasons, specifying `--without-netdcf` is
-forbidden and will give an error.
-
-
-### Using the --with-netdcf option ###
-
-Through the `--with-netdcf` option, you can specify the installation prefix
-of a working NETCDF installation. The build system will automatically look for
-include files in the *include/* subdirectory of the specified prefix and for
-libraries in the *lib/* subdirectory. For example, if you type:
-
-    ../configure --with-netdcf=/usr/local/my_netdcf
-
-the build system will look for includes in */usr/local/my_netdcf/include/* and
-for libraries in */usr/local/my_netdcf/lib/*.
-
-With this option, the names of the libraries are set by the build system and
-take the MPI configuration into account: if MPI is enabled, the build system
-will require the MPI-aware NETCDF libraries, otherwise it will only look for
-the serial ones. You can however specify non-standard library names and
-compiler-specific parameters through environment variables.
-
-Please note that the `--with-netdcf` option conflicts with the use of
-NETCDF-related environment variables.
-
-
-### Using environment variables ###
-
-Alternatively to the `--with-netdcf` option, you can specify include flags and
-library flags through the *NETCDF_INCLUDES* and *NETCDF_LIBS* environment
-variables. For example:
-
-    ../configure \
-      NETCDF_INCLUDES="-I/usr/local/my_netdcf/include" \
-      NETCDF_LIBS="-L/usr/local/my_netdcf/lib -lnetdcf"
-
-Please note that both variables must be specified or the build system will
-stop with an error, and that using environment variables conflicts with the
-use of the `--with-netdcf` option.
-
-
 Troubleshooting
 ---------------
 
@@ -372,8 +320,8 @@ Here is an example of what you can put in the *git-version* file:
     
     module-whatis  "Sets the environment for $desc"
     
-    setenv NETCDF_INCLUDES "-I$root/include"
-    setenv NETCDF_LIBS "-L$root/lib -lescdf"
+    setenv ESCDF_INCLUDES "-I$root/include"
+    setenv ESCDF_LIBS "-L$root/lib -lescdf"
     
     prepend-path LD_LIBRARY_PATH $root/lib
     prepend-path LIBRARY_PATH $root/lib
