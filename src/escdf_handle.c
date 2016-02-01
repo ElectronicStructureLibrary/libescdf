@@ -35,7 +35,7 @@ struct escdf_handle {
  *****************************************************************************/
 
 escdf_handle_t * escdf_open(char *filename) {
-    escdf_handle_t *handle = (escdf_handle_t *) malloc(sizeof escdf_handle_t);
+    escdf_handle_t *handle = (escdf_handle_t *) malloc(sizeof(escdf_handle_t));
     if (handle != NULL)
         handle->file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     return handle;
