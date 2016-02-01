@@ -39,4 +39,8 @@
 #define ESCDF_ETYPE 7
 #define ESCDF_EVALUE 8
 
+#define ESCDF_ERROR_ARGS -10000
+#define ESCDF_ERROR_DIM -1000
+#define ESCDF_ERROR_RANGE -2000
+
 #endif

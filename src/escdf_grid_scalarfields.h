@@ -24,9 +24,7 @@
 #include "escdf_handle.h"
 
 
-typedef int escdf_err_t;
 #include <string.h>
-#include <stdio.h>
 
 /*****************************************************************************
  * Data structures                                                           *
@@ -69,10 +67,10 @@ void escdf_grid_scalarfield_free(escdf_grid_scalarfield_t *scalarfield);
  * @param[in] path: the path to the ESCDF scalarfield group.
  * @return error code.
  */
-escdf_err_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **scalarfield,
-                                                 hid_t file_id, const char *path);
+escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **scalarfield,
+                                                   hid_t file_id, const char *path);
 
 
-escdf_err_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarfield, FILE *f);
+escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarfield, FILE *f);
 
 #endif
