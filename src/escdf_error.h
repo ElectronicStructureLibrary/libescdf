@@ -132,9 +132,9 @@ const char *escdf_error_string(const int error_id);
  * error conditions from inner loops to outer loops
  */
 #define BREAK_ON_DEFERRED_ERROR \
-  if ( escdf_error_get_last(__func__) != ESCDF_SUCCESS ) { \
-    break; \
-  }
+    if ( escdf_error_get_last(__func__) != ESCDF_SUCCESS ) { \
+      break; \
+    }
 
 /**
  * Deferred error handler macro for function calls, when it is necessary
@@ -151,9 +151,9 @@ const char *escdf_error_string(const int error_id);
  * @param[in] error_id: error code to set
  */
 #define DEFER_TEST_ERROR(condition, error_id) \
-  if ( !(condition) ) {		    \
-    escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
-  } 
+    if ( !(condition) ) {		    \
+        escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+    }
 
 /**
  * Macro to break out of a loop when a condition is unsatisfied
@@ -161,10 +161,10 @@ const char *escdf_error_string(const int error_id);
  * @param[in] error_id: error code to set before breaking out of the loop
  */
 #define FULFILL_OR_BREAK(condition, error_id) \
-  if (!(condition)) { \
-    escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
-    break; \
-  }
+    if (!(condition)) { \
+        escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+        break; \
+    }
 
 /**
  * Macro to exit the program when a condition is unsatisfied
@@ -172,11 +172,11 @@ const char *escdf_error_string(const int error_id);
  * @param[in] error_id: error code to set before aborting
  */
 #define FULFILL_OR_EXIT(condition, error_id) \
-  if ( !(condition) ) {		    \
-    escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
-    escdf_error_flush(stderr); \
-    exit(1); \
-  } 
+    if ( !(condition) ) {		    \
+        escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+        escdf_error_flush(stderr); \
+        exit(1); \
+    }
 
 /**
  * Macro to return from a routine when a condition is unsatisfied
@@ -184,17 +184,17 @@ const char *escdf_error_string(const int error_id);
  * @param[in] error_id: error code to set before returning
  */
 #define FULFILL_OR_RETURN(condition, error_id) \
-  if (!(condition)) {		    \
-    return escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
-  }
+    if (!(condition)) {		    \
+        return escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+    }
 
 /**
  * Error handler macro for deferred errors
  */
 #define RETURN_ON_DEFERRED_ERROR \
-  if ( escdf_error_get_last(__func__) != ESCDF_SUCCESS ) { \
-    return escdf_error_get_last(__func__); \
-  }
+    if ( escdf_error_get_last(__func__) != ESCDF_SUCCESS ) { \
+        return escdf_error_get_last(__func__); \
+    }
 
 /**
  * Error handler macro ensuring that errors are properly registered
@@ -209,44 +209,44 @@ const char *escdf_error_string(const int error_id);
  * @param[in] function_call: the function to be called with all its parameters
  */
 #define SUCCEED_OR_BREAK(function_call) \
-  if ( escdf_error_add(function_call, __FILE__, __LINE__, __func__) != ESCDF_SUCCESS ) { \
-    break; \
-  }
+    if ( escdf_error_add(function_call, __FILE__, __LINE__, __func__) != ESCDF_SUCCESS ) { \
+        break; \
+    }
 
 /**
  * Return when a pspio function call fails
  * @param[in] function_call: the function to be called with all its parameters
  */
 #define SUCCEED_OR_RETURN(function_call) \
-  if ( escdf_error_add(function_call, __FILE__, __LINE__, __func__) != ESCDF_SUCCESS ) { \
-    return escdf_error_get_last(NULL); \
-  }
+    if ( escdf_error_add(function_call, __FILE__, __LINE__, __func__) != ESCDF_SUCCESS ) { \
+        return escdf_error_get_last(NULL); \
+    }
 
 /**
  * Macro to skip routine execution on error
  * @param[in] routine_call: the routine to be called with all its parameters
  */
 #define SKIP_CALL_ON_ERROR(routine_call) \
-  if ( escdf_error_get_last(__func__) == ESCDF_SUCCESS ) { \
-    routine_call; \
-  }
+    if ( escdf_error_get_last(__func__) == ESCDF_SUCCESS ) { \
+        routine_call; \
+    }
 
 /**
  * Macro to skip function execution on error
  * @param[in] function_call: the function to be called with all its parameters
  */
 #define SKIP_FUNC_ON_ERROR(function_call) \
-  if ( escdf_error_get_last(__func__) == ESCDF_SUCCESS ) { \
-    escdf_error_add(function_call, __FILE__, __LINE__, __func__); \
-  }
+    if ( escdf_error_get_last(__func__) == ESCDF_SUCCESS ) { \
+        escdf_error_add(function_call, __FILE__, __LINE__, __func__); \
+    }
 
 /**
  * Macro to skip a test on error
  * @param[in] function_call: the function to be called with all its parameters
  */
 #define SKIP_TEST_ON_ERROR(condition, error_id) \
-  if ( (escdf_error_get_last(__func__) == ESCDF_SUCCESS) && !(condition) ) { \
-    escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
-  }
+    if ( (escdf_error_get_last(__func__) == ESCDF_SUCCESS) && !(condition) ) { \
+        escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+    }
 
 #endif
