@@ -47,7 +47,7 @@ struct escdf_error_type {
 };
 typedef struct escdf_error_type escdf_error_t;
 
-typedef int escdf_err_t;
+typedef int escdf_errno_t;
 
 /**********************************************************************
  * Routines                                                           *

@@ -31,7 +31,8 @@
 /* Store successive errors in a chain */
 static escdf_error_t *ESCDF_error_chain = NULL;
 
-int escdf_error_add(const int error_id, const char *filename, const int line, const char *routine)
+escdf_errno_t escdf_error_add(const escdf_errno_t error_id, const char *filename,
+                              const int line, const char *routine)
 {
     size_t s;
     escdf_error_t *last_err;
@@ -139,7 +140,7 @@ void escdf_error_fetchall(char **err_str)
 
         tmp_str  = (char *) malloc ((err_len+1)*sizeof(char));
         assert(tmp_str != NULL);
-        sprintf(tmp_str, "  * in %s(%s):%d:\n      %s\n", cursor->filename, 
+        sprintf(tmp_str, "  * in %s(%s):%d:\n      %s\n", cursor->filename,
                 cursor->routine, cursor->line, escdf_error_string(cursor->id));
         *err_str = realloc(*err_str, strlen(*err_str)+err_len+1);
         if ( *err_str == NULL ) {
@@ -182,9 +183,9 @@ void escdf_error_free(void)
     }
 }
 
-int escdf_error_get_last(const char *routine)
+escdf_errno_t escdf_error_get_last(const char *routine)
 {
-    int eid = ESCDF_SUCCESS;
+    escdf_errno_t eid = ESCDF_SUCCESS;
     escdf_error_t *cursor = ESCDF_error_chain;
 
     while ( cursor != NULL ) {
@@ -226,8 +227,8 @@ escdf_error_t *escdf_error_pop(void)
     return first_error;
 }
 
-void escdf_error_show(const int error_id, const char *filename, const int line,
-                      const char *routine)
+void escdf_error_show(const escdf_errno_t error_id, const char *filename,
+                      const int line, const char *routine)
 {
     fprintf(stderr, "libescdf: ERROR:\n");
     if ( (filename != NULL) && (routine != NULL) ) {
@@ -236,7 +237,7 @@ void escdf_error_show(const int error_id, const char *filename, const int line,
     fprintf(stderr, "      %s\n", escdf_error_string(error_id));
 }
 
-const char *escdf_error_string(const int error_id)
+const char *escdf_error_string(const escdf_errno_t error_id)
 {
     switch (error_id) {
     case ESCDF_SUCCESS:
