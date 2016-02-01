@@ -100,7 +100,7 @@ static bool escdf_hdf5_check_present(hid_t loc_id, const char *name)
     return true;
 }
 
-static escdf_err_t escdf_hdf5_check_shape(hid_t loc_id, const char *name,
+static escdf_errno_t escdf_hdf5_check_shape(hid_t loc_id, const char *name,
                                           hsize_t *dims, unsigned int ndims,
                                           hid_t *dtset_pt)
 {
@@ -165,11 +165,11 @@ static escdf_err_t escdf_hdf5_check_shape(hid_t loc_id, const char *name,
     return ESCDF_ERROR;
 }
 
-static escdf_err_t escdf_hdf5_readall_array(hid_t loc_id, const char *name,
+static escdf_errno_t escdf_hdf5_readall_array(hid_t loc_id, const char *name,
                                             hid_t mem_type_id, hsize_t *dims,
                                             unsigned int ndims, void *buf)
 {
-    escdf_err_t err;
+    escdf_errno_t err;
 
     hid_t dtset_id;
     herr_t err_id;
@@ -187,10 +187,10 @@ static escdf_err_t escdf_hdf5_readall_array(hid_t loc_id, const char *name,
     H5Dclose(dtset_id);
     return err;
 }
-static escdf_err_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
+static escdf_errno_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
                                         _uint_set_t *scalar, unsigned int range[2])
 {
-    escdf_err_t err;
+    escdf_errno_t err;
     int value;
     hsize_t dims[1] = {1};
     
@@ -205,11 +205,11 @@ static escdf_err_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
 
     return ESCDF_SUCCESS;
 }
-static escdf_err_t escdf_hdf5_read_uint_array(hid_t loc_id, const char *name,
+static escdf_errno_t escdf_hdf5_read_uint_array(hid_t loc_id, const char *name,
                                               unsigned int **array, hsize_t *dims,
                                               unsigned int ndims, unsigned int range[2])
 {
-    escdf_err_t err;
+    escdf_errno_t err;
     unsigned int i;
     hsize_t len;
     
@@ -232,11 +232,11 @@ static escdf_err_t escdf_hdf5_read_uint_array(hid_t loc_id, const char *name,
     }
     return ESCDF_SUCCESS;
 }
-static escdf_err_t escdf_hdf5_read_dbl_array(hid_t loc_id, const char *name,
+static escdf_errno_t escdf_hdf5_read_dbl_array(hid_t loc_id, const char *name,
                                              double **array, hsize_t *dims,
                                              unsigned int ndims, double range[2])
 {
-    escdf_err_t err;
+    escdf_errno_t err;
     unsigned int i;
     hsize_t len;
 
@@ -260,10 +260,10 @@ static escdf_err_t escdf_hdf5_read_dbl_array(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 
-escdf_err_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **scalarfield,
+escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **scalarfield,
                                                  hid_t file_id, const char *path)
 {
-    escdf_err_t err;
+    escdf_errno_t err;
     unsigned int i;
     unsigned int rgPhys[2] = {1, 3};
     unsigned int rgDim[2] = {0, 2};
@@ -352,7 +352,7 @@ escdf_err_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **scal
     return ESCDF_SUCCESS;
 }
 
-escdf_err_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarfield, FILE *f)
+escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarfield, FILE *f)
 {
     unsigned int i, j;
     
