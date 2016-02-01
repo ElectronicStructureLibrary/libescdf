@@ -28,15 +28,15 @@
  *
  * Note: except for SUCCESS and ERROR, please keep alphabetical order.
  */
-#define PSPIO_SUCCESS  0
-#define PSPIO_ERROR   -1
-#define PSPIO_EFILE_CORRUPT 1
-#define PSPIO_EFILE_FORMAT 2
-#define PSPIO_EIO 3
-#define PSPIO_ENOFILE 4
-#define PSPIO_ENOMEM 5
-#define PSPIO_ENOSUPPORT 6
-#define PSPIO_ETYPE 7
-#define PSPIO_EVALUE 8
+#define ESCDF_SUCCESS  0
+#define ESCDF_ERROR   -1
+#define ESCDF_EFILE_CORRUPT 1
+#define ESCDF_EFILE_FORMAT 2
+#define ESCDF_EIO 3
+#define ESCDF_ENOFILE 4
+#define ESCDF_ENOMEM 5
+#define ESCDF_ENOSUPPORT 6
+#define ESCDF_ETYPE 7
+#define ESCDF_EVALUE 8
 
 #endif
