@@ -1,0 +1,45 @@
+#!/bin/sh
+
+VALGRIND="@VALGRIND@"
+VALGRIND_FLAGS="--track-origins=yes --leak-check=full --show-reachable=yes"
+enable_gcov="@enable_gcov@"
+enable_memprof="@enable_memprof@"
+my_name=`basename $0`
+
+# This variable should contain a list of programs to run with the
+# memory profiling.
+test_programs="check_escdf"
+
+# To get an accurate report when running check, we need to run without
+# fork.
+export CK_FORK=no
+
+
+if test "${enable_memprof}" = "yes" -a "${enable_gcov}" = "no"; then
+  test_execs=""
+  for src in ${test_programs}; do
+    exe=`basename "${src}" | cut -d. -f1`
+    if test "${exe}" = "${src}"; then
+      test_execs="${test_execs} ${exe}"
+    fi
+  done
+  test_execs=`echo "${test_execs}" | sort -u`
+
+  exit_code=0
+  for mem_test in ${test_execs}; do
+    echo "${my_name}: running memory profiling for ${mem_test}"
+    ${VALGRIND} ${VALGRIND_FLAGS} ./${mem_test} >${mem_test}-memory.log 2>&1
+    if test "$(grep -c 'ERROR SUMMARY: 0 errors' ${mem_test}-memory.log)" = "0"; then
+      echo "${my_name}: ${mem_test} has memory leaks"
+      exit_code=1
+    fi
+  done
+  exit ${exit_code}
+else
+  if test "${enable_gcov}" = "yes"; then
+    echo "Code coverage analysis enabled - skipping test"
+  else
+    echo "Memory profiling disabled - skipping test"
+  fi
+  exit 77
+fi

@@ -38,6 +38,7 @@ escdf_core_srcs = \
 # Exported C headers - keep this in alphabetical order
 escdf_core_hdrs = \
   escdf.h \
+  escdf_common.h \
   escdf_geometry.h \
   escdf_handler.h
 
@@ -63,3 +64,58 @@ libescdf_la_SOURCES = $(escdf_core_srcs)
 # Headers
 include_HEADERS = $(escdf_core_hdrs)
 noinst_HEADERS = $(escdf_hidden_hdrs)
+
+
+                    # ------------------------------------ #
+
+#
+# Test programs
+#
+
+escdf_basic_tests = \
+  check_escdf
+escdf_gcov_pre_tests = \
+  gcov_clean
+escdf_gcov_post_tests = \
+  gcov_report
+escdf_memprof_tests = \
+  test_memory
+
+check_PROGRAMS = $(escdf_basic_tests)
+nodist_check_SCRIPTS = \
+  $(escdf_gcov_pre_tests) \
+  $(escdf_gcov_post_tests) \
+  $(escdf_memprof_tests)
+
+check_escdf_SOURCES = \
+  check_escdf.h \
+  check_escdf.c
+
+check_escdf_CPPFLAGS = -I$(top_srcdir)/src @escdf_check_incs@
+check_escdf_CFLAGS = @escdf_check_cflags@
+check_escdf_LDFLAGS = @escdf_check_ldflags@
+check_escdf_LDADD = -lescdf $(LIBS_COVERAGE) @escdf_check_libs@
+check_escdf_DEPENDENCIES = libescdf.la
+
+TESTS = \
+  $(escdf_gcov_pre_tests) \
+  $(escdf_basic_tests) \
+  $(escdf_gcov_post_tests) \
+  $(escdf_memprof_tests)
+
+                    # ------------------------------------ #
+
+#
+# Explicit dependencies
+#
+
+-include gcov-tests-deps.mf
+
+                    # ------------------------------------ #
+
+#
+# Clean targets
+#
+
+# Temporary test outputs
+MOSTLYCLEANFILES = *.gcda *.gcno *.gcov test_*.tmp
