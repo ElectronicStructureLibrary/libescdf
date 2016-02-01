@@ -25,5 +25,6 @@
  * @brief escdf check testsuites
  */
 
+Suite *make_info_suite(void);
 
 #endif

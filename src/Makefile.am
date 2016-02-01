@@ -32,7 +32,7 @@
 escdf_core_srcs = \
   escdf.c \
   escdf_geometry.c \
-  escdf_handler.c \
+  escdf_handle.c \
   escdf_info.c \
   utils.c
 
@@ -41,12 +41,12 @@ escdf_core_hdrs = \
   escdf.h \
   escdf_common.h \
   escdf_geometry.h \
-  escdf_handler.h \
+  escdf_handle.h \
   escdf_info.h
 
 # Internal C headers - keep this in alphabetical order
 escdf_hidden_hdrs = \
-  util.h
+  utils.h
 
                     # ------------------------------------ #
 
@@ -91,7 +91,8 @@ nodist_check_SCRIPTS = \
 
 check_escdf_SOURCES = \
   check_escdf.h \
-  check_escdf.c
+  check_escdf.c \
+  check_escdf_info.c
 
 check_escdf_CPPFLAGS = -I$(top_srcdir)/src @escdf_check_incs@
 check_escdf_CFLAGS = @escdf_check_cflags@
