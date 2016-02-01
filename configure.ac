@@ -43,6 +43,10 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_PROG_SED
 
+# Init variables
+escdf_core_incs=""
+AC_SUBST(escdf_core_incs) 
+
                     # ------------------------------------ #
 
 #
