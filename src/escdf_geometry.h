@@ -25,7 +25,7 @@
 #include "escdf_error.h"
 
 #include "utils.h"
-#include "handle.h"
+#include "escdf_handle.h"
 
 
 /*****************************************************************************
@@ -38,7 +38,7 @@
  * present in the group or not.
 */
 typedef struct  {
-    _handle_t handle; /**< Handle for HDF5 group */
+    hid_t group_id; /**< Handle for HDF5 group */
 
     /* The metadata */
     _int_set_t number_of_physical_dimensions;
@@ -60,7 +60,7 @@ typedef struct  {
  * @param[in] path: the path to the ESCDF geometry group.
  * @return instance of the geometry data type.
  */
-escdf_geometry_t * escdf_geometry_new(const char *path);
+escdf_geometry_t * escdf_geometry_new(escdf_handle_t *handle, const char *path);
 
 /**
  * Free all memory associated with the geometry group.
@@ -83,7 +83,7 @@ void escdf_geometry_free(escdf_geometry_t * geometry);
  * @param[in] path: the path to the ESCDF geometry group.
  * @return error code.
  */
-escdf_err_t escdf_geometry_read_metadata(escdf_geometry_t **geometry, const char *path);
+escdf_err_t escdf_geometry_read_metadata(escdf_geometry_t **geometry, escdf_handle_t *handle, const char *path);
 
 /**
  * Given a geometry data type, it writes all the metadata stored in it to the
