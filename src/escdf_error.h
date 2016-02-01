@@ -62,8 +62,8 @@ typedef int escdf_errno_t;
  * @param[in] routine: current routine in the source file.
  * @return the error code provided as input (for automation purposes).
  */
-int escdf_error_add(const int error_id, const char *filename, const int line,
-                    const char *routine);
+escdf_errno_t escdf_error_add(const escdf_errno_t error_id, const char *filename,
+                              const int line, const char *routine);
 
 /**
  * Fetch and clear the error chain.
@@ -89,7 +89,7 @@ void escdf_error_free(void);
  *            last error if NULL.
  * @return error code
  */
-int escdf_error_get_last(const char *routine);
+escdf_errno_t escdf_error_get_last(const char *routine);
 
 /**
  * Get the length of the error chain.
@@ -112,15 +112,15 @@ escdf_error_t *escdf_error_pop(void);
  * @param[in] routine: current routine in the source file.
  * @return string with error message.
  */
-void escdf_error_show(const int error_id, const char *filename, const int line,
-                      const char *routine);
+void escdf_error_show(const escdf_errno_t error_id, const char *filename,
+                      const int line, const char *routine);
 
 /**
  * Returns a string with error description.
  * @param[in] error_id: integer identifying the error.
  * @return string with error message.
  */
-const char *escdf_error_string(const int error_id);
+const char *escdf_error_string(const escdf_errno_t error_id);
 
 
 /**********************************************************************

@@ -124,7 +124,7 @@ void escdf_error_fetchall(char **err_str)
     if ( cursor != NULL ) {
         *err_str  = (char *) malloc (20*sizeof(char));
         assert(*err_str != NULL);
-        sprintf(*err_str, "%s\n", "libpspio: ERROR:");
+        sprintf(*err_str, "%s\n", "libescdf: ERROR:");
     }
 
     while ( cursor != NULL ) {
@@ -144,7 +144,8 @@ void escdf_error_fetchall(char **err_str)
                 cursor->routine, cursor->line, escdf_error_string(cursor->id));
         *err_str = realloc(*err_str, strlen(*err_str)+err_len+1);
         if ( *err_str == NULL ) {
-        fprintf(stderr, "libpspio: FATAL:\n      could not build error message.\n");
+        fprintf(stderr, "libescdf: FATAL:\n      could not build error message"
+                ".\n");
         exit(1);
         }
         strcat(*err_str, tmp_str);
@@ -254,6 +255,8 @@ const char *escdf_error_string(const escdf_errno_t error_id)
         return "file does not exist (ESCDF_ENOFILE)" ;
     case ESCDF_ENOMEM:
         return "malloc failed (ESCDF_ENOMEM)";
+    case ESCDF_ENOSUPPORT:
+        return "unsupported option in file (ESCDF_ENOSUPPORT)";
     case ESCDF_EVALUE:
         return "value error: bad value found (ESCDF_EVALUE)";
     default:
