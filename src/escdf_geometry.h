@@ -41,8 +41,8 @@ typedef struct  {
     hid_t group_id; /**< Handle for HDF5 group */
 
     /* The metadata */
-    _uint_set_t number_of_physical_dimensions;
-    unsigned int *dimension_types;
+    _int_set_t number_of_physical_dimensions;
+    int *dimension_types;
     _bool_set_t embedded_system;
 
     /* Information about which data is present in the group */
@@ -106,7 +106,7 @@ escdf_err_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry);
  * @return error code.
  */
 escdf_err_t escdf_geometry_set_number_of_physical_dimensions(escdf_geometry_t *geometry,
-                                                     const unsigned int number_of_physical_dimensions);
+                                                     const int number_of_physical_dimensions);
 
 /**
  * Get the value of number_of_physical_dimensions stored in the geometry data
@@ -115,7 +115,7 @@ escdf_err_t escdf_geometry_set_number_of_physical_dimensions(escdf_geometry_t *g
  * @param[in] geometry: instance of the geometry group.
  * @return the value of the variable.
  */
-unsigned int escdf_geometry_get_number_of_physical_dimensions(const escdf_geometry_t *geometry);
+int escdf_geometry_get_number_of_physical_dimensions(const escdf_geometry_t *geometry);
 
 /**
  * Get a pointer to number_of_physical_dimensions stored in the geometry data
@@ -124,7 +124,7 @@ unsigned int escdf_geometry_get_number_of_physical_dimensions(const escdf_geomet
  * @param[in] geometry: instance of the geometry group.
  * @return pointer to the variable.
  */
-const unsigned int * escdf_geometry_ptr_dimension_types(const escdf_geometry_t *geometry);
+const int * escdf_geometry_ptr_dimension_types(const escdf_geometry_t *geometry);
 
 /**
  * Returns if number_of_physical_dimensions has been set or not in the geometry
