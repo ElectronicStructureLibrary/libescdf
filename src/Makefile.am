@@ -33,6 +33,7 @@ escdf_core_srcs = \
   escdf.c \
   escdf_geometry.c \
   escdf_handler.c \
+  escdf_info.c \
   utils.c
 
 # Exported C headers - keep this in alphabetical order
@@ -40,7 +41,8 @@ escdf_core_hdrs = \
   escdf.h \
   escdf_common.h \
   escdf_geometry.h \
-  escdf_handler.h
+  escdf_handler.h \
+  escdf_info.h
 
 # Internal C headers - keep this in alphabetical order
 escdf_hidden_hdrs = \
