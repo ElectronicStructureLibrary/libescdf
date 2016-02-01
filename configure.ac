@@ -14,7 +14,7 @@ Electronic Structure Library Wiki.])
 
 # Init Autoconf
 AC_PREREQ([2.69])
-AC_INIT([LibESCDF], [0.1], [https://github.com/ElectronicStructureLibrary/libescdf/issues], [libescdf])
+AC_INIT([LibESCDF], [0.1.0], [https://github.com/ElectronicStructureLibrary/libescdf/issues], [libescdf])
 AC_CONFIG_AUX_DIR([config/gnu])
 AC_CONFIG_MACRO_DIR([config/m4])
 AC_CONFIG_SRCDIR([src/escdf.h])
