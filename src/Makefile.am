@@ -92,6 +92,7 @@ nodist_check_SCRIPTS = \
 check_escdf_SOURCES = \
   check_escdf.h \
   check_escdf.c \
+  check_escdf_handle.c \
   check_escdf_info.c
 
 check_escdf_CPPFLAGS = -I$(top_srcdir)/src @escdf_check_incs@
