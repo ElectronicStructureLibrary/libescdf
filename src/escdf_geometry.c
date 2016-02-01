@@ -95,11 +95,14 @@ escdf_error_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry)
 
     /* write attributes of the group */
 
-    dims = 1;
-    dataspace_id = H5Screate_simple(1, &dims, NULL);
-    attribute_id = H5Acreate2(geometry->group_id, "number_of_physical_dimensions", H5T_NATIVE_INT,
-                              dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
-    herr_status = H5Awrite(attribute_id, H5T_NATIVE_INT, &geometry->number_of_physical_dimensions.value);
+    /* --number_of_physical_dimensions */
+    if (geometry->number_of_physical_dimensions.is_set) {
+        dims = 1;
+        dataspace_id = H5Screate_simple(1, &dims, NULL);
+        attribute_id = H5Acreate2(geometry->group_id, "number_of_physical_dimensions", H5T_NATIVE_INT,
+                                  dataspace_id, H5P_DEFAULT, H5P_DEFAULT);
+        herr_status = H5Awrite(attribute_id, H5T_NATIVE_INT, &geometry->number_of_physical_dimensions.value);
+    }
 
     /* write datasets of the group */
 
