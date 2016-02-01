@@ -26,5 +26,6 @@
  */
 
 Suite *make_info_suite(void);
+Suite *make_handle_suite(void);
 
 #endif
