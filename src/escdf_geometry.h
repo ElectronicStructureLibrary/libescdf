@@ -60,7 +60,7 @@ typedef struct  {
  * @param[in] path: the path to the ESCDF geometry group.
  * @return instance of the geometry data type.
  */
-escdf_geometry_t * escdf_geometry_new(escdf_handle_t *handle, const char *path);
+escdf_geometry_t * escdf_geometry_new(const hid_t file, const char *path);
 
 /**
  * Free all memory associated with the geometry group.
@@ -83,7 +83,7 @@ void escdf_geometry_free(escdf_geometry_t * geometry);
  * @param[in] path: the path to the ESCDF geometry group.
  * @return error code.
  */
-escdf_err_t escdf_geometry_read_metadata(escdf_geometry_t **geometry, escdf_handle_t *handle, const char *path);
+escdf_error_t escdf_geometry_read_metadata(escdf_geometry_t *geometry);
 
 /**
  * Given a geometry data type, it writes all the metadata stored in it to the
@@ -95,7 +95,7 @@ escdf_err_t escdf_geometry_read_metadata(escdf_geometry_t **geometry, escdf_hand
  * @param[in] geometry: instance of the geometry group.
  * @return error code.
  */
-escdf_err_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry);
+escdf_error_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry);
 
 
 /**
@@ -105,7 +105,7 @@ escdf_err_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry);
  * @param[in] number_of_physical_dimensions: the value of the variable to be set.
  * @return error code.
  */
-escdf_err_t escdf_geometry_set_number_of_physical_dimensions(escdf_geometry_t *geometry,
+escdf_error_t escdf_geometry_set_number_of_physical_dimensions(escdf_geometry_t *geometry,
                                                      const int number_of_physical_dimensions);
 
 /**
@@ -150,7 +150,7 @@ bool escdf_geometry_is_set_number_of_physical_dimensions(const escdf_geometry_t 
  * @param[in] map:
  * @return error code.
  */
-escdf_err_t escdf_geometry_write_magnetic_moment_directions(const escdf_geometry_t *geometry, const double *buffer,
+escdf_error_t escdf_geometry_write_magnetic_moment_directions(const escdf_geometry_t *geometry, const double *buffer,
                                                             const unsigned int *start, const unsigned int *count,
                                                             const unsigned int *map);
 /**
@@ -163,7 +163,7 @@ escdf_err_t escdf_geometry_write_magnetic_moment_directions(const escdf_geometry
  * @param[in] map: vector of integers that specifies the mapping between the dimensions of the variable and the in-memory structure of the internal data array.
  * @return error code.
  */
-escdf_err_t escdf_geometry_read_magnetic_moment_directions(const escdf_geometry_t *geometry, double *buffer,
+escdf_error_t escdf_geometry_read_magnetic_moment_directions(const escdf_geometry_t *geometry, double *buffer,
                                                            const unsigned int *start, const unsigned int *count,
                                                            const unsigned int *map);
 
