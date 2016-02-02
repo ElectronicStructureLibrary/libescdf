@@ -188,7 +188,7 @@ static escdf_errno_t escdf_hdf5_readall_array(hid_t loc_id, const char *name,
     return err;
 }
 static escdf_errno_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
-                                        _uint_set_t *scalar, unsigned int range[2])
+                                          _uint_set_t *scalar, unsigned int range[2])
 {
     escdf_errno_t err;
     int value;
@@ -200,8 +200,7 @@ static escdf_errno_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
     if ((unsigned int)value < range[0] || (unsigned int)value > range[1]) {
         RETURN_WITH_ERROR(ESCDF_ERANGE);
     }
-    scalar->value = (unsigned int)value;
-    scalar->is_set = true;
+    *scalar = _uint_set((unsigned int)value);
 
     return ESCDF_SUCCESS;
 }
@@ -440,8 +439,8 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_physical_dimensions(escdf_gri
     FULFILL_OR_RETURN(number_of_physical_dimensions > 0 &&
                       number_of_physical_dimensions < 4, ESCDF_ERANGE);
 
-    scalarfield->cell.number_of_physical_dimensions.value = number_of_physical_dimensions;
-    scalarfield->cell.number_of_physical_dimensions.is_set = true;
+    scalarfield->cell.number_of_physical_dimensions =
+        _uint_set(number_of_physical_dimensions);
 
     return ESCDF_SUCCESS;
 }
@@ -513,8 +512,7 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_components(escdf_grid_scalarf
     FULFILL_OR_RETURN(number_of_components > 0 &&
                       number_of_components < 5, ESCDF_ERANGE);
 
-    scalarfield->number_of_components.value = number_of_components;
-    scalarfield->number_of_components.is_set = true;
+    scalarfield->number_of_components = _uint_set(number_of_components);
 
     return ESCDF_SUCCESS;
 }
@@ -526,8 +524,7 @@ escdf_errno_t escdf_grid_scalarfield_set_real_or_complex(escdf_grid_scalarfield_
     FULFILL_OR_RETURN(real_or_complex > 0 &&
                       real_or_complex < 3, ESCDF_ERANGE);
 
-    scalarfield->real_or_complex.value = real_or_complex;
-    scalarfield->real_or_complex.is_set = true;
+    scalarfield->real_or_complex = _uint_set(real_or_complex);
 
     return ESCDF_SUCCESS;
 }
