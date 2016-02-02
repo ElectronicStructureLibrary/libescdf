@@ -108,6 +108,9 @@ START_TEST(test_getters)
     uval = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
     ck_assert(uval == 1);
     
+    uval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
+    ck_assert(uval == 1);
+    
     escdf_grid_scalarfield_free(scalarfield);
 
     H5Fclose(file_id);
@@ -246,6 +249,23 @@ START_TEST(test_set_real_or_complex)
 }
 END_TEST
 
+START_TEST(test_set_use_default_ordering)
+{
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uval;
+
+    scalarfield = escdf_grid_scalarfield_new("density");
+
+    err = escdf_grid_scalarfield_set_use_default_ordering(scalarfield, 0);
+    ck_assert(err == ESCDF_SUCCESS);
+    uval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
+    ck_assert(uval == 0);
+    
+    escdf_grid_scalarfield_free(scalarfield);
+}
+END_TEST
+
 Suite * make_grid_scalarfield_suite(void)
 {
     Suite *s;
@@ -262,6 +282,7 @@ Suite * make_grid_scalarfield_suite(void)
     tcase_add_test(tc_info, test_set_number_of_grid_points);
     tcase_add_test(tc_info, test_set_number_of_components);
     tcase_add_test(tc_info, test_set_real_or_complex);
+    tcase_add_test(tc_info, test_set_use_default_ordering);
     suite_add_tcase(s, tc_info);
 
     return s;

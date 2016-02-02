@@ -104,8 +104,8 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_grid_points(escdf_grid_scalar
                                                                const unsigned int *number_of_grid_points,
                                                                const size_t len);
 escdf_errno_t escdf_grid_scalarfield_get_number_of_grid_points(const escdf_grid_scalarfield_t *scalarfield,
-                                                         unsigned int *number_of_grid_points,
-                                                         const size_t len);
+                                                               unsigned int *number_of_grid_points,
+                                                               const size_t len);
 const unsigned int* escdf_grid_scalarfield_ptr_number_of_grid_points(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_set_number_of_components(escdf_grid_scalarfield_t *scalarfield,
@@ -116,6 +116,9 @@ escdf_errno_t escdf_grid_scalarfield_set_real_or_complex(escdf_grid_scalarfield_
                                                          const unsigned int real_or_complex);
 unsigned int escdf_grid_scalarfield_get_real_or_complex(const escdf_grid_scalarfield_t *scalarfield);
 
+escdf_errno_t escdf_grid_scalarfield_set_use_default_ordering(escdf_grid_scalarfield_t *scalarfield,
+                                                              const bool use_default_ordering);
+bool escdf_grid_scalarfield_get_use_default_ordering(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarfield, FILE *f);
 
