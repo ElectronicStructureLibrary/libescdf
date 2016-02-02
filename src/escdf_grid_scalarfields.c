@@ -48,30 +48,12 @@ escdf_grid_scalarfield_t* escdf_grid_scalarfield_new(const char *path)
 {
     escdf_grid_scalarfield_t *scalarfield;
 
-    scalarfield = malloc(sizeof(escdf_grid_scalarfield_t));
+    scalarfield = calloc(1, sizeof(escdf_grid_scalarfield_t));
     if (!path || !path[0]) {
         scalarfield->path = strdup("density");
     } else {
         scalarfield->path = strdup(path);
     }
-    scalarfield->cell.number_of_physical_dimensions.value = 0;
-    scalarfield->cell.number_of_physical_dimensions.is_set = false;
-
-    scalarfield->cell.dimension_types = NULL;
-
-    scalarfield->cell.lattice_vectors = NULL;
-
-    scalarfield->number_of_grid_points = NULL;
-
-    scalarfield->number_of_components.value = 0;
-    scalarfield->number_of_components.is_set = false;
-
-    scalarfield->real_or_complex.value = 0;
-    scalarfield->real_or_complex.is_set = false;
-
-    scalarfield->values_on_grid_is_present = false;
-    
-    scalarfield->grid_ordering_is_present = false;
 
     return scalarfield;
 }
