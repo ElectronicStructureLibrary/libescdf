@@ -21,7 +21,7 @@
 #define LIBESCDF_ESCDF_COMMON_H
 
 /* IMPORTANT: this file must contain defines only, in order to be readable from Fortran. */
-
+#include <stdbool.h>
 
 /**
  * Error codes

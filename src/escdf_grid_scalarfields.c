@@ -38,6 +38,7 @@ struct _escdf_grid_scalarfield_t {
     unsigned int *number_of_grid_points;
     _uint_set_t number_of_components;
     _uint_set_t real_or_complex;
+    _bool_set_t use_default_ordering;
 
     /* The data */
     bool values_on_grid_is_present;
@@ -48,30 +49,12 @@ escdf_grid_scalarfield_t* escdf_grid_scalarfield_new(const char *path)
 {
     escdf_grid_scalarfield_t *scalarfield;
 
-    scalarfield = malloc(sizeof(escdf_grid_scalarfield_t));
+    scalarfield = calloc(1, sizeof(escdf_grid_scalarfield_t));
     if (!path || !path[0]) {
         scalarfield->path = strdup("density");
     } else {
         scalarfield->path = strdup(path);
     }
-    scalarfield->cell.number_of_physical_dimensions.value = 0;
-    scalarfield->cell.number_of_physical_dimensions.is_set = false;
-
-    scalarfield->cell.dimension_types = NULL;
-
-    scalarfield->cell.lattice_vectors = NULL;
-
-    scalarfield->number_of_grid_points = NULL;
-
-    scalarfield->number_of_components.value = 0;
-    scalarfield->number_of_components.is_set = false;
-
-    scalarfield->real_or_complex.value = 0;
-    scalarfield->real_or_complex.is_set = false;
-
-    scalarfield->values_on_grid_is_present = false;
-    
-    scalarfield->grid_ordering_is_present = false;
 
     return scalarfield;
 }
@@ -100,39 +83,24 @@ static bool escdf_hdf5_check_present(hid_t loc_id, const char *name)
     return true;
 }
 
-static escdf_errno_t escdf_hdf5_check_shape(hid_t loc_id, const char *name,
-                                          hsize_t *dims, unsigned int ndims,
-                                          hid_t *dtset_pt)
+static escdf_errno_t escdf_hdf5_check_shape(hid_t dtspace_id, hsize_t *dims, unsigned int ndims)
 {
-    hid_t dtset_id, dtspace_id;
     htri_t bool_id;
     int ndims_id;
     hsize_t *dims_v, *maxdims_v;
     unsigned int i;
 
-    if ((dtset_id = H5Dopen(loc_id, name, H5P_DEFAULT)) < 0)
-        RETURN_WITH_ERROR(dtset_id);
-    
-    /* Check space dimensions. */
-    if ((dtspace_id = H5Dget_space(dtset_id)) < 0) {
-        DEFER_FUNC_ERROR(dtspace_id);
-        goto cleanup_dtset;
-    }
     if ((bool_id = H5Sis_simple(dtspace_id)) < 0) {
-        DEFER_FUNC_ERROR(bool_id);
-        goto cleanup_dtspace;
+        RETURN_WITH_ERROR(bool_id);
     }
     if (!bool_id) {
-        DEFER_FUNC_ERROR(ESCDF_ERROR_DIM);
-        goto cleanup_dtspace;
+        RETURN_WITH_ERROR(ESCDF_ERROR_DIM);
     }
     if ((ndims_id = H5Sget_simple_extent_ndims(dtspace_id)) < 0) {
-        DEFER_FUNC_ERROR(ndims_id);
-        goto cleanup_dtspace;
+        RETURN_WITH_ERROR(ndims_id);
     }
     if ((unsigned int)ndims_id != ndims) {
-        DEFER_FUNC_ERROR(ESCDF_ERROR_DIM);
-        goto cleanup_dtspace;
+        RETURN_WITH_ERROR(ESCDF_ERROR_DIM);
     }
     dims_v = malloc(sizeof(hsize_t) * ndims);
     maxdims_v = malloc(sizeof(hsize_t) * ndims);
@@ -148,6 +116,65 @@ static escdf_errno_t escdf_hdf5_check_shape(hid_t loc_id, const char *name,
     }
     free(dims_v);
     free(maxdims_v);
+    return ESCDF_SUCCESS;
+
+ cleanup_dims:
+    free(dims_v);
+    free(maxdims_v);
+    return ESCDF_ERROR;
+}
+
+static escdf_errno_t escdf_hdf5_check_attr(hid_t loc_id, const char *name,
+                                           hsize_t *dims, unsigned int ndims,
+                                           hid_t *attr_pt)
+{
+    hid_t attr_id, dtspace_id;
+
+    if ((attr_id = H5Aopen(loc_id, name, H5P_DEFAULT)) < 0)
+        RETURN_WITH_ERROR(attr_id);
+    
+    /* Check space dimensions. */
+    if ((dtspace_id = H5Aget_space(attr_id)) < 0) {
+        DEFER_FUNC_ERROR(dtspace_id);
+        goto cleanup_attr;
+    }
+    if (escdf_hdf5_check_shape(dtspace_id, dims, ndims) != ESCDF_SUCCESS) {
+        goto cleanup_dtspace;
+    }
+    H5Sclose(dtspace_id);
+    if (attr_pt)
+        *attr_pt = attr_id;
+    else
+        H5Aclose(attr_id);
+    return ESCDF_SUCCESS;
+
+ cleanup_dtspace:
+    H5Sclose(dtspace_id);
+ cleanup_attr:
+    H5Aclose(attr_id);
+    return ESCDF_ERROR;
+}
+static escdf_errno_t escdf_hdf5_check_dtset(hid_t loc_id, const char *name,
+                                           hsize_t *dims, unsigned int ndims,
+                                           hid_t *dtset_pt)
+{
+    hid_t dtset_id, dtspace_id;
+    htri_t bool_id;
+    int ndims_id;
+    hsize_t *dims_v, *maxdims_v;
+    unsigned int i;
+
+    if ((dtset_id = H5Dopen(loc_id, name, H5P_DEFAULT)) < 0)
+        RETURN_WITH_ERROR(dtset_id);
+    
+    /* Check space dimensions. */
+    if ((dtspace_id = H5Dget_space(dtset_id)) < 0) {
+        DEFER_FUNC_ERROR(dtspace_id);
+        goto cleanup_dtset;
+    }
+    if (escdf_hdf5_check_shape(dtspace_id, dims, ndims) != ESCDF_SUCCESS) {
+        goto cleanup_dtspace;
+    }
     H5Sclose(dtspace_id);
     if (dtset_pt)
         *dtset_pt = dtset_id;
@@ -155,9 +182,6 @@ static escdf_errno_t escdf_hdf5_check_shape(hid_t loc_id, const char *name,
         H5Dclose(dtset_id);
     return ESCDF_SUCCESS;
 
- cleanup_dims:
-    free(dims_v);
-    free(maxdims_v);
  cleanup_dtspace:
     H5Sclose(dtspace_id);
  cleanup_dtset:
@@ -165,49 +189,62 @@ static escdf_errno_t escdf_hdf5_check_shape(hid_t loc_id, const char *name,
     return ESCDF_ERROR;
 }
 
-static escdf_errno_t escdf_hdf5_readall_array(hid_t loc_id, const char *name,
-                                            hid_t mem_type_id, hsize_t *dims,
-                                            unsigned int ndims, void *buf)
+static escdf_errno_t escdf_hdf5_read_attr(hid_t loc_id, const char *name,
+                                          hid_t mem_type_id, hsize_t *dims,
+                                          unsigned int ndims, void *buf)
 {
     escdf_errno_t err;
 
-    hid_t dtset_id;
+    hid_t attr_id;
     herr_t err_id;
 
-    if ((err = escdf_hdf5_check_shape(loc_id, name, dims, ndims, &dtset_id)) != ESCDF_SUCCESS) {
+    if ((err = escdf_hdf5_check_attr(loc_id, name, dims, ndims, &attr_id)) != ESCDF_SUCCESS) {
         return err;
     }
 
     err = ESCDF_SUCCESS;
-    if ((err_id = H5Dread(dtset_id, mem_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf)) < 0) {
+    if ((err_id = H5Aread(attr_id, mem_type_id, buf)) < 0) {
         DEFER_FUNC_ERROR(err_id);
         err = ESCDF_ERROR;
     }
     
-    H5Dclose(dtset_id);
+    H5Aclose(attr_id);
     return err;
 }
-static escdf_errno_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
-                                        _uint_set_t *scalar, unsigned int range[2])
+static escdf_errno_t escdf_hdf5_read_bool(hid_t loc_id, const char *name,
+                                          _bool_set_t *scalar)
 {
     escdf_errno_t err;
     int value;
     hsize_t dims[1] = {1};
     
-    if ((err = escdf_hdf5_readall_array(loc_id, name, H5T_NATIVE_INT, dims, 1, &value)) != ESCDF_SUCCESS) {
+    if ((err = escdf_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, 1, &value)) != ESCDF_SUCCESS) {
+        return err;
+    }
+    *scalar = _bool_set((bool)value);
+
+    return ESCDF_SUCCESS;
+}
+static escdf_errno_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
+                                          _uint_set_t *scalar, unsigned int range[2])
+{
+    escdf_errno_t err;
+    int value;
+    hsize_t dims[1] = {1};
+    
+    if ((err = escdf_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, 1, &value)) != ESCDF_SUCCESS) {
         return err;
     }
     if ((unsigned int)value < range[0] || (unsigned int)value > range[1]) {
         RETURN_WITH_ERROR(ESCDF_ERANGE);
     }
-    scalar->value = (unsigned int)value;
-    scalar->is_set = true;
+    *scalar = _uint_set((unsigned int)value);
 
     return ESCDF_SUCCESS;
 }
 static escdf_errno_t escdf_hdf5_read_uint_array(hid_t loc_id, const char *name,
-                                              unsigned int **array, hsize_t *dims,
-                                              unsigned int ndims, unsigned int range[2])
+                                                unsigned int **array, hsize_t *dims,
+                                                unsigned int ndims, unsigned int range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -219,8 +256,8 @@ static escdf_errno_t escdf_hdf5_read_uint_array(hid_t loc_id, const char *name,
     }
     *array = malloc(sizeof(unsigned int) * len);
 
-    if ((err = escdf_hdf5_readall_array(loc_id, name, H5T_NATIVE_INT, dims, ndims,
-                                        (void*)*array)) != ESCDF_SUCCESS) {
+    if ((err = escdf_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, ndims,
+                                    (void*)*array)) != ESCDF_SUCCESS) {
         free(*array);
         return err;
     }
@@ -233,8 +270,8 @@ static escdf_errno_t escdf_hdf5_read_uint_array(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 static escdf_errno_t escdf_hdf5_read_dbl_array(hid_t loc_id, const char *name,
-                                             double **array, hsize_t *dims,
-                                             unsigned int ndims, double range[2])
+                                               double **array, hsize_t *dims,
+                                               unsigned int ndims, double range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -246,8 +283,8 @@ static escdf_errno_t escdf_hdf5_read_dbl_array(hid_t loc_id, const char *name,
     }
     *array = malloc(sizeof(double) * len);
     
-    if ((err = escdf_hdf5_readall_array(loc_id, name, H5T_NATIVE_DOUBLE, dims, ndims,
-                                        (void*)*array)) != ESCDF_SUCCESS) {
+    if ((err = escdf_hdf5_read_attr(loc_id, name, H5T_NATIVE_DOUBLE, dims, ndims,
+                                    (void*)*array)) != ESCDF_SUCCESS) {
         free(*array);
         return err;
     }
@@ -261,7 +298,7 @@ static escdf_errno_t escdf_hdf5_read_dbl_array(hid_t loc_id, const char *name,
 }
 
 escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **scalarfield,
-                                                 hid_t file_id, const char *path)
+                                                   hid_t file_id, const char *path)
 {
     escdf_errno_t err;
     unsigned int i;
@@ -328,20 +365,27 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **sc
         return err;
     }
 
+    if ((err = escdf_hdf5_read_bool(loc_id, "use_default_ordering",
+                                    &(*scalarfield)->use_default_ordering))
+        != ESCDF_SUCCESS) {
+        H5Gclose(loc_id);
+        return err;
+    }
+
     valDims[0] = (*scalarfield)->number_of_components.value;
     valDims[1] = 1;
     for (i = 0; i < (*scalarfield)->cell.number_of_physical_dimensions.value; i++) {
         valDims[1] *= (*scalarfield)->number_of_grid_points[i];
     }
     valDims[2] = (*scalarfield)->real_or_complex.value;
-    if ((err = escdf_hdf5_check_shape(loc_id, "values_on_grid", valDims, 3, NULL)) != ESCDF_SUCCESS) {
+    if ((err = escdf_hdf5_check_dtset(loc_id, "values_on_grid", valDims, 3, NULL)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
     (*scalarfield)->values_on_grid_is_present = true;
 
-    if (escdf_hdf5_check_present(loc_id, "grid_ordering")) {
-        if ((err = escdf_hdf5_check_shape(loc_id, "grid_ordering", valDims + 1, 1, NULL)) != ESCDF_SUCCESS) {
+    if (!(*scalarfield)->use_default_ordering.value) {
+        if ((err = escdf_hdf5_check_dtset(loc_id, "grid_ordering", valDims + 1, 1, NULL)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }
@@ -349,6 +393,175 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **sc
     }
 
     H5Gclose(loc_id);
+    return ESCDF_SUCCESS;
+}
+
+static escdf_errno_t escdf_hdf5_create_dataset(hid_t loc_id, const char *name,
+                                               hid_t type_id,
+                                               hsize_t *dims, unsigned int ndims,
+                                               hid_t *dtset_pt)
+{
+    hid_t dtset_id, dtspace_id;
+    htri_t bool_id;
+
+    /* Create space dimensions. */
+    if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
+        RETURN_WITH_ERROR(dtspace_id);
+    }
+
+    if ((dtset_id = H5Dcreate(loc_id, name, type_id, dtspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        DEFER_FUNC_ERROR(dtset_id);
+        goto cleanup_dtspace;
+    }
+    
+    H5Sclose(dtspace_id);
+    if (dtset_pt)
+        *dtset_pt = dtset_id;
+    else
+        H5Dclose(dtset_id);
+    return ESCDF_SUCCESS;
+
+ cleanup_dtspace:
+    H5Sclose(dtset_id);
+    return ESCDF_ERROR;
+}
+static escdf_errno_t escdf_hdf5_create_attr(hid_t loc_id, const char *name,
+                                            hid_t type_id,
+                                            hsize_t *dims, unsigned int ndims,
+                                            hid_t *attr_pt)
+{
+    hid_t attr_id, dtspace_id;
+    htri_t bool_id;
+
+    /* Create space dimensions. */
+    if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
+        RETURN_WITH_ERROR(dtspace_id);
+    }
+
+    if ((attr_id = H5Acreate(loc_id, name, type_id, dtspace_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        DEFER_FUNC_ERROR(attr_id);
+        goto cleanup_dtspace;
+    }
+    
+    H5Sclose(dtspace_id);
+    if (attr_pt)
+        *attr_pt = attr_id;
+    else
+        H5Aclose(attr_id);
+    return ESCDF_SUCCESS;
+
+ cleanup_dtspace:
+    H5Sclose(attr_id);
+    return ESCDF_ERROR;
+}
+static escdf_errno_t escdf_hdf5_write_attr(hid_t loc_id, const char *name,
+                                           hid_t disk_type_id, hsize_t *dims,
+                                           unsigned int ndims,
+                                           hid_t mem_type_id, const void *buf)
+{
+    escdf_errno_t err;
+
+    hid_t attr_id;
+    herr_t err_id;
+
+    if ((err = escdf_hdf5_create_attr(loc_id, name, disk_type_id, dims, ndims, &attr_id)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    err = ESCDF_SUCCESS;
+    if ((err_id = H5Awrite(attr_id, mem_type_id, buf)) < 0) {
+        DEFER_FUNC_ERROR(err_id);
+        err = ESCDF_ERROR;
+    }
+    
+    H5Aclose(attr_id);
+    return err;
+}
+
+escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield_t *scalarfield, hid_t loc_id)
+{
+    escdf_errno_t err;
+    hsize_t dims[3];
+    unsigned int i;
+    
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+
+    /* Check all mandatory attributes. */
+    FULFILL_OR_RETURN(scalarfield->cell.number_of_physical_dimensions.is_set, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(scalarfield->cell.dimension_types, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(scalarfield->cell.lattice_vectors, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(scalarfield->number_of_components.is_set, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
+
+    /* Write to file. */
+    dims[0] = 1;
+    if ((err = escdf_hdf5_write_attr
+         (loc_id, "number_of_physical_dimensions", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          &scalarfield->cell.number_of_physical_dimensions.value)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    dims[0] = scalarfield->cell.number_of_physical_dimensions.value;
+    if ((err = escdf_hdf5_write_attr
+         (loc_id, "dimension_types", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          scalarfield->cell.dimension_types)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    dims[0] = dims[1] = scalarfield->cell.number_of_physical_dimensions.value;
+    if ((err = escdf_hdf5_write_attr
+         (loc_id, "lattice_vectors", H5T_IEEE_F64LE, dims, 2, H5T_NATIVE_DOUBLE,
+          scalarfield->cell.lattice_vectors)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    dims[0] = scalarfield->cell.number_of_physical_dimensions.value;
+    if ((err = escdf_hdf5_write_attr
+         (loc_id, "number_of_grid_points", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          scalarfield->number_of_grid_points)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    dims[0] = 1;
+    if ((err = escdf_hdf5_write_attr
+         (loc_id, "number_of_components", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          &scalarfield->number_of_components.value)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    dims[0] = 1;
+    if ((err = escdf_hdf5_write_attr
+         (loc_id, "real_or_complex", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          &scalarfield->real_or_complex)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    dims[0] = 1;
+    if ((err = escdf_hdf5_write_attr
+         (loc_id, "use_default_ordering", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          &scalarfield->use_default_ordering)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* Only create shapes for data. */
+    dims[0] = scalarfield->number_of_components.value;
+    dims[1] = scalarfield->number_of_grid_points[0];
+    for (i = 1; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
+        dims[1] *= scalarfield->number_of_grid_points[i];
+    }
+    dims[2] = scalarfield->real_or_complex.value;
+    if ((err = escdf_hdf5_create_dataset
+         (loc_id, "values_on_grid", H5T_IEEE_F64LE, dims, 3, NULL)) != ESCDF_SUCCESS) {
+        return err;
+    }
+    if (scalarfield->use_default_ordering.value) {
+        if ((err = escdf_hdf5_create_dataset
+             (loc_id, "grid_ordering", H5T_STD_U32LE, dims + 1, 1, NULL)) != ESCDF_SUCCESS) {
+            return err;
+        }
+    }
+
     return ESCDF_SUCCESS;
 }
 
@@ -398,8 +611,8 @@ const double* escdf_grid_scalarfield_ptr_lattice_vectors(const escdf_grid_scalar
     return scalarfield->cell.lattice_vectors;
 }
 escdf_errno_t escdf_grid_scalarfield_get_number_of_grid_points(const escdf_grid_scalarfield_t *scalarfield,
-                                                         unsigned int *number_of_grid_points,
-                                                         const size_t len)
+                                                               unsigned int *number_of_grid_points,
+                                                               const size_t len)
 {
     FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
     FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
@@ -428,6 +641,13 @@ unsigned int escdf_grid_scalarfield_get_real_or_complex(const escdf_grid_scalarf
     
     return scalarfield->real_or_complex.value;
 }
+bool escdf_grid_scalarfield_get_use_default_ordering(const escdf_grid_scalarfield_t *scalarfield)
+{
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, true);
+    FULFILL_OR_RETURN_VAL(scalarfield->use_default_ordering.is_set, ESCDF_EUNINIT, true);
+    
+    return scalarfield->use_default_ordering.value;
+}
 
 
 /************/
@@ -440,8 +660,8 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_physical_dimensions(escdf_gri
     FULFILL_OR_RETURN(number_of_physical_dimensions > 0 &&
                       number_of_physical_dimensions < 4, ESCDF_ERANGE);
 
-    scalarfield->cell.number_of_physical_dimensions.value = number_of_physical_dimensions;
-    scalarfield->cell.number_of_physical_dimensions.is_set = true;
+    scalarfield->cell.number_of_physical_dimensions =
+        _uint_set(number_of_physical_dimensions);
 
     return ESCDF_SUCCESS;
 }
@@ -513,8 +733,7 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_components(escdf_grid_scalarf
     FULFILL_OR_RETURN(number_of_components > 0 &&
                       number_of_components < 5, ESCDF_ERANGE);
 
-    scalarfield->number_of_components.value = number_of_components;
-    scalarfield->number_of_components.is_set = true;
+    scalarfield->number_of_components = _uint_set(number_of_components);
 
     return ESCDF_SUCCESS;
 }
@@ -526,8 +745,17 @@ escdf_errno_t escdf_grid_scalarfield_set_real_or_complex(escdf_grid_scalarfield_
     FULFILL_OR_RETURN(real_or_complex > 0 &&
                       real_or_complex < 3, ESCDF_ERANGE);
 
-    scalarfield->real_or_complex.value = real_or_complex;
-    scalarfield->real_or_complex.is_set = true;
+    scalarfield->real_or_complex = _uint_set(real_or_complex);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_grid_scalarfield_set_use_default_ordering(escdf_grid_scalarfield_t *scalarfield,
+                                                              const bool use_default_ordering)
+{
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+
+    scalarfield->use_default_ordering = _bool_set(use_default_ordering);
 
     return ESCDF_SUCCESS;
 }
@@ -578,6 +806,10 @@ escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarf
     }
     if (scalarfield->values_on_grid_is_present) {
         fprintf(f, "  values_on_grid_is_present: yes\n");
+    }
+    if (scalarfield->use_default_ordering.is_set) {
+        fprintf(f, "  use_default_ordering: %s\n",
+                (scalarfield->use_default_ordering.value) ? "yes" : "no");
     }
     if (scalarfield->grid_ordering_is_present) {
         fprintf(f, "  grid_ordering_is_present: yes\n");
