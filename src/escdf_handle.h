@@ -31,7 +31,11 @@
 /**
 *
 */
-typedef struct escdf_handle escdf_handle_t;
+typedef struct {
+    hid_t file_id;   /**< HDF5 file identifier */
+
+    hid_t group_id;
+} escdf_handle_t;
 
 
 /*****************************************************************************
