@@ -471,7 +471,114 @@ escdf_errno_t escdf_grid_scalarfield_set_use_default_ordering(escdf_grid_scalarf
     return ESCDF_SUCCESS;
 }
 
+/*******************/
+/* Data accessors. */
+/*******************/
+static escdf_errno_t utils_check_slice(unsigned int ndims,
+                                       const hsize_t *start,
+                                       const hsize_t *count,
+                                       const hsize_t *map,
+                                       const hsize_t *bounds,
+                                       hsize_t *len)
+{
+    unsigned int i;
+    hsize_t nvals, cumval;
 
+    *len = 0;
+    cumval = 1;
+    for (i = 0; i < ndims; i++) {
+        FULFILL_OR_RETURN(start[i] >= 0 && start[i] < bounds[i], ESCDF_ESTART);
+        FULFILL_OR_RETURN(count[i] >= 0 && count[i] <= bounds[i] - start[i], ESCDF_ECOUNT);
+        nvals = start[i] + ((count[i]) ? map[i] * count[i] : bounds[i]);
+        FULFILL_OR_RETURN(map[i] > 0 && nvals < bounds[i], ESCDF_EMAP);
+        *len += ((count[i]) ? count[i] : bounds[i]) * cumval;
+        cumval = *len;
+    }
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
+                                                          hid_t loc_id, const double *buf,
+                                                          const hsize_t start[3],
+                                                          const hsize_t count[3],
+                                                          const hsize_t map[3])
+{
+    escdf_errno_t err;
+    hid_t memspace_id, diskspace_id, dtset_id, plist;
+    herr_t err_id;
+    hsize_t len;
+    hsize_t dims[3];
+    unsigned int i;
+
+    /* Create the global distribution bounds. */
+    dims[0] = scalarfield->number_of_components.value;
+    dims[1] = scalarfield->number_of_grid_points[0];
+    for (i = 1; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
+        dims[1] *= scalarfield->number_of_grid_points[i];
+    }
+    dims[2] = scalarfield->real_or_complex.value;
+
+    /* Check start count map values inside the bounds and count the len of buf. */
+    if ((err = utils_check_slice(3, start, count, map, dims, &len)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* get the dataset for this variable. */
+    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid", dims, 3, &dtset_id)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* create dataspace for memory and disk. */
+    /* memory is a flat array. */
+    if ((memspace_id = H5Screate_simple(1, &len, NULL)) < 0) {
+        H5Dclose(dtset_id);
+        RETURN_WITH_ERROR(memspace_id);
+    }
+    /* disk use the start count and map. */
+    if ((diskspace_id = H5Dget_space(dtset_id)) < 0) {
+        H5Sclose(memspace_id);
+        H5Dclose(dtset_id);
+        RETURN_WITH_ERROR(diskspace_id);
+    }
+    if (len > 0) {
+        if ((err_id = H5Sselect_hyperslab(diskspace_id, H5S_SELECT_SET,
+                                          start, map, count, NULL)) < 0) {
+            H5Sclose(diskspace_id);
+            H5Sclose(memspace_id);
+            H5Dclose(dtset_id);
+            RETURN_WITH_ERROR(err_id);
+        }
+    } else {
+        if ((err_id = H5Sselect_none(diskspace_id)) < 0) {
+            H5Sclose(diskspace_id);
+            H5Sclose(memspace_id);
+            H5Dclose(dtset_id);
+            RETURN_WITH_ERROR(err_id);
+        }
+    }
+
+    /* Write */
+    plist = H5Pcreate(H5P_DATASET_XFER);
+    /* status = H5Pset_dxpl_mpio(plist, H5FD_MPIO_COLLECTIVE); */
+    if ((err_id = H5Dwrite(dtset_id, H5T_NATIVE_DOUBLE, memspace_id, diskspace_id, plist, buf)) < 0) {
+        H5Pclose(plist);
+        H5Sclose(diskspace_id);
+        H5Sclose(memspace_id);
+        H5Dclose(dtset_id);
+        RETURN_WITH_ERROR(err_id);
+    }
+
+    H5Pclose(plist);
+    H5Sclose(diskspace_id);
+    H5Sclose(memspace_id);
+    H5Dclose(dtset_id);
+
+    return ESCDF_SUCCESS;
+}
+
+/***************/
+/* IO streams. */
+/***************/
 escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarfield, FILE *f)
 {
     unsigned int i, j;
