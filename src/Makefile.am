@@ -129,3 +129,6 @@ TESTS = \
 
 # Temporary test outputs
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov test_*.tmp
+
+# Binary files generated during the tests
+CLEANFILES = new_file.h5

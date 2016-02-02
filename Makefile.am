@@ -34,3 +34,6 @@ DISTCLEANFILES = \
 
 # We use our own version of Markdown to build the documentation
 EXTRA_DIST = config/scripts/markdown
+
+# Test references must be distributed with the source
+EXTRA_DIST += escdf_references/grid_scalarfield_read.h5
