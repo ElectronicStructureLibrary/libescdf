@@ -114,14 +114,11 @@ START_TEST(test_getters)
 }
 END_TEST
 
-START_TEST(test_setters)
+START_TEST(test_set_number_of_physical_dimensions)
 {
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
-    unsigned int uval, uarr[3];
-    const unsigned int *upt;
-    double darr[9];
-    const double *dpt;
+    unsigned int uval;
 
     scalarfield = escdf_grid_scalarfield_new("density");
 
@@ -129,7 +126,22 @@ START_TEST(test_setters)
     ck_assert(err == ESCDF_SUCCESS);
     uval = escdf_grid_scalarfield_get_number_of_physical_dimensions(scalarfield);
     ck_assert(uval == 2);
+    
+    escdf_grid_scalarfield_free(scalarfield);
+}
+END_TEST
 
+START_TEST(test_set_dimension_types)
+{
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uarr[3];
+    const unsigned int *upt;
+
+    scalarfield = escdf_grid_scalarfield_new("density");
+    err = escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
+    ck_assert(err == ESCDF_SUCCESS);
+    
     uarr[0] = 2;
     uarr[1] = 0;
     err = escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
@@ -140,7 +152,22 @@ START_TEST(test_setters)
     upt = escdf_grid_scalarfield_ptr_dimension_types(scalarfield);
     ck_assert(upt);
     ck_assert(upt[0] == 2 && upt[1] == 0);
+    
+    escdf_grid_scalarfield_free(scalarfield);
+}
+END_TEST
 
+START_TEST(test_set_lattice_vectors)
+{
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    double darr[4];
+    const double *dpt;
+
+    scalarfield = escdf_grid_scalarfield_new("density");
+    err = escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
+    ck_assert(err == ESCDF_SUCCESS);
+    
     darr[0] = 1.;
     darr[1] = 2.;
     darr[2] = 3.;
@@ -153,7 +180,22 @@ START_TEST(test_setters)
     dpt = escdf_grid_scalarfield_ptr_lattice_vectors(scalarfield);
     ck_assert(dpt);
     ck_assert(dpt[0] == 1. && dpt[1] == 2. && dpt[2] == 3. && dpt[3] == 4.);
+    
+    escdf_grid_scalarfield_free(scalarfield);
+}
+END_TEST
 
+START_TEST(test_set_number_of_grid_points)
+{
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uarr[3];
+    const unsigned int *upt;
+
+    scalarfield = escdf_grid_scalarfield_new("density");
+    err = escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
+    ck_assert(err == ESCDF_SUCCESS);
+    
     uarr[0] = 6;
     uarr[1] = 3;
     err = escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
@@ -164,12 +206,37 @@ START_TEST(test_setters)
     upt = escdf_grid_scalarfield_ptr_number_of_grid_points(scalarfield);
     ck_assert(upt);
     ck_assert(upt[0] == 6 && upt[1] == 3);
+    
+    escdf_grid_scalarfield_free(scalarfield);
+}
+END_TEST
+
+START_TEST(test_set_number_of_components)
+{
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uval;
+
+    scalarfield = escdf_grid_scalarfield_new("density");
 
     err = escdf_grid_scalarfield_set_number_of_components(scalarfield, 4);
     ck_assert(err == ESCDF_SUCCESS);
     uval = escdf_grid_scalarfield_get_number_of_components(scalarfield);
     ck_assert(uval == 4);
     
+    
+    escdf_grid_scalarfield_free(scalarfield);
+}
+END_TEST
+
+START_TEST(test_set_real_or_complex)
+{
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uval;
+
+    scalarfield = escdf_grid_scalarfield_new("density");
+
     err = escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
     ck_assert(err == ESCDF_SUCCESS);
     uval = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
@@ -189,7 +256,12 @@ Suite * make_grid_scalarfield_suite(void)
     tc_info = tcase_create("Read");
     tcase_add_test(tc_info, test_read_metadata);
     tcase_add_test(tc_info, test_getters);
-    tcase_add_test(tc_info, test_setters);
+    tcase_add_test(tc_info, test_set_number_of_physical_dimensions);
+    tcase_add_test(tc_info, test_set_dimension_types);
+    tcase_add_test(tc_info, test_set_lattice_vectors);
+    tcase_add_test(tc_info, test_set_number_of_grid_points);
+    tcase_add_test(tc_info, test_set_number_of_components);
+    tcase_add_test(tc_info, test_set_real_or_complex);
     suite_add_tcase(s, tc_info);
 
     return s;
