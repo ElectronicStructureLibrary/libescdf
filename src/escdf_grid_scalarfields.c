@@ -198,7 +198,7 @@ static escdf_errno_t escdf_hdf5_read_uint(hid_t loc_id, const char *name,
         return err;
     }
     if ((unsigned int)value < range[0] || (unsigned int)value > range[1]) {
-        RETURN_WITH_ERROR(ESCDF_ERROR_RANGE);
+        RETURN_WITH_ERROR(ESCDF_ERANGE);
     }
     scalar->value = (unsigned int)value;
     scalar->is_set = true;
@@ -227,7 +227,7 @@ static escdf_errno_t escdf_hdf5_read_uint_array(hid_t loc_id, const char *name,
     for (i = 0; i < len; i++) {
         if ((*array)[i] < range[0] || (*array)[i] > range[1]) {
             free(*array);
-            RETURN_WITH_ERROR(ESCDF_ERROR_RANGE);
+            RETURN_WITH_ERROR(ESCDF_ERANGE);
         }
     }
     return ESCDF_SUCCESS;
@@ -254,7 +254,7 @@ static escdf_errno_t escdf_hdf5_read_dbl_array(hid_t loc_id, const char *name,
     for (i = 0; i < len; i++) {
         if ((*array)[i] < range[0] || (*array)[i] > range[1]) {
             free(*array);
-            RETURN_WITH_ERROR(ESCDF_ERROR_RANGE);
+            RETURN_WITH_ERROR(ESCDF_ERANGE);
         }
     }
     return ESCDF_SUCCESS;
@@ -351,6 +351,187 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **sc
     H5Gclose(loc_id);
     return ESCDF_SUCCESS;
 }
+
+/************/
+/* Getters. */
+/************/
+unsigned int escdf_grid_scalarfield_get_number_of_physical_dimensions(const escdf_grid_scalarfield_t *scalarfield)
+{
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, 0);
+    FULFILL_OR_RETURN_VAL(scalarfield->cell.number_of_physical_dimensions.is_set, ESCDF_EUNINIT, 0);
+    
+    return scalarfield->cell.number_of_physical_dimensions.value;
+}
+escdf_errno_t escdf_grid_scalarfield_get_dimension_types(const escdf_grid_scalarfield_t *scalarfield,
+                                                         unsigned int *dimension_types,
+                                                         const size_t len)
+{
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(scalarfield->cell.dimension_types, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
+
+    memcpy(dimension_types, scalarfield->cell.dimension_types, sizeof(unsigned int) * len);
+    return ESCDF_SUCCESS;
+}
+const unsigned int* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield)
+{
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, NULL);
+
+    return scalarfield->cell.dimension_types;
+}
+escdf_errno_t escdf_grid_scalarfield_get_lattice_vectors(const escdf_grid_scalarfield_t *scalarfield,
+                                                         double *lattice_vectors,
+                                                         const size_t len)
+{
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(scalarfield->cell.lattice_vectors, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value *
+                      scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
+
+    memcpy(lattice_vectors, scalarfield->cell.lattice_vectors, sizeof(double) * len);
+    return ESCDF_SUCCESS;
+}
+const double* escdf_grid_scalarfield_ptr_lattice_vectors(const escdf_grid_scalarfield_t *scalarfield)
+{
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, NULL);
+
+    return scalarfield->cell.lattice_vectors;
+}
+escdf_errno_t escdf_grid_scalarfield_get_number_of_grid_points(const escdf_grid_scalarfield_t *scalarfield,
+                                                         unsigned int *number_of_grid_points,
+                                                         const size_t len)
+{
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
+
+    memcpy(number_of_grid_points, scalarfield->number_of_grid_points, sizeof(unsigned int) * len);
+    return ESCDF_SUCCESS;
+}
+const unsigned int* escdf_grid_scalarfield_ptr_number_of_grid_points(const escdf_grid_scalarfield_t *scalarfield)
+{
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, NULL);
+
+    return scalarfield->number_of_grid_points;
+}
+unsigned int escdf_grid_scalarfield_get_number_of_components(const escdf_grid_scalarfield_t *scalarfield)
+{
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, 0);
+    FULFILL_OR_RETURN_VAL(scalarfield->number_of_components.is_set, ESCDF_EUNINIT, 0);
+    
+    return scalarfield->number_of_components.value;
+}
+unsigned int escdf_grid_scalarfield_get_real_or_complex(const escdf_grid_scalarfield_t *scalarfield)
+{
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, 0);
+    FULFILL_OR_RETURN_VAL(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT, 0);
+    
+    return scalarfield->real_or_complex.value;
+}
+
+
+/************/
+/* Setters. */
+/************/
+escdf_errno_t escdf_grid_scalarfield_set_number_of_physical_dimensions(escdf_grid_scalarfield_t *scalarfield,
+                                                                       const unsigned int number_of_physical_dimensions)
+{
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(number_of_physical_dimensions > 0 &&
+                      number_of_physical_dimensions < 4, ESCDF_ERANGE);
+
+    scalarfield->cell.number_of_physical_dimensions.value = number_of_physical_dimensions;
+    scalarfield->cell.number_of_physical_dimensions.is_set = true;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_grid_scalarfield_set_dimension_types(escdf_grid_scalarfield_t *scalarfield,
+                                                         const unsigned int *dimension_types,
+                                                         const size_t len)
+{
+    unsigned int i;
+    
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(scalarfield->cell.number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+    FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
+    for (i = 0; i < len; i++) {
+        FULFILL_OR_RETURN(dimension_types[i] >= 0 && dimension_types[i] < 3, ESCDF_ERANGE);
+    }
+
+    free(scalarfield->cell.dimension_types);
+    scalarfield->cell.dimension_types = malloc(sizeof(unsigned int) * len);
+    memcpy(scalarfield->cell.dimension_types, dimension_types, sizeof(unsigned int) * len);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_grid_scalarfield_set_lattice_vectors(escdf_grid_scalarfield_t *scalarfield,
+                                                         const double *lattice_vectors,
+                                                         const size_t len)
+{
+    unsigned int i;
+    
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(scalarfield->cell.number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+    FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value * scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
+    for (i = 0; i < len; i++) {
+        FULFILL_OR_RETURN(lattice_vectors[i] > 0., ESCDF_ERANGE);
+    }
+
+    free(scalarfield->cell.lattice_vectors);
+    scalarfield->cell.lattice_vectors = malloc(sizeof(double) * len);
+    memcpy(scalarfield->cell.lattice_vectors, lattice_vectors, sizeof(double) * len);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_grid_scalarfield_set_number_of_grid_points(escdf_grid_scalarfield_t *scalarfield,
+                                                               const unsigned int *number_of_grid_points,
+                                                               const size_t len)
+{
+    unsigned int i;
+    
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(scalarfield->cell.number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+    FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
+    for (i = 0; i < len; i++) {
+        FULFILL_OR_RETURN(number_of_grid_points[i] > 0, ESCDF_ERANGE);
+    }
+
+    free(scalarfield->number_of_grid_points);
+    scalarfield->number_of_grid_points = malloc(sizeof(unsigned int) * len);
+    memcpy(scalarfield->number_of_grid_points, number_of_grid_points, sizeof(unsigned int) * len);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_grid_scalarfield_set_number_of_components(escdf_grid_scalarfield_t *scalarfield,
+                                                              const unsigned int number_of_components)
+{
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(number_of_components > 0 &&
+                      number_of_components < 5, ESCDF_ERANGE);
+
+    scalarfield->number_of_components.value = number_of_components;
+    scalarfield->number_of_components.is_set = true;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_grid_scalarfield_set_real_or_complex(escdf_grid_scalarfield_t *scalarfield,
+                                                         const unsigned int real_or_complex)
+{
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(real_or_complex > 0 &&
+                      real_or_complex < 3, ESCDF_ERANGE);
+
+    scalarfield->real_or_complex.value = real_or_complex;
+    scalarfield->real_or_complex.is_set = true;
+
+    return ESCDF_SUCCESS;
+}
+
 
 escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarfield, FILE *f)
 {
