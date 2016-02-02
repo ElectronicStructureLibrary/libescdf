@@ -187,6 +187,17 @@ const char *escdf_error_string(const escdf_errno_t error_id);
     if (!(condition)) {		    \
         return escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
     }
+/**
+ * Macro to return a specific value from a routine when a condition is unsatisfied
+ * @param[in] condition: condition to check
+ * @param[in] error_id: error code to set before returning
+ * @param[in] val: returned value
+ */
+#define FULFILL_OR_RETURN_VAL(condition, error_id, val)     \
+    if (!(condition)) {		    \
+        escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+        return val; \
+    }
 
 /**
  * Error handler macro for deferred errors
