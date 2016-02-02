@@ -19,28 +19,44 @@
 
 #include <stdlib.h>
 
+#include "escdf_error.h"
 #include "escdf_handle.h"
 
-/*****************************************************************************
- * Data structures                                                           *
- *****************************************************************************/
+/******************************************************************************
+ * Data structures                                                            *
+ ******************************************************************************/
 
 struct escdf_handle {
-    hid_t file_id;  /**< HDF5 file identifier */
+    hid_t file_id;   /**< HDF5 file identifier */
+
+    hid_t group_id;
 };
 
 
-/*****************************************************************************
- * Global functions                                                          *
- *****************************************************************************/
+/******************************************************************************
+ * Global functions                                                           *
+ ***************************************************P**************************/
 
-escdf_handle_t * escdf_open(char *filename) {
+escdf_handle_t * escdf_create(const char *filename, const char *path) {
     escdf_handle_t *handle = (escdf_handle_t *) malloc(sizeof(escdf_handle_t));
-    if (handle != NULL)
-        handle->file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    FULFILL_OR_RETURN_VAL(handle != NULL, ESCDF_ENOMEM, NULL)
+
+    handle->file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    if (path != NULL) {
+        if ((H5Lexists(handle->file_id, path, H5P_DEFAULT))) {
+            handle->group_id = H5Gopen(handle->file_id, path, H5P_DEFAULT);
+        } else {
+            handle->group_id = H5Gcreate(handle->file_id, path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        }
+    } else {
+        handle->group_id = H5Gopen(handle->file_id, "/", H5P_DEFAULT);
+    }
     return handle;
 }
 
-void escdf_close(escdf_handle_t *handle) {
-    int status = H5Fclose(handle->file_id);
+escdf_errno_t escdf_close(escdf_handle_t *handle) {
+    FULFILL_OR_RETURN(!H5Gclose(handle->group_id), ESCDF_EIO)
+    FULFILL_OR_RETURN(!H5Fclose(handle->file_id), ESCDF_EIO)
+    return ESCDF_SUCCESS;
 }

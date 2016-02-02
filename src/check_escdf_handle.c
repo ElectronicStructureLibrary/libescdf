@@ -19,13 +19,36 @@
 
 #include <check.h>
 
+#include "escdf_common.h"
 #include "escdf_handle.h"
 
-START_TEST(test_handle_open)
+#if defined HAVE_CONFIG_H
+#include "config.h"
+#else
+#define ESCDF_CHK_DATADIR "."
+#endif
+
+START_TEST(test_handle_open_and_close)
 {
-    ck_assert(escdf_open("new_file.h5") != NULL);
+    escdf_handle_t *handle;
+
+    handle = escdf_create(ESCDF_CHK_DATADIR "/empty.h5", NULL);
+    ck_assert(handle != NULL);
+    ck_assert(escdf_close(handle) == ESCDF_SUCCESS);
 }
 END_TEST
+
+START_TEST(test_handle_open_and_close_group)
+{
+    escdf_handle_t *handle;
+
+    handle = escdf_create(ESCDF_CHK_DATADIR "/empty.h5", "densities");
+    ck_assert(handle != NULL);
+    ck_assert(escdf_close(handle) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
 
 Suite * make_handle_suite(void)
 {
@@ -35,7 +58,8 @@ Suite * make_handle_suite(void)
     s = suite_create("Handle");
 
     tc_handle = tcase_create("File opening and closing");
-    tcase_add_test(tc_handle, test_handle_open);
+    tcase_add_test(tc_handle, test_handle_open_and_close);
+    tcase_add_test(tc_handle, test_handle_open_and_close_group);
     suite_add_tcase(s, tc_handle);
 
     return s;

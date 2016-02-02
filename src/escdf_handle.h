@@ -22,6 +22,8 @@
 
 #include <hdf5.h>
 
+#include "escdf_error.h"
+
 /*****************************************************************************
  * Data structures                                                           *
  *****************************************************************************/
@@ -36,8 +38,8 @@ typedef struct escdf_handle escdf_handle_t;
  * Global functions                                                          *
  *****************************************************************************/
 
-escdf_handle_t * escdf_open(char *filename);
+escdf_handle_t * escdf_create(const char *filename, const char *path);
 
-
+escdf_errno_t escdf_close(escdf_handle_t *handle);
 
 #endif
