@@ -41,7 +41,6 @@ START_TEST(test_read_metadata)
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
     
-    /* Create a new file using default properties. */
     file_id = H5Fopen(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5",
                       H5F_ACC_RDONLY, H5P_DEFAULT);
     ck_assert(file_id >= 0);
@@ -55,6 +54,84 @@ START_TEST(test_read_metadata)
     H5Fclose(file_id);
 }
 END_TEST
+
+START_TEST(test_write_metadata)
+{
+    hid_t file_id;
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uarr[2], uval;
+    double darr[4];
+    
+    /* Create a new file using default properties. */
+    file_id = H5Fcreate("tmp_grid_scalarfield_write.h5",
+                        H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    ck_assert(file_id >= 0);
+
+    scalarfield = escdf_grid_scalarfield_new(NULL);
+
+    escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
+    uarr[0] = 0;
+    uarr[1] = 2;
+    escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
+    darr[0] = 1.;
+    darr[1] = 2.;
+    darr[2] = 3.;
+    darr[3] = 4.;
+    escdf_grid_scalarfield_set_lattice_vectors(scalarfield, darr, 4);
+    uarr[0] = 6;
+    uarr[1] = 4;
+    escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
+    escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
+    escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
+    escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
+    
+    err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
+    ck_assert(err == ESCDF_SUCCESS);
+
+    escdf_grid_scalarfield_free(scalarfield);
+
+    H5Fclose(file_id);
+
+    /* Read the file to be sure ! */
+    file_id = H5Fopen("tmp_grid_scalarfield_write.h5",
+                      H5F_ACC_RDONLY, H5P_DEFAULT);
+    ck_assert(file_id >= 0);
+
+    err = escdf_grid_scalarfield_read_metadata(&scalarfield,
+                                               file_id, "/density");
+    ck_assert(err == ESCDF_SUCCESS);
+
+    uval = escdf_grid_scalarfield_get_number_of_physical_dimensions(scalarfield);
+    ck_assert(uval == 2);
+    
+    err = escdf_grid_scalarfield_get_dimension_types(scalarfield, uarr, 2);
+    ck_assert(err == ESCDF_SUCCESS);
+    ck_assert(uarr[0] == 0 && uarr[1] == 2);
+
+    err = escdf_grid_scalarfield_get_lattice_vectors(scalarfield, darr, 4);
+    ck_assert(err == ESCDF_SUCCESS);
+    ck_assert(darr[0] == 1. && darr[1] == 2. && darr[2] == 3. && darr[3] == 4.);
+
+    err = escdf_grid_scalarfield_get_number_of_grid_points(scalarfield, uarr, 2);
+    ck_assert(err == ESCDF_SUCCESS);
+    ck_assert(uarr[0] == 6 && uarr[1] == 4);
+
+    uval = escdf_grid_scalarfield_get_number_of_components(scalarfield);
+    ck_assert(uval == 2);
+    
+    uval = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
+    ck_assert(uval == 1);
+    
+    uval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
+    ck_assert(uval == 0);
+
+    escdf_grid_scalarfield_free(scalarfield);
+
+    H5Fclose(file_id);
+}
+END_TEST
+
 START_TEST(test_getters)
 {
     hid_t file_id;
@@ -283,6 +360,7 @@ Suite * make_grid_scalarfield_suite(void)
     tcase_add_test(tc_info, test_set_number_of_components);
     tcase_add_test(tc_info, test_set_real_or_complex);
     tcase_add_test(tc_info, test_set_use_default_ordering);
+    tcase_add_test(tc_info, test_write_metadata);
     suite_add_tcase(s, tc_info);
 
     return s;

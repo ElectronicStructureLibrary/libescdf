@@ -175,9 +175,11 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **sc
 
 escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield_t *scalarfield, hid_t loc_id)
 {
+    hid_t gid;
     escdf_errno_t err;
     hsize_t dims[3];
     unsigned int i;
+    int value;
     
     FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
 
@@ -189,53 +191,64 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
     FULFILL_OR_RETURN(scalarfield->number_of_components.is_set, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
 
+    gid = H5Gcreate(loc_id, scalarfield->path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    FULFILL_OR_RETURN(gid >= 0, gid);
+
     /* Write to file. */
     dims[0] = 1;
     if ((err = utils_hdf5_write_attr
-         (loc_id, "number_of_physical_dimensions", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "number_of_physical_dimensions", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
           &scalarfield->cell.number_of_physical_dimensions.value)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
 
     dims[0] = scalarfield->cell.number_of_physical_dimensions.value;
     if ((err = utils_hdf5_write_attr
-         (loc_id, "dimension_types", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "dimension_types", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
           scalarfield->cell.dimension_types)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
 
     dims[0] = dims[1] = scalarfield->cell.number_of_physical_dimensions.value;
     if ((err = utils_hdf5_write_attr
-         (loc_id, "lattice_vectors", H5T_IEEE_F64LE, dims, 2, H5T_NATIVE_DOUBLE,
+         (gid, "lattice_vectors", H5T_IEEE_F64LE, dims, 2, H5T_NATIVE_DOUBLE,
           scalarfield->cell.lattice_vectors)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
 
     dims[0] = scalarfield->cell.number_of_physical_dimensions.value;
     if ((err = utils_hdf5_write_attr
-         (loc_id, "number_of_grid_points", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "number_of_grid_points", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
           scalarfield->number_of_grid_points)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
 
     dims[0] = 1;
     if ((err = utils_hdf5_write_attr
-         (loc_id, "number_of_components", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "number_of_components", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
           &scalarfield->number_of_components.value)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
 
     dims[0] = 1;
     if ((err = utils_hdf5_write_attr
-         (loc_id, "real_or_complex", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
-          &scalarfield->real_or_complex)) != ESCDF_SUCCESS) {
+         (gid, "real_or_complex", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          &scalarfield->real_or_complex.value)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
 
     dims[0] = 1;
+    value = (int)scalarfield->use_default_ordering.value;
     if ((err = utils_hdf5_write_attr
-         (loc_id, "use_default_ordering", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
-          &scalarfield->use_default_ordering)) != ESCDF_SUCCESS) {
+         (gid, "use_default_ordering", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          &value)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
 
@@ -247,16 +260,19 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
     }
     dims[2] = scalarfield->real_or_complex.value;
     if ((err = utils_hdf5_create_dataset
-         (loc_id, "values_on_grid", H5T_IEEE_F64LE, dims, 3, NULL)) != ESCDF_SUCCESS) {
+         (gid, "values_on_grid", H5T_IEEE_F64LE, dims, 3, NULL)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
         return err;
     }
-    if (scalarfield->use_default_ordering.value) {
+    if (!scalarfield->use_default_ordering.value) {
         if ((err = utils_hdf5_create_dataset
-             (loc_id, "grid_ordering", H5T_STD_U32LE, dims + 1, 1, NULL)) != ESCDF_SUCCESS) {
+             (gid, "grid_ordering", H5T_STD_U32LE, dims + 1, 1, NULL)) != ESCDF_SUCCESS) {
+            H5Gclose(gid);
             return err;
         }
     }
 
+    H5Gclose(gid);
     return ESCDF_SUCCESS;
 }
 
