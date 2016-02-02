@@ -20,10 +20,12 @@
 #ifndef LIBESCDF_utils_hdf5_H
 #define LIBESCDF_utils_hdf5_H
 
+#include "utils.h"
+
 bool utils_hdf5_check_present(hid_t loc_id, const char *name);
 
 escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, hsize_t *dims,
-                                            unsigned int ndims);
+                                     unsigned int ndims);
 
 escdf_errno_t utils_hdf5_check_attr(hid_t loc_id, const char *name,
                                     hsize_t *dims, unsigned int ndims,
@@ -34,8 +36,8 @@ escdf_errno_t utils_hdf5_check_dtset(hid_t loc_id, const char *name,
                                      hid_t *dtset_pt);
 
 escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name,
-                                          hid_t mem_type_id, hsize_t *dims,
-                                          unsigned int ndims, void *buf);
+                                   hid_t mem_type_id, hsize_t *dims,
+                                   unsigned int ndims, void *buf);
 
 escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name,
                                    _bool_set_t *scalar);
@@ -55,10 +57,6 @@ escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name,
 escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name,
                                         hid_t type_id, hsize_t *dims, unsigned
                                         int ndims, hid_t *dtset_pt);
-
-escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name,
-                                     hid_t type_id, hsize_t *dims,
-                                     unsigned int ndims, hid_t *attr_pt);
 
 escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name,
                                     hid_t disk_type_id, hsize_t *dims,
