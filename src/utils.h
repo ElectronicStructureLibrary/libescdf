@@ -22,40 +22,55 @@
 
 #include <stdbool.h>
 
-/**********************************************************************
- * Data structures                                                    *
- **********************************************************************/
+/******************************************************************************
+ * Data structures                                                            *
+ ******************************************************************************/
 
 /**
-* Boolean type with extra variable to keep track of status (set or unset)
-*/
+ * Boolean type with extra variable to keep track of status (set or unset)
+ *
+ */
 typedef struct {
     bool value;
     bool is_set;
 } _bool_set_t;
 
 /**
-* Unsigned integer type with extra variable to keep track of status (set or unset)
-*/
+ * Unsigned integer type with extra variable to keep track of status (set or
+ * unset)
+ */
 typedef struct {
     unsigned int value;
     bool is_set;
 } _uint_set_t;
 
 /**
-* Integer type with extra variable to keep track of status (set or unset)
-*/
+ * Integer type with extra variable to keep track of status (set or unset)
+ */
 typedef struct {
     int value;
     bool is_set;
 } _int_set_t;
 
 /**
-* Double type with extra variable to keep track of status (set or unset)
-*/
+ * Double type with extra variable to keep track of status (set or unset)
+ */
 typedef struct {
     double value;
     bool is_set;
 } _double_set_t;
+
+
+/******************************************************************************
+ * Setters                                                                    *
+ ******************************************************************************/
+
+_bool_set_t _bool_set(const bool value);
+
+_uint_set_t _uint_set(const unsigned int value);
+
+_int_set_t _int_set(const int value);
+
+_double_set_t _double_set(const double value);
 
 #endif

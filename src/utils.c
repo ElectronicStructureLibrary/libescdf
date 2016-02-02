@@ -18,3 +18,40 @@
 */
 
 #include "utils.h"
+
+
+/******************************************************************************
+ * Accessors                                                                  *
+ ******************************************************************************/
+
+_bool_set_t _bool_set(const bool value)
+{
+    _bool_set_t result;
+    result.value = value;
+    result.is_set = true;
+    return result;
+}
+
+_uint_set_t _uint_set(const unsigned int value)
+{
+    _uint_set_t result;
+    result.value = value;
+    result.is_set = true;
+    return result;
+}
+
+_int_set_t _int_set(const int value)
+{
+    _int_set_t result;
+    result.value = value;
+    result.is_set = true;
+    return result;
+}
+
+_double_set_t _double_set(const double value)
+{
+    _double_set_t result;
+    result.value = value;
+    result.is_set = true;
+    return result;
+}
