@@ -87,33 +87,25 @@ escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
     return geometry;
 }
 
-void escdf_geometry_free(escdf_geometry_t * geometry)
+escdf_errno_t escdf_geometry_free(escdf_geometry_t * geometry)
 {
     herr_t herr_status;
 
     /* close the group */
     herr_status = H5Gclose(geometry->group_id);
     FULFILL_OR_RETURN(herr_status >= 0, herr_status);
+
+    return ESCDF_SUCCESS;
 }
 
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
-    hid_t attribute_id;
-    herr_t herr_status;
-    htri_t htri_status;
-
     /* read attributes of the group: */
 
     /* --number_of_physical_dimensions */
-    htri_status = H5Aexists(geometry->group_id, "number_of_physical_dimensions");
-    if (htri_status) {
-      geometry->number_of_physical_dimensions.is_set = true;
-      attribute_id = H5Aopen(geometry->group_id,
-              "number_of_physical_dimensions", H5P_DEFAULT);
-      herr_status = H5Aread(attribute_id, H5T_NATIVE_INT,
-              &geometry->number_of_physical_dimensions.value);
-      FULFILL_OR_RETURN(herr_status >= 0, herr_status);
-    }
+    int range[2] = {3, 3};
+    utils_hdf5_read_int(geometry->group_id, "number_of_physical_dimensions",
+                        geometry->number_of_physical_dimensions, range);
 
     /* read datasets of the group: */
 
@@ -152,7 +144,7 @@ escdf_errno_t escdf_geometry_set_number_of_physical_dimensions(
     FULFILL_OR_RETURN(number_of_physical_dimensions == 3, ESCDF_EVALUE);
 
     /* set the value and status */
-    geometry->number_of_physical_dimensions = _int_set(const int number_of_physical_dimensions);
+    geometry->number_of_physical_dimensions = _int_set(number_of_physical_dimensions);
 
     return ESCDF_SUCCESS;
 }
