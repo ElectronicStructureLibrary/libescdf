@@ -126,12 +126,12 @@ escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarf
 /* Data functions. */
 /*******************/
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                          hid_t loc_id, const double *buf,
+                                                          hid_t file_id, const double *buf,
                                                           const hsize_t *start,
                                                           const hsize_t *count,
                                                           const hsize_t *stride);
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const escdf_grid_scalarfield_t *scalarfield,
-                                                                        hid_t loc_id,
+                                                                        hid_t file_id,
                                                                         const double *buf,
                                                                         const unsigned int *tbl,
                                                                         const hsize_t *start,
@@ -139,7 +139,7 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
                                                                         const hsize_t *stride);
 
 escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                         hid_t loc_id, double *buf,
+                                                         hid_t file_id, double *buf,
                                                          const hsize_t *start,
                                                          const hsize_t *count,
                                                          const hsize_t *stride);
