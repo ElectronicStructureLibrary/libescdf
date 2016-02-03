@@ -69,4 +69,11 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id,
                                        const hsize_t *start,
                                        const hsize_t *count,
                                        const hsize_t *stride);
+
+escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id,
+                                      void *buf,
+                                      hid_t mem_type_id,
+                                      const hsize_t *start,
+                                      const hsize_t *count,
+                                      const hsize_t *stride);
 #endif
