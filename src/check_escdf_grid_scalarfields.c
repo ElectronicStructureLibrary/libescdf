@@ -343,6 +343,64 @@ START_TEST(test_set_use_default_ordering)
 }
 END_TEST
 
+START_TEST(test_write_values_on_grid)
+{
+    hid_t file_id;
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uarr[2], uval;
+    double darr[4];
+
+    double dens[48];
+    hsize_t start[3] = {0, 2, 0};
+    hsize_t count[3] = {2, 9, 1};
+    unsigned int i, j;
+    
+    /* Create a new file using default properties. */
+    file_id = H5Fcreate("tmp_grid_scalarfield_write.h5",
+                        H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    ck_assert(file_id >= 0);
+
+    scalarfield = escdf_grid_scalarfield_new(NULL);
+
+    escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
+    uarr[0] = 0;
+    uarr[1] = 2;
+    escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
+    darr[0] = 1.;
+    darr[1] = 2.;
+    darr[2] = 3.;
+    darr[3] = 4.;
+    escdf_grid_scalarfield_set_lattice_vectors(scalarfield, darr, 4);
+    uarr[0] = 6;
+    uarr[1] = 4;
+    escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
+    escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
+    escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
+    escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
+    
+    err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
+    ck_assert(err == ESCDF_SUCCESS);
+
+    for (i = 0; i  < 18; i++) {
+        dens[i] = i;
+    }
+    err = escdf_grid_scalarfield_write_values_on_grid(scalarfield, file_id, dens, start, count, NULL);
+    ck_assert(err == ESCDF_SUCCESS);
+
+    err = escdf_grid_scalarfield_read_values_on_grid(scalarfield, file_id, dens, NULL, NULL, NULL);
+    ck_assert(err == ESCDF_SUCCESS);
+    for (j = 0; j < 2; j++) {
+        for (i = 0; i < 24; i++) {
+            if (i > 1 && i < 11)
+                ck_assert(dens[i + j * 24] == i - 2 + j * 9);
+            else
+                ck_assert(dens[i + j * 24] == 0.);
+        }
+    }
+}
+END_TEST
+
 Suite * make_grid_scalarfield_suite(void)
 {
     Suite *s;
@@ -361,6 +419,7 @@ Suite * make_grid_scalarfield_suite(void)
     tcase_add_test(tc_info, test_set_real_or_complex);
     tcase_add_test(tc_info, test_set_use_default_ordering);
     tcase_add_test(tc_info, test_write_metadata);
+    tcase_add_test(tc_info, test_write_values_on_grid);
     suite_add_tcase(s, tc_info);
 
     return s;
