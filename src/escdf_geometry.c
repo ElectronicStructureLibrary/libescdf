@@ -21,6 +21,8 @@
 
 #include "escdf_geometry.h"
 
+#include "utils.h"
+#include "utils_hdf5.h"
 
 /******************************************************************************
  * Data structures                                                            *
@@ -57,16 +59,16 @@ escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
     FULFILL_OR_RETURN(geometry != NULL, ESCDF_ENOMEM)
 
     /* check if "geometries" group exists; if not, create it */
-    if (!H5Lexists(handle->group_id, "geometries", H5P_DEFAULT)) {
+    if (!utils_hdf5_check_present(handle->group_id, "geometries")) {
         geometry->group_id = H5Gcreate(handle->group_id, "geometries",
                                        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     } else {
-        geometry->group_id = H5Gopen(geometry->group_id, "geometries",
+        geometry->group_id = H5Gopen(handle->group_id, "geometries",
                                      H5P_DEFAULT);
     }
 
     /* check if specific geometry group exists and open it; if not, create it */
-    if (!H5Lexists(geometry->group_id, name, H5P_DEFAULT)) {
+    if (!utils_hdf5_check_present(geometry->group_id, name)) {
         geometry->group_id = H5Gcreate(geometry->group_id, name, H5P_DEFAULT,
                                        H5P_DEFAULT, H5P_DEFAULT);
     }
@@ -91,11 +93,11 @@ void escdf_geometry_free(escdf_geometry_t * geometry)
 
     /* close the group */
     herr_status = H5Gclose(geometry->group_id);
+    FULFILL_OR_RETURN(herr_status >= 0, herr_status);
 }
 
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
-    escdf_errno_t error;
     hid_t attribute_id;
     herr_t herr_status;
     htri_t htri_status;
@@ -110,21 +112,21 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
               "number_of_physical_dimensions", H5P_DEFAULT);
       herr_status = H5Aread(attribute_id, H5T_NATIVE_INT,
               &geometry->number_of_physical_dimensions.value);
+      FULFILL_OR_RETURN(herr_status >= 0, herr_status);
     }
 
-    /* read datasets of the group */
+    /* read datasets of the group: */
 
-    return error;
+    return ESCDF_SUCCESS;
 }
 
 escdf_errno_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry)
 {
-    escdf_errno_t error;
     hid_t group_id, dataspace_id, attribute_id;
     hsize_t dims;
     herr_t herr_status;
 
-    /* write attributes of the group */
+    /* write attributes of the group: */
 
     /* --number_of_physical_dimensions */
     if (geometry->number_of_physical_dimensions.is_set) {
@@ -135,41 +137,31 @@ escdf_errno_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry)
                 H5P_DEFAULT, H5P_DEFAULT);
         herr_status = H5Awrite(attribute_id, H5T_NATIVE_INT,
                 &geometry->number_of_physical_dimensions.value);
+        FULFILL_OR_RETURN(herr_status >= 0, herr_status);
     }
 
-    /* write datasets of the group */
+    /* write datasets of the group: */
 
-    return error;
+    return ESCDF_SUCCESS;
 }
 
 escdf_errno_t escdf_geometry_set_number_of_physical_dimensions(
         escdf_geometry_t *geometry, const int number_of_physical_dimensions)
 {
-    escdf_errno_t error;
-
     /* checks on the value */
-    if (number_of_physical_dimensions != 3) {
-        return ESCDF_EVALUE;
-    }
+    FULFILL_OR_RETURN(number_of_physical_dimensions == 3, ESCDF_EVALUE);
 
-    /* set the value */
-    geometry->number_of_physical_dimensions.value = number_of_physical_dimensions;
+    /* set the value and status */
+    geometry->number_of_physical_dimensions = _int_set(const int number_of_physical_dimensions);
 
-    /* set the status */
-    geometry->number_of_physical_dimensions.is_set = true;
-
-    return error;
+    return ESCDF_SUCCESS;
 }
 
 int escdf_geometry_get_number_of_physical_dimensions(
         const escdf_geometry_t *geometry)
 {
-    escdf_errno_t error;
-
     /* check if the value is set */
-    if (!geometry->number_of_physical_dimensions.is_set) {
-        error = ESCDF_EVALUE;
-    }
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_EVALUE);
 
     return geometry->number_of_physical_dimensions.value;
 }
