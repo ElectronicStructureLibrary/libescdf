@@ -112,15 +112,6 @@ int escdf_geometry_get_number_of_physical_dimensions(
         const escdf_geometry_t *geometry);
 
 /**
- * Get a pointer to number_of_physical_dimensions stored in the geometry data
- * type.
- *
- * @param[in] geometry: instance of the geometry group.
- * @return pointer to the variable.
- */
-const int * escdf_geometry_ptr_dimension_types(const escdf_geometry_t *geometry);
-
-/**
  * Returns if number_of_physical_dimensions has been set or not in the geometry
  * data type.
  *
@@ -128,6 +119,38 @@ const int * escdf_geometry_ptr_dimension_types(const escdf_geometry_t *geometry)
  * @return TRUE if the variable has been set, FALSE otherwise.
  */
 bool escdf_geometry_is_set_number_of_physical_dimensions(
+        const escdf_geometry_t *geometry);
+
+/**
+ * Sets the value of dimension_types in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] dimension_types: the value of the variable to be set.
+ * @param[in] len: the size of dimension_types.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_dimension_types(
+        escdf_geometry_t *geometry, const int *dimension_types, const size_t len)
+
+/**
+ * Get the value of dimension_types stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] dimension_types: the value of the variable
+ * @param[in] len: the size of dimension_types.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_dimension_types(
+        const escdf_geometry_t *geometry, int *dimension_types, const size_t len)
+
+/**
+ * Get a pointer to dimension_types stored in the geometry data type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @return pointer to the variable.
+ */
+const int * escdf_geometry_ptr_dimension_types(
         const escdf_geometry_t *geometry);
 
 

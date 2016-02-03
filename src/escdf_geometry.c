@@ -153,7 +153,7 @@ int escdf_geometry_get_number_of_physical_dimensions(
         const escdf_geometry_t *geometry)
 {
     /* check if the value is set */
-    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_EVALUE);
+    FULFILL_OR_RETURN_VAL(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING, 0);
 
     return geometry->number_of_physical_dimensions.value;
 }
@@ -162,4 +162,46 @@ bool escdf_geometry_is_set_number_of_physical_dimensions(
         const escdf_geometry_t *geometry)
 {
     return geometry->number_of_physical_dimensions.is_set;
+}
+
+escdf_errno_t escdf_geometry_set_dimension_types(
+        escdf_geometry_t *geometry, const int *dimension_types, const size_t len)
+{
+    unsigned int i, c;
+
+    /* checks on the value */
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+    FULFILL_OR_RETURN(len == geometry->number_of_physical_dimensions.value, ESCDF_ESIZE);
+    c = 0;
+    for (i = 0; i < len; i++) {
+        FULFILL_OR_RETURN(dimension_types[i] >= 0 && dimension_types[i] < 3, ESCDF_ERANGE);
+        if (dimension_types[i] == 2) c++;
+    }
+    FULFILL_OR_RETURN(c <= 1, ESCDF_ERANGE);
+
+    /* allocate the array and set the value */
+    free(geometry->dimension_types);
+    geometry->dimension_types = malloc(sizeof(int) * len);
+    memcpy(geometry->dimension_types, dimension_types, sizeof(int) * len);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_dimension_types(
+        const escdf_geometry_t *geometry, int *dimension_types, const size_t len)
+{
+    FULFILL_OR_RETURN(geometry->dimension_types, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(len == geometry->number_of_physical_dimensions.value, ESCDF_ESIZE);
+
+    memcpy(dimension_types, geometry->dimension_types, sizeof(int) * len);
+
+    return ESCDF_SUCCESS;
+}
+
+const int * escdf_geometry_ptr_dimension_types(
+        const escdf_geometry_t *geometry)
+{
+    FULFILL_OR_RETURN_VAL(geometry, ESCDF_EOBJECT, NULL);
+
+    return geometry->dimension_types;
 }
