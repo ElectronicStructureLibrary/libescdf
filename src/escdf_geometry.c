@@ -110,10 +110,10 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
     int number_of_physical_dimensions_range[2] = {3, 3};
     int dimension_types_range[2] = {0, 2};
-    int number_of_species_range[2] = {, };
-    int number_of_sites_range[2] = {, };
+    int number_of_species_range[2] = {1, 1000};
+    int number_of_sites_range[2] = {1, 1000};
     int absolute_or_reduced_coordinates_range[2] = {1, 2};
-    int number_of_symmetry_operations_range[2] = {, };
+    int number_of_symmetry_operations_range[2] = {1, 1000};
     hsize_t oneDims[1];
 
     /* read attributes of the group: */
