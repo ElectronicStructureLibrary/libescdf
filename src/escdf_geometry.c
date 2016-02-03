@@ -100,12 +100,26 @@ escdf_errno_t escdf_geometry_free(escdf_geometry_t * geometry)
 
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
+    int number_of_physical_dimensions_range[2] = {3, 3};
+    int dimension_types_range[2] = {0, 2};
+    hsize_t oneDims[1];
+
     /* read attributes of the group: */
 
     /* --number_of_physical_dimensions */
-    int range[2] = {3, 3};
-    utils_hdf5_read_int(geometry->group_id, "number_of_physical_dimensions",
-                        geometry->number_of_physical_dimensions, range);
+    if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_physical_dimensions",
+                                   &(*geometry)->number_of_physical_dimensions,
+                                   number_of_physical_dimensions_range)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* --dimension_types */
+    oneDims[0] = (*geometry)->number_of_physical_dimensions.value;
+    if ((err = utils_hdf5_read_int_array(loc_id, "dimension_types",
+                                         &(*geometry)->dimension_types,
+                                         oneDims, 1, dimension_types_range)) != ESCDF_SUCCESS) {
+        return err;
+    }
 
     /* read datasets of the group: */
 
@@ -115,21 +129,32 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 escdf_errno_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry)
 {
     hid_t group_id, dataspace_id, attribute_id;
-    hsize_t dims;
+    hsize_t dims[3];
     herr_t herr_status;
+
+    FULFILL_OR_RETURN(geometry, ESCDF_EOBJECT);
+
+    /* check mandatory attributes */
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(geometry->dimension_types, ESCDF_EUNINIT);
 
     /* write attributes of the group: */
 
     /* --number_of_physical_dimensions */
-    if (geometry->number_of_physical_dimensions.is_set) {
-        dims = 1;
-        dataspace_id = H5Screate_simple(1, &dims, NULL);
-        attribute_id = H5Acreate2(geometry->group_id,
-                "number_of_physical_dimensions", H5T_NATIVE_INT, dataspace_id,
-                H5P_DEFAULT, H5P_DEFAULT);
-        herr_status = H5Awrite(attribute_id, H5T_NATIVE_INT,
-                &geometry->number_of_physical_dimensions.value);
-        FULFILL_OR_RETURN(herr_status >= 0, herr_status);
+    dims[0] = 1;
+    if ((err = utils_hdf5_write_attr
+         (geometry->group_id, "number_of_physical_dimensions", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          &geometry->number_of_physical_dimensions.value)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* --dimension_types */
+    dims[0] = geometry->number_of_physical_dimensions.value;
+    if ((err = utils_hdf5_write_attr
+         (geometry->group_id, "dimension_types", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+          geometry->dimension_types)) != ESCDF_SUCCESS) {
+        H5Gclose(gid);
+        return err;
     }
 
     /* write datasets of the group: */
