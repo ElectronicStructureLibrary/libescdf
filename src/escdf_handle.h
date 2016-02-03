@@ -24,26 +24,48 @@
 
 #include "escdf_error.h"
 
-/*****************************************************************************
- * Data structures                                                           *
- *****************************************************************************/
+#if defined HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_MPI_H
+#include <mpi.h>
+#endif
+
+/******************************************************************************
+ * Data structures                                                            *
+ ******************************************************************************/
 
 /**
 *
 */
 typedef struct {
-    hid_t file_id;   /**< HDF5 file identifier */
+    hid_t file_id;  /**< HDF5 file identifier */
 
-    hid_t group_id;
+    hid_t group_id; /**< HDF5 group identifier that is to be considered as root */
+
+#ifdef HAVE_MPI
+    MPI_Comm comm;
+    int mpi_size, mpi_rank;
+
+    hid_t transfer_mode;
+#endif
 } escdf_handle_t;
 
 
-/*****************************************************************************
- * Global functions                                                          *
- *****************************************************************************/
+/******************************************************************************
+ * Global functions                                                           *
+ ******************************************************************************/
 
 escdf_handle_t * escdf_create(const char *filename, const char *path);
 
+escdf_handle_t * escdf_open(const char *filename, const char *path);
+
 escdf_errno_t escdf_close(escdf_handle_t *handle);
+
+#ifdef HAVE_MPI
+escdf_handle_t * escdf_create_mpi(const char *filename, const char *path,
+    MPI_Comm comm);
+#endif
 
 #endif
