@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <hdf5.h>
+#include <string.h>
 
 #include "escdf_error.h"
 #include "utils_hdf5.h"
@@ -249,6 +250,31 @@ escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name,
             RETURN_WITH_ERROR(ESCDF_ERANGE);
         }
     }
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t utils_hdf5_create_group(hid_t loc_id, const char *path, hid_t *group_pt)
+{
+    char *token, *lpath;
+    hid_t group_id;
+
+    group_id = loc_id;
+    lpath = strdup(path);
+    for (token = strtok(lpath, "/"); token != NULL; token = strtok(NULL, "/")) {
+        if (utils_hdf5_check_present(group_id, token)) {
+            group_id = H5Gopen(group_id, path, H5P_DEFAULT);
+        } else {
+            group_id = H5Gcreate(group_id, token, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        }
+        DEFER_TEST_ERROR(group_id >= 0, ESCDF_ERROR);
+    }
+    free(lpath);
+
+    RETURN_ON_DEFERRED_ERROR
+
+    if (group_pt != NULL)
+        *group_pt = group_id;
+
     return ESCDF_SUCCESS;
 }
 
