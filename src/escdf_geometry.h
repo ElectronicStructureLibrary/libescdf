@@ -42,7 +42,8 @@ typedef struct escdf_geometry escdf_geometry_t;
  ******************************************************************************/
 
 /**
- * Creates a new instance of the geometry data type.
+ * Creates a new instance of the geometry data type and opens the group
+ * associated with it.
  *
  * @param[in] handle: the file/group handle defining the root where to open
  * the "/geometries" group.
@@ -54,11 +55,12 @@ escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
         const char *name);
 
 /**
- * Free all memory associated with the geometry group.
+ * Free all memory associated with the geometry group and close the group.
  *
  * @param[in,out] geometry: the geometry.
+ * @return error code.
  */
-void escdf_geometry_free(escdf_geometry_t * geometry);
+escdf_errno_t escdf_geometry_free(escdf_geometry_t * geometry);
 
 
 /******************************************************************************
