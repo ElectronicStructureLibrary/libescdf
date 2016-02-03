@@ -494,7 +494,8 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scala
     }
     bounds[2] = scalarfield->real_or_complex.value;
     /* Get the dataset for this variable and check its dimensions. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid", bounds, 3, &dtset_id)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid",
+                                      bounds, 3, &dtset_id)) != ESCDF_SUCCESS) {
         return err;
     }
 
@@ -530,7 +531,8 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
     }
     bounds[2] = scalarfield->real_or_complex.value;
     /* Get the dataset for this variable and check its dimensions. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid", bounds, 3, &dtset_id)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid",
+                                      bounds, 3, &dtset_id)) != ESCDF_SUCCESS) {
         return err;
     }
 
@@ -543,7 +545,8 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
     H5Dclose(dtset_id);
 
     /* For the lookup table. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering", bounds + 1, 1, &dtset_id)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering",
+                                      bounds + 1, 1, &dtset_id)) != ESCDF_SUCCESS) {
         return err;
     }
 
@@ -552,6 +555,41 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
                                         (start) ? start + 1 : NULL,
                                         (count) ? count + 1 : NULL,
                                         (stride) ? stride + 1 : NULL)) != ESCDF_SUCCESS) {
+        H5Dclose(dtset_id);
+        return err;
+    }
+
+    H5Dclose(dtset_id);
+    return ESCDF_SUCCESS;
+}
+escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
+                                                         hid_t loc_id, double *buf,
+                                                         const hsize_t *start,
+                                                         const hsize_t *count,
+                                                         const hsize_t *stride)
+{
+    escdf_errno_t err;
+    hid_t dtset_id;
+    hsize_t bounds[3];
+    unsigned int i;
+
+    /* Check that variable on disk is consistent with metadata in scalarfield. */
+    /* Create the global distribution bounds. */
+    bounds[0] = scalarfield->number_of_components.value;
+    bounds[1] = scalarfield->number_of_grid_points[0];
+    for (i = 1; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
+        bounds[1] *= scalarfield->number_of_grid_points[i];
+    }
+    bounds[2] = scalarfield->real_or_complex.value;
+    /* Get the dataset for this variable and check its dimensions. */
+    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid",
+                                      bounds, 3, &dtset_id)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* Actual read action. */
+    if ((err = utils_hdf5_read_dataset(dtset_id, buf, H5T_NATIVE_DOUBLE,
+                                       start, count, stride)) != ESCDF_SUCCESS) {
         H5Dclose(dtset_id);
         return err;
     }

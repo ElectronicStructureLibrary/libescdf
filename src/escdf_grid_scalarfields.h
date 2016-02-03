@@ -138,4 +138,10 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
                                                                         const hsize_t *count,
                                                                         const hsize_t *stride);
 
+escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
+                                                         hid_t loc_id, double *buf,
+                                                         const hsize_t *start,
+                                                         const hsize_t *count,
+                                                         const hsize_t *stride);
+
 #endif
