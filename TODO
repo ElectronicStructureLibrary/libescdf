@@ -1,0 +1,16 @@
+ Densities
+ =========
+
+* replace the current hid_t file_id with escdf_handle_t in all the grid_scalarfield API.
+
+* implement host friendly read routines for the variable values_on_grid:
+  - read_values_on_grid_ordered(map, count, stride) -> if use_default_ordering is False,
+    then read the lookup table and return the desired slide in default zyx ordering.
+  - read_values_on_grid_at(lookup_table) -> provide data for the given points only from
+    the provided lookup table.
+    
+* implement host friendl write routine for the variable values_on_grid:
+  - write_values_on_grid_at(lookup_table) -> need to be collective to broadcast internally
+    the various sizes and create the start for each processor accordingly.
+
+* complete the list<scalarfield> implementation in densities.c
