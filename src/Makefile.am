@@ -50,7 +50,7 @@ escdf_core_hdrs = \
 # Internal C headers - keep this in alphabetical order
 escdf_hidden_hdrs = \
   utils.h \
-  utils_hdf5.c
+  utils_hdf5.h
 
                     # ------------------------------------ #
 
@@ -132,4 +132,5 @@ TESTS = \
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov test_*.tmp
 
 # Binary files generated during the tests
-CLEANFILES = new_file.h5
+CLEANFILES = \
+  tmp_grid_scalarfield_write.h5
