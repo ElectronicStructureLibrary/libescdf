@@ -1,7 +1,7 @@
 #include "escdf_geometry.h"
 #define FILE "check_escdf_geometry.h5"
 
-void error_setup(void) {
+void geometry_setup(void) {
 
     char *escdf_root_path=NULL;
     char *silicon_geom_path=NULL;
@@ -130,7 +130,32 @@ void error_setup(void) {
     status = H5Fclose(file_id);
 }
 
-void error_teardown(void)
+void geometry_teardown(void)
 {
     unlink(FILE);
+}
+
+START_TEST(test_geometry_new)
+{
+    escdf_handle_t *handle;
+    escdf_geometry_t *geometry;
+
+    ck_assert((handle = escdf_create(FILE, NULL)) != NULL);
+    ck_assert((geometry = escdf_geometry_new(handle, ".")) != NULL);
+    ck_assert(escdf_geometry_free(geometry) == ESCDF_SUCCESS);
+}
+END_TEST
+
+Suite * make_geometry_suite(void)
+{
+    Suite *s;
+    TCase *tc_geometry;
+
+    s = suite_create("Geometry");
+
+    tc_geometry = tcase_create("New file");
+    tcase_add_checked_fixture(tc_geometry, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry, test_geometry_new);
+    suite_add_tcase(s, tc_geometry);
+    return s;
 }

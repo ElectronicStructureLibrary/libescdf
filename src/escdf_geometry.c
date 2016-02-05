@@ -60,7 +60,7 @@ escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
     escdf_geometry_t *geometry;
 
     geometry = (escdf_geometry_t *) malloc(sizeof(escdf_geometry_t));
-    FULFILL_OR_RETURN(geometry != NULL, ESCDF_ENOMEM)
+    //FULFILL_OR_RETURN(geometry != NULL, ESCDF_ENOMEM)
 
     /* check if "geometries" group exists; if not, create it */
     if (!utils_hdf5_check_present(handle->group_id, "geometries")) {
@@ -108,6 +108,7 @@ escdf_errno_t escdf_geometry_free(escdf_geometry_t * geometry)
 
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
+    escdf_errno_t err;
     int number_of_physical_dimensions_range[2] = {3, 3};
     int dimension_types_range[2] = {0, 2};
     int number_of_species_range[2] = {1, 1000};
@@ -120,49 +121,49 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 
     /* --number_of_physical_dimensions */
     if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_physical_dimensions",
-                                   &(*geometry)->number_of_physical_dimensions,
+                                   &geometry->number_of_physical_dimensions,
                                    number_of_physical_dimensions_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --dimension_types */
-    oneDims[0] = (*geometry)->number_of_physical_dimensions.value;
+    oneDims[0] = geometry->number_of_physical_dimensions.value;
     if ((err = utils_hdf5_read_int_array(geometry->group_id, "dimension_types",
-                                         &(*geometry)->dimension_types,
+                                         &geometry->dimension_types,
                                          oneDims, 1, dimension_types_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --embedded_system */
     if ((err = utils_hdf5_read_bool(geometry->group_id, "embedded_system",
-                                    &(*geometry)->embedded_system)) != ESCDF_SUCCESS) {
+                                    &geometry->embedded_system)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --number_of_species */
     if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_species",
-                                   &(*geometry)->number_of_species,
+                                   &geometry->number_of_species,
                                    number_of_species_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --number_of_sites */
     if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_sites",
-                                   &(*geometry)->number_of_sites,
+                                   &geometry->number_of_sites,
                                    number_of_sites_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --absolute_or_reduced_coordinates */
     if ((err = utils_hdf5_read_int(geometry->group_id, "absolute_or_reduced_coordinates",
-                                   &(*geometry)->absolute_or_reduced_coordinates,
+                                   &geometry->absolute_or_reduced_coordinates,
                                    absolute_or_reduced_coordinates_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --number_of_symmetry_operations */
     if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_symmetry_operations",
-                                   &(*geometry)->number_of_symmetry_operations,
+                                   &geometry->number_of_symmetry_operations,
                                    number_of_symmetry_operations_range)) != ESCDF_SUCCESS) {
         return err;
     }
@@ -174,6 +175,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 
 escdf_errno_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry)
 {
+    escdf_errno_t err;
     hsize_t dims[3];
     int value;
 
@@ -202,7 +204,6 @@ escdf_errno_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry)
     if ((err = utils_hdf5_write_attr
          (geometry->group_id, "dimension_types", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
           geometry->dimension_types)) != ESCDF_SUCCESS) {
-        H5Gclose(gid);
         return err;
     }
 

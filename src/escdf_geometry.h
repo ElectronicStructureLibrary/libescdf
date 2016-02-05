@@ -22,12 +22,12 @@
 #define LIBESCDF_GEOMETRY_H
 
 #include <stdbool.h>
+#include <string.h>
 
 #include "escdf_error.h"
-
-#include "utils.h"
 #include "escdf_handle.h"
-#include "escdf_geometry.c"
+#include "utils.h"
+
 
 
 /******************************************************************************
@@ -130,7 +130,7 @@ bool escdf_geometry_is_set_number_of_physical_dimensions(
  * @return error code.
  */
 escdf_errno_t escdf_geometry_set_dimension_types(
-        escdf_geometry_t *geometry, const int *dimension_types, const size_t len)
+        escdf_geometry_t *geometry, const int *dimension_types, const size_t len);
 
 /**
  * Get the value of dimension_types stored in the geometry data
@@ -142,7 +142,7 @@ escdf_errno_t escdf_geometry_set_dimension_types(
  * @return error code.
  */
 escdf_errno_t escdf_geometry_get_dimension_types(
-        const escdf_geometry_t *geometry, int *dimension_types, const size_t len)
+        const escdf_geometry_t *geometry, int *dimension_types, const size_t len);
 
 /**
  * Get a pointer to dimension_types stored in the geometry data type.
