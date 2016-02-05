@@ -32,6 +32,7 @@
 escdf_core_srcs = \
   escdf.c \
   escdf_error.c \
+  escdf_geometry.c \
   escdf_grid_scalarfields.c \
   escdf_handle.c \
   escdf_info.c \
@@ -43,6 +44,7 @@ escdf_core_hdrs = \
   escdf.h \
   escdf_common.h \
   escdf_error.h \
+  escdf_geometry.h \
   escdf_grid_scalarfields.h \
   escdf_handle.h \
   escdf_info.h
