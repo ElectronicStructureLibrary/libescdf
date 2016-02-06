@@ -3,7 +3,31 @@
  *
  * @section intro Introduction
  * 
+ *
  * 
+ * @section style Coding style
+ *
+ * We follow the Linux kernel coding style (https://www.kernel.org/doc/Documentation/CodingStyle) with the following modifications:
+ * 
+ * \li Indentation is 4 characters.
+ * \li The limit on the length of lines is 120 columns.
+ *
+ * Yes, we are perfectly aware that these modifications are heresy.
+ *
+ * @subsection naming Naming conventions
+ *
+ * Here are some general rules that apply to names of variables, structures, functions, files, etc:
+ * 
+ * \li Long descriptive names are preferred, but common abbreviations (ex. tmp) or abbreviations were a clear consensus exists are fine.
+ * \li Upper-case names are reserved for macros.
+ * \li Mixed-case names are strongly discouraged.
+ * \li Words in names should be separated by underscores.
+ * 
+ * We also have some specific rules concerning the names of files, functions, and structures:
+ *
+ * \li The name of the headers that are public should always start by "escdf" (see @ref c_headers).
+ * \li Names the functions and structures should always start with the name of the file were they are defined. This means that names of public functions and structures always start with "escdf".
+ *
  * 
  * @section c_headers C headers
  * 
@@ -15,11 +39,12 @@
  * "escdf_*.h" headers are listed in the makefile in the "escdf_core_hdrs"
  * variable.
  *
- * Headers which are strictly internal to Libescdf do not have a priori to
- * follow strict naming conventions, but it is always a good idea to name
- * them cleverly, so that their purpose is known from reading their name.
- * These headers are listed in the makefile in the "escdf_hidden_hdrs"
- * variable.
+ * Headers which are strictly internal to Libescdf do not have a
+ * priori to follow strict naming conventions besides the ones from
+ * the @ref naming section, but it is always a good idea to name them
+ * cleverly, so that their purpose is known from reading their
+ * name. These headers are listed in the makefile in the
+ * "escdf_hidden_hdrs" variable.
  *
  * The headers belonging to Libescdf are included using double quotes,
  * while those coming from other libraries are included using the <toto.h>
@@ -30,4 +55,8 @@
  * placed after including config.h.
  *
  *
+ * @section mpi Running with MPI
+ *
+ * 
+ * 
  **/
