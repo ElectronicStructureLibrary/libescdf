@@ -85,12 +85,12 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_physical_dimensions(escdf_gri
 unsigned int escdf_grid_scalarfield_get_number_of_physical_dimensions(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_set_dimension_types(escdf_grid_scalarfield_t *scalarfield,
-                                                         const unsigned int *dimension_types,
+                                                         const int *dimension_types,
                                                          const size_t len);
 escdf_errno_t escdf_grid_scalarfield_get_dimension_types(const escdf_grid_scalarfield_t *scalarfield,
-                                                         unsigned int *dimension_types,
+                                                         int *dimension_types,
                                                          const size_t len);
-const unsigned int* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield);
+const int* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_set_lattice_vectors(escdf_grid_scalarfield_t *scalarfield,
                                                          const double *lattice_vectors,

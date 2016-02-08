@@ -28,7 +28,7 @@
 typedef struct {
     /* The metadata */
     _uint_set_t number_of_physical_dimensions;
-    unsigned int *dimension_types;
+    int *dimension_types;
 
     double *lattice_vectors;
 } _cell_t;
@@ -80,7 +80,7 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **sc
     escdf_errno_t err;
     unsigned int i;
     unsigned int rgPhys[2] = {1, 3};
-    unsigned int rgDim[2] = {0, 2};
+    int rgDim[2] = {0, 2};
     double rgCell[2] = {0., HUGE_VAL};
     unsigned int rgGrid[2] = {1, 1024 * 1024};
     unsigned int rgComp[2] = {1, 4};
@@ -105,9 +105,9 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **sc
     }
     
     oneDims[0] = (*scalarfield)->cell.number_of_physical_dimensions.value;
-    if ((err = utils_hdf5_read_uint_array(loc_id, "dimension_types",
-                                          &(*scalarfield)->cell.dimension_types,
-                                          oneDims, 1, rgDim)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_int_array(loc_id, "dimension_types",
+                                         &(*scalarfield)->cell.dimension_types,
+                                         oneDims, 1, rgDim)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
@@ -205,7 +205,7 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
 
     dims[0] = scalarfield->cell.number_of_physical_dimensions.value;
     if ((err = utils_hdf5_write_attr
-         (gid, "dimension_types", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "dimension_types", H5T_STD_I32LE, dims, 1, H5T_NATIVE_INT,
           scalarfield->cell.dimension_types)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
@@ -287,17 +287,17 @@ unsigned int escdf_grid_scalarfield_get_number_of_physical_dimensions(const escd
     return scalarfield->cell.number_of_physical_dimensions.value;
 }
 escdf_errno_t escdf_grid_scalarfield_get_dimension_types(const escdf_grid_scalarfield_t *scalarfield,
-                                                         unsigned int *dimension_types,
+                                                         int *dimension_types,
                                                          const size_t len)
 {
     FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
     FULFILL_OR_RETURN(scalarfield->cell.dimension_types, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
 
-    memcpy(dimension_types, scalarfield->cell.dimension_types, sizeof(unsigned int) * len);
+    memcpy(dimension_types, scalarfield->cell.dimension_types, sizeof(int) * len);
     return ESCDF_SUCCESS;
 }
-const unsigned int* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield)
+const int* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield)
 {
     FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, NULL);
 
@@ -378,7 +378,7 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_physical_dimensions(escdf_gri
 }
 
 escdf_errno_t escdf_grid_scalarfield_set_dimension_types(escdf_grid_scalarfield_t *scalarfield,
-                                                         const unsigned int *dimension_types,
+                                                         const int *dimension_types,
                                                          const size_t len)
 {
     unsigned int i;
@@ -391,8 +391,8 @@ escdf_errno_t escdf_grid_scalarfield_set_dimension_types(escdf_grid_scalarfield_
     }
 
     free(scalarfield->cell.dimension_types);
-    scalarfield->cell.dimension_types = malloc(sizeof(unsigned int) * len);
-    memcpy(scalarfield->cell.dimension_types, dimension_types, sizeof(unsigned int) * len);
+    scalarfield->cell.dimension_types = malloc(sizeof(int) * len);
+    memcpy(scalarfield->cell.dimension_types, dimension_types, sizeof(int) * len);
 
     return ESCDF_SUCCESS;
 }
