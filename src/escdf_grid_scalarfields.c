@@ -75,7 +75,7 @@ void escdf_grid_scalarfield_free(escdf_grid_scalarfield_t *scalarfield)
 }
 
 escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *scalarfield,
-                                                   hid_t file_id)
+                                                   escdf_handle_t *file_id)
 {
     escdf_errno_t err;
     unsigned int i;
@@ -92,7 +92,7 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *sca
     
     FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
 
-    if ((loc_id = H5Gopen(file_id, scalarfield->path, H5P_DEFAULT)) < 0)
+    if ((loc_id = H5Gopen(file_id->group_id, scalarfield->path, H5P_DEFAULT)) < 0)
         RETURN_WITH_ERROR(loc_id);
 
     if ((err = utils_hdf5_read_uint(loc_id, "number_of_physical_dimensions",
@@ -171,7 +171,7 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *sca
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield_t *scalarfield, hid_t loc_id)
+escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield_t *scalarfield, escdf_handle_t *loc_id)
 {
     hid_t gid;
     escdf_errno_t err;
@@ -189,7 +189,7 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
     FULFILL_OR_RETURN(scalarfield->number_of_components.is_set, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
 
-    gid = H5Gcreate(loc_id, scalarfield->path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    gid = H5Gcreate(loc_id->group_id, scalarfield->path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     FULFILL_OR_RETURN(gid >= 0, gid);
 
     /* Write to file. */
@@ -473,7 +473,7 @@ escdf_errno_t escdf_grid_scalarfield_set_use_default_ordering(escdf_grid_scalarf
 /* Data accessors. */
 /*******************/
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                          hid_t file_id, const double *buf,
+                                                          escdf_handle_t *file_id, const double *buf,
                                                           const hsize_t *start,
                                                           const hsize_t *count,
                                                           const hsize_t *stride)
@@ -488,7 +488,7 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scala
     FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
     
-    if ((loc_id = H5Gopen(file_id, scalarfield->path, H5P_DEFAULT)) < 0) {
+    if ((loc_id = H5Gopen(file_id->group_id, scalarfield->path, H5P_DEFAULT)) < 0) {
         RETURN_WITH_ERROR(loc_id);
     }
     
@@ -520,7 +520,7 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scala
     return ESCDF_SUCCESS;
 }
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const escdf_grid_scalarfield_t *scalarfield,
-                                                                        hid_t file_id,
+                                                                        escdf_handle_t *file_id,
                                                                         const double *buf,
                                                                         const unsigned int *tbl,
                                                                         const hsize_t *start,
@@ -537,7 +537,7 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
     FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
     
-    if ((loc_id = H5Gopen(file_id, scalarfield->path, H5P_DEFAULT)) < 0) {
+    if ((loc_id = H5Gopen(file_id->group_id, scalarfield->path, H5P_DEFAULT)) < 0) {
         RETURN_WITH_ERROR(loc_id);
     }
     
@@ -587,7 +587,7 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
     return ESCDF_SUCCESS;
 }
 escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                         hid_t file_id, double *buf,
+                                                         escdf_handle_t *file_id, double *buf,
                                                          const hsize_t *start,
                                                          const hsize_t *count,
                                                          const hsize_t *stride)
@@ -602,7 +602,7 @@ escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalar
     FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
     
-    if ((loc_id = H5Gopen(file_id, scalarfield->path, H5P_DEFAULT)) < 0) {
+    if ((loc_id = H5Gopen(file_id->group_id, scalarfield->path, H5P_DEFAULT)) < 0) {
         RETURN_WITH_ERROR(loc_id);
     }
     

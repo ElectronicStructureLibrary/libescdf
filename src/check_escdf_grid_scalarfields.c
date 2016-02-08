@@ -37,37 +37,31 @@
 
 START_TEST(test_read_metadata)
 {
-    hid_t file_id;
+    escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
     
-    file_id = H5Fopen(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5",
-                      H5F_ACC_RDONLY, H5P_DEFAULT);
-    ck_assert(file_id >= 0);
+    file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
+    ck_assert(file_id != NULL);
 
-    scalarfield = escdf_grid_scalarfield_new("/densities/pseudo_density");
+    scalarfield = escdf_grid_scalarfield_new("densities/pseudo_density");
     err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
     escdf_grid_scalarfield_free(scalarfield);
 
-    H5Fclose(file_id);
+    escdf_close(file_id);
 }
 END_TEST
 
 START_TEST(test_write_metadata)
 {
-    hid_t file_id;
+    escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
     unsigned int uarr[2], uval;
     double darr[4];
     
-    /* Create a new file using default properties. */
-    file_id = H5Fcreate("tmp_grid_scalarfield_write.h5",
-                        H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    ck_assert(file_id >= 0);
-
     scalarfield = escdf_grid_scalarfield_new(NULL);
 
     escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
@@ -86,19 +80,22 @@ START_TEST(test_write_metadata)
     escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
     escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
     
+    /* Create a new file using default properties. */
+    file_id = escdf_create("tmp_grid_scalarfield_write.h5", NULL);
+    ck_assert(file_id != NULL);
+
     err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
     escdf_grid_scalarfield_free(scalarfield);
 
-    H5Fclose(file_id);
+    escdf_close(file_id);
 
     /* Read the file to be sure ! */
-    file_id = H5Fopen("tmp_grid_scalarfield_write.h5",
-                      H5F_ACC_RDONLY, H5P_DEFAULT);
-    ck_assert(file_id >= 0);
+    file_id = escdf_open("tmp_grid_scalarfield_write.h5", NULL);
+    ck_assert(file_id != NULL);
 
-    scalarfield = escdf_grid_scalarfield_new("/density");
+    scalarfield = escdf_grid_scalarfield_new("density");
     err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
@@ -128,13 +125,13 @@ START_TEST(test_write_metadata)
 
     escdf_grid_scalarfield_free(scalarfield);
 
-    H5Fclose(file_id);
+    escdf_close(file_id);
 }
 END_TEST
 
 START_TEST(test_getters)
 {
-    hid_t file_id;
+    escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
     unsigned int uval, uarr[3];
@@ -143,13 +140,14 @@ START_TEST(test_getters)
     const double *dpt;
     
     /* Create a new file using default properties. */
-    file_id = H5Fopen(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5",
-                      H5F_ACC_RDONLY, H5P_DEFAULT);
-    ck_assert(file_id >= 0);
+    file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
+    ck_assert(file_id != NULL);
 
-    scalarfield = escdf_grid_scalarfield_new("/densities/pseudo_density");
+    scalarfield = escdf_grid_scalarfield_new("densities/pseudo_density");
     err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
+
+    escdf_close(file_id);
 
     uval = escdf_grid_scalarfield_get_number_of_physical_dimensions(scalarfield);
     ck_assert(uval == 3);
@@ -158,7 +156,7 @@ START_TEST(test_getters)
     ck_assert(err == ESCDF_SUCCESS);
     ck_assert(uarr[0] == 0 && uarr[1] == 1 && uarr[2] == 0);
     upt = escdf_grid_scalarfield_ptr_dimension_types(scalarfield);
-    ck_assert(upt);
+    ck_assert(upt != NULL);
     ck_assert(upt[0] == 0 && upt[1] == 1 && upt[2] == 0);
 
     err = escdf_grid_scalarfield_get_lattice_vectors(scalarfield, darr, 9);
@@ -167,7 +165,7 @@ START_TEST(test_getters)
               darr[3] == 0. && darr[4] == 10. && darr[5] == 0. &&
               darr[6] == 0. && darr[7] == 0. && darr[8] == 15.);
     dpt = escdf_grid_scalarfield_ptr_lattice_vectors(scalarfield);
-    ck_assert(dpt);
+    ck_assert(dpt != NULL);
     ck_assert(dpt[0] == 5. && dpt[1] == 0. && dpt[2] == 0. &&
               dpt[3] == 0. && dpt[4] == 10. && dpt[5] == 0. &&
               dpt[6] == 0. && dpt[7] == 0. && dpt[8] == 15.);
@@ -176,7 +174,7 @@ START_TEST(test_getters)
     ck_assert(err == ESCDF_SUCCESS);
     ck_assert(uarr[0] == 2 && uarr[1] == 3 && uarr[2] == 9);
     upt = escdf_grid_scalarfield_ptr_number_of_grid_points(scalarfield);
-    ck_assert(upt);
+    ck_assert(upt != NULL);
     ck_assert(upt[0] == 2 && upt[1] == 3 && upt[2] == 9);
 
     uval = escdf_grid_scalarfield_get_number_of_components(scalarfield);
@@ -189,8 +187,6 @@ START_TEST(test_getters)
     ck_assert(uval == 1);
     
     escdf_grid_scalarfield_free(scalarfield);
-
-    H5Fclose(file_id);
 }
 END_TEST
 
@@ -230,7 +226,7 @@ START_TEST(test_set_dimension_types)
     ck_assert(err == ESCDF_SUCCESS);
     ck_assert(uarr[0] == 2 && uarr[1] == 0);
     upt = escdf_grid_scalarfield_ptr_dimension_types(scalarfield);
-    ck_assert(upt);
+    ck_assert(upt != NULL);
     ck_assert(upt[0] == 2 && upt[1] == 0);
     
     escdf_grid_scalarfield_free(scalarfield);
@@ -258,7 +254,7 @@ START_TEST(test_set_lattice_vectors)
     ck_assert(err == ESCDF_SUCCESS);
     ck_assert(darr[0] == 1. && darr[1] == 2. && darr[2] == 3. && darr[3] == 4.);
     dpt = escdf_grid_scalarfield_ptr_lattice_vectors(scalarfield);
-    ck_assert(dpt);
+    ck_assert(dpt != NULL);
     ck_assert(dpt[0] == 1. && dpt[1] == 2. && dpt[2] == 3. && dpt[3] == 4.);
     
     escdf_grid_scalarfield_free(scalarfield);
@@ -284,7 +280,7 @@ START_TEST(test_set_number_of_grid_points)
     ck_assert(err == ESCDF_SUCCESS);
     ck_assert(uarr[0] == 6 && uarr[1] == 3);
     upt = escdf_grid_scalarfield_ptr_number_of_grid_points(scalarfield);
-    ck_assert(upt);
+    ck_assert(upt != NULL);
     ck_assert(upt[0] == 6 && upt[1] == 3);
     
     escdf_grid_scalarfield_free(scalarfield);
@@ -345,7 +341,7 @@ END_TEST
 
 START_TEST(test_read_values_on_grid)
 {
-    hid_t file_id;
+    escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
     double dens[108];
@@ -353,11 +349,10 @@ START_TEST(test_read_values_on_grid)
     hsize_t count[3] = {2, 2, 1};
     unsigned int i, j;
     
-    file_id = H5Fopen(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5",
-                      H5F_ACC_RDONLY, H5P_DEFAULT);
-    ck_assert(file_id >= 0);
+    file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
+    ck_assert(file_id != NULL);
 
-    scalarfield = escdf_grid_scalarfield_new("/densities/pseudo_density");
+    scalarfield = escdf_grid_scalarfield_new("densities/pseudo_density");
     err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
@@ -387,13 +382,13 @@ START_TEST(test_read_values_on_grid)
 
     escdf_grid_scalarfield_free(scalarfield);
 
-    H5Fclose(file_id);
+    escdf_close(file_id);
 }
 END_TEST
 
 START_TEST(test_write_values_on_grid)
 {
-    hid_t file_id;
+    escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
     unsigned int uarr[2], uval;
@@ -404,11 +399,6 @@ START_TEST(test_write_values_on_grid)
     hsize_t count[3] = {2, 9, 1};
     unsigned int i, j;
     
-    /* Create a new file using default properties. */
-    file_id = H5Fcreate("tmp_grid_scalarfield_write.h5",
-                        H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    ck_assert(file_id >= 0);
-
     scalarfield = escdf_grid_scalarfield_new(NULL);
 
     escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
@@ -427,6 +417,10 @@ START_TEST(test_write_values_on_grid)
     escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
     escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
     
+    /* Create a new file using default properties. */
+    file_id = escdf_create("tmp_grid_scalarfield_write.h5", NULL);
+    ck_assert(file_id != NULL);
+
     err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
@@ -449,7 +443,7 @@ START_TEST(test_write_values_on_grid)
 
     escdf_grid_scalarfield_free(scalarfield);
 
-    H5Fclose(file_id);
+    escdf_close(file_id);
 }
 END_TEST
 

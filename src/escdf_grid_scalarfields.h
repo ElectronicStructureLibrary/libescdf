@@ -68,10 +68,10 @@ void escdf_grid_scalarfield_free(escdf_grid_scalarfield_t *scalarfield);
  * @return error code.
  */
 escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *scalarfield,
-                                                   hid_t file_id);
+                                                   escdf_handle_t *file_id);
 
 escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield_t *scalarfield,
-                                                    hid_t file_id);
+                                                    escdf_handle_t *file_id);
 
 /**
  * Sets the value of number_of_physical_dimensions in the geometry data type.
@@ -126,12 +126,12 @@ escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarf
 /* Data functions. */
 /*******************/
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                          hid_t file_id, const double *buf,
+                                                          escdf_handle_t *file_id, const double *buf,
                                                           const hsize_t *start,
                                                           const hsize_t *count,
                                                           const hsize_t *stride);
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const escdf_grid_scalarfield_t *scalarfield,
-                                                                        hid_t file_id,
+                                                                        escdf_handle_t *file_id,
                                                                         const double *buf,
                                                                         const unsigned int *tbl,
                                                                         const hsize_t *start,
@@ -139,7 +139,7 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
                                                                         const hsize_t *stride);
 
 escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                         hid_t file_id, double *buf,
+                                                         escdf_handle_t *file_id, double *buf,
                                                          const hsize_t *start,
                                                          const hsize_t *count,
                                                          const hsize_t *stride);
