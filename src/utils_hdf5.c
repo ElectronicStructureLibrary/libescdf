@@ -180,7 +180,7 @@ escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name,
 }
 
 escdf_errno_t utils_hdf5_read_uint(hid_t loc_id, const char *name,
-                                          _uint_set_t *scalar, unsigned int range[2])
+                                   _uint_set_t *scalar, unsigned int range[2])
 {
     escdf_errno_t err;
     int value;
@@ -193,6 +193,24 @@ escdf_errno_t utils_hdf5_read_uint(hid_t loc_id, const char *name,
         RETURN_WITH_ERROR(ESCDF_ERANGE);
     }
     *scalar = _uint_set((unsigned int)value);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name,
+                                  _int_set_t *scalar, int range[2])
+{
+    escdf_errno_t err;
+    int value;
+    hsize_t dims[1] = {1};
+
+    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, 1, &value)) != ESCDF_SUCCESS) {
+        return err;
+    }
+    if (value < range[0] || value > range[1]) {
+        RETURN_WITH_ERROR(ESCDF_ERANGE);
+    }
+    *scalar = _int_set(value);
 
     return ESCDF_SUCCESS;
 }
@@ -210,6 +228,34 @@ escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name,
         len *= dims[i];
     }
     *array = malloc(sizeof(unsigned int) * len);
+
+    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, ndims,
+                                    (void*)*array)) != ESCDF_SUCCESS) {
+        free(*array);
+        return err;
+    }
+    for (i = 0; i < len; i++) {
+        if ((*array)[i] < range[0] || (*array)[i] > range[1]) {
+            free(*array);
+            RETURN_WITH_ERROR(ESCDF_ERANGE);
+        }
+    }
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t utils_hdf5_read_int_array(hid_t loc_id, const char *name,
+                                        int **array, hsize_t *dims,
+                                        unsigned int ndims, int range[2])
+{
+    escdf_errno_t err;
+    unsigned int i;
+    hsize_t len;
+
+    len = 1;
+    for (i = 0; i < ndims; i++) {
+        len *= dims[i];
+    }
+    *array = malloc(sizeof(int) * len);
 
     if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, ndims,
                                     (void*)*array)) != ESCDF_SUCCESS) {
@@ -483,3 +529,10 @@ escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id,
 
     return ESCDF_SUCCESS;
 }
+
+#if H5_VERS_MINOR < 8 || H5_VERS_RELEASE < 5
+htri_t H5Oexists_by_name(hid_t loc_id, const char *name, hid_t lapl_id)
+{
+  return 1;
+}
+#endif
