@@ -45,8 +45,8 @@ START_TEST(test_read_metadata)
                       H5F_ACC_RDONLY, H5P_DEFAULT);
     ck_assert(file_id >= 0);
 
-    err = escdf_grid_scalarfield_read_metadata(&scalarfield,
-                                               file_id, "/densities/pseudo_density");
+    scalarfield = escdf_grid_scalarfield_new("/densities/pseudo_density");
+    err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
     escdf_grid_scalarfield_free(scalarfield);
@@ -98,8 +98,8 @@ START_TEST(test_write_metadata)
                       H5F_ACC_RDONLY, H5P_DEFAULT);
     ck_assert(file_id >= 0);
 
-    err = escdf_grid_scalarfield_read_metadata(&scalarfield,
-                                               file_id, "/density");
+    scalarfield = escdf_grid_scalarfield_new("/density");
+    err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
     uval = escdf_grid_scalarfield_get_number_of_physical_dimensions(scalarfield);
@@ -147,8 +147,8 @@ START_TEST(test_getters)
                       H5F_ACC_RDONLY, H5P_DEFAULT);
     ck_assert(file_id >= 0);
 
-    err = escdf_grid_scalarfield_read_metadata(&scalarfield,
-                                               file_id, "/densities/pseudo_density");
+    scalarfield = escdf_grid_scalarfield_new("/densities/pseudo_density");
+    err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
     uval = escdf_grid_scalarfield_get_number_of_physical_dimensions(scalarfield);
@@ -357,8 +357,8 @@ START_TEST(test_read_values_on_grid)
                       H5F_ACC_RDONLY, H5P_DEFAULT);
     ck_assert(file_id >= 0);
 
-    err = escdf_grid_scalarfield_read_metadata(&scalarfield,
-                                               file_id, "/densities/pseudo_density");
+    scalarfield = escdf_grid_scalarfield_new("/densities/pseudo_density");
+    err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
     ck_assert(err == ESCDF_SUCCESS);
 
     /* total reading. */

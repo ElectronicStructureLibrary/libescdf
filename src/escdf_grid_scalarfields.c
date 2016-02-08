@@ -74,8 +74,8 @@ void escdf_grid_scalarfield_free(escdf_grid_scalarfield_t *scalarfield)
     free(scalarfield);
 }
 
-escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **scalarfield,
-                                                   hid_t file_id, const char *path)
+escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *scalarfield,
+                                                   hid_t file_id)
 {
     escdf_errno_t err;
     unsigned int i;
@@ -90,83 +90,81 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t **sc
     hsize_t valDims[3];
     hid_t loc_id;
     
-    /* escdf_return_val_if_fails(scalarfield, ESCDF_ERROR_ARGS); */
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
 
-    *scalarfield = escdf_grid_scalarfield_new(path);
-
-    if ((loc_id = H5Gopen(file_id, path, H5P_DEFAULT)) < 0)
+    if ((loc_id = H5Gopen(file_id, scalarfield->path, H5P_DEFAULT)) < 0)
         RETURN_WITH_ERROR(loc_id);
 
     if ((err = utils_hdf5_read_uint(loc_id, "number_of_physical_dimensions",
-                                    &(*scalarfield)->cell.number_of_physical_dimensions,
+                                    &scalarfield->cell.number_of_physical_dimensions,
                                     rgPhys)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
     
-    oneDims[0] = (*scalarfield)->cell.number_of_physical_dimensions.value;
+    oneDims[0] = scalarfield->cell.number_of_physical_dimensions.value;
     if ((err = utils_hdf5_read_int_array(loc_id, "dimension_types",
-                                         &(*scalarfield)->cell.dimension_types,
+                                         &scalarfield->cell.dimension_types,
                                          oneDims, 1, rgDim)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
 
-    lattDims[0] = lattDims[1] = (*scalarfield)->cell.number_of_physical_dimensions.value;
+    lattDims[0] = lattDims[1] = scalarfield->cell.number_of_physical_dimensions.value;
     if ((err = utils_hdf5_read_dbl_array(loc_id, "lattice_vectors",
-                                         &(*scalarfield)->cell.lattice_vectors,
+                                         &scalarfield->cell.lattice_vectors,
                                          lattDims, 2, rgCell)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
 
-    oneDims[0] = (*scalarfield)->cell.number_of_physical_dimensions.value;
+    oneDims[0] = scalarfield->cell.number_of_physical_dimensions.value;
     if ((err = utils_hdf5_read_uint_array(loc_id, "number_of_grid_points",
-                                          &(*scalarfield)->number_of_grid_points,
+                                          &scalarfield->number_of_grid_points,
                                           oneDims, 1, rgGrid)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
         
     if ((err = utils_hdf5_read_uint(loc_id, "number_of_components",
-                                    &(*scalarfield)->number_of_components,
+                                    &scalarfield->number_of_components,
                                     rgComp)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
     
     if ((err = utils_hdf5_read_uint(loc_id, "real_or_complex",
-                                    &(*scalarfield)->real_or_complex,
+                                    &scalarfield->real_or_complex,
                                     rgCplx)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
 
     if ((err = utils_hdf5_read_bool(loc_id, "use_default_ordering",
-                                    &(*scalarfield)->use_default_ordering))
+                                    &scalarfield->use_default_ordering))
         != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
 
-    valDims[0] = (*scalarfield)->number_of_components.value;
+    valDims[0] = scalarfield->number_of_components.value;
     valDims[1] = 1;
-    for (i = 0; i < (*scalarfield)->cell.number_of_physical_dimensions.value; i++) {
-        valDims[1] *= (*scalarfield)->number_of_grid_points[i];
+    for (i = 0; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
+        valDims[1] *= scalarfield->number_of_grid_points[i];
     }
-    valDims[2] = (*scalarfield)->real_or_complex.value;
+    valDims[2] = scalarfield->real_or_complex.value;
     if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid", valDims, 3, NULL)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
-    (*scalarfield)->values_on_grid_is_present = true;
+    scalarfield->values_on_grid_is_present = true;
 
-    if (!(*scalarfield)->use_default_ordering.value) {
+    if (!scalarfield->use_default_ordering.value) {
         if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering", valDims + 1, 1, NULL)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }
-        (*scalarfield)->grid_ordering_is_present = true;
+        scalarfield->grid_ordering_is_present = true;
     }
 
     H5Gclose(loc_id);
