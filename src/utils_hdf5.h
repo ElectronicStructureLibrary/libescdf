@@ -74,6 +74,7 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name,
                                     const void *buf);
 
 escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id,
+                                       hid_t xfer_id,
                                        const void *buf,
                                        hid_t mem_type_id,
                                        const hsize_t *start,
@@ -81,6 +82,7 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id,
                                        const hsize_t *stride);
 
 escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id,
+                                      hid_t xfer_id,
                                       void *buf,
                                       hid_t mem_type_id,
                                       const hsize_t *start,
