@@ -415,7 +415,7 @@ START_TEST(test_write_values_on_grid)
     escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
     escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
     escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
-    escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
+    escdf_grid_scalarfield_set_use_default_ordering(scalarfield, true);
     
     /* Create a new file using default properties. */
     file_id = escdf_create("tmp_grid_scalarfield_write.h5", NULL);

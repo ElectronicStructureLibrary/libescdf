@@ -33,6 +33,14 @@
 struct _escdf_grid_scalarfield_t;
 typedef struct _escdf_grid_scalarfield_t escdf_grid_scalarfield_t;
 
+/* To be moved in a common cell definition with geometry. */
+typedef enum {
+    ESCDF_DIRECTION_FREE = 0,
+    ESCDF_DIRECTION_PERIODIC,
+    ESCDF_DIRECTION_SEMI_INFINITE,
+    ESCDF_N_DIRECTION_TYPE
+} escdf_direction_type;
+
 
 /******************************************************************************
  * Global functions                                                           *
@@ -137,6 +145,11 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
                                                                         const hsize_t *start,
                                                                         const hsize_t *count,
                                                                         const hsize_t *stride);
+escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_sliced(const escdf_grid_scalarfield_t *scalarfield,
+                                                                 escdf_handle_t *file_id,
+                                                                 const double *buf,
+                                                                 const unsigned int *tbl,
+                                                                 const hsize_t len);
 
 escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
                                                          escdf_handle_t *file_id, double *buf,

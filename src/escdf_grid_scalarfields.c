@@ -1,3 +1,4 @@
+/*  -*- c-basic-offset: 4 -*- */
 /*
   Copyright (C) 2016 D. Caliste, F. Corsetti, M. Oliveira, Y. Pouillon, and D. Strubbe
 
@@ -148,8 +149,8 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *sca
     }
 
     valDims[0] = scalarfield->number_of_components.value;
-    valDims[1] = 1;
-    for (i = 0; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
+    valDims[1] = scalarfield->number_of_grid_points[0];
+    for (i = 1; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
         valDims[1] *= scalarfield->number_of_grid_points[i];
     }
     valDims[2] = scalarfield->real_or_complex.value;
@@ -405,7 +406,7 @@ escdf_errno_t escdf_grid_scalarfield_set_lattice_vectors(escdf_grid_scalarfield_
     FULFILL_OR_RETURN(scalarfield->cell.number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
     FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value * scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
     for (i = 0; i < len; i++) {
-        FULFILL_OR_RETURN(lattice_vectors[i] > 0., ESCDF_ERANGE);
+        FULFILL_OR_RETURN(lattice_vectors[i] >= 0., ESCDF_ERANGE);
     }
 
     free(scalarfield->cell.lattice_vectors);
@@ -473,51 +474,14 @@ escdf_errno_t escdf_grid_scalarfield_set_use_default_ordering(escdf_grid_scalarf
 /* Data accessors. */
 /*******************/
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                          escdf_handle_t *file_id, const double *buf,
+                                                          escdf_handle_t *file_id,
+                                                          const double *buf,
                                                           const hsize_t *start,
                                                           const hsize_t *count,
                                                           const hsize_t *stride)
 {
-    escdf_errno_t err;
-    hid_t dtset_id, loc_id;
-    hsize_t bounds[3];
-    unsigned int i;
-
-    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
-    FULFILL_OR_RETURN(scalarfield->number_of_components.is_set, ESCDF_EUNINIT);
-    FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
-    FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
-    
-    if ((loc_id = H5Gopen(file_id->group_id, scalarfield->path, H5P_DEFAULT)) < 0) {
-        RETURN_WITH_ERROR(loc_id);
-    }
-    
-    /* Check that variable on disk is consistent with metadata in scalarfield. */
-    /* Create the global distribution bounds. */
-    bounds[0] = scalarfield->number_of_components.value;
-    bounds[1] = scalarfield->number_of_grid_points[0];
-    for (i = 1; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
-        bounds[1] *= scalarfield->number_of_grid_points[i];
-    }
-    bounds[2] = scalarfield->real_or_complex.value;
-    /* Get the dataset for this variable and check its dimensions. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid",
-                                      bounds, 3, &dtset_id)) != ESCDF_SUCCESS) {
-        H5Gclose(loc_id);
-        return err;
-    }
-
-    /* Actual write action. */
-    if ((err = utils_hdf5_write_dataset(dtset_id, buf, H5T_NATIVE_DOUBLE,
-                                        start, count, stride)) != ESCDF_SUCCESS) {
-        H5Dclose(dtset_id);
-        H5Gclose(loc_id);
-        return err;
-    }
-
-    H5Dclose(dtset_id);
-    H5Gclose(loc_id);
-    return ESCDF_SUCCESS;
+    return escdf_grid_scalarfield_write_values_on_grid_with_ordering
+        (scalarfield, file_id, buf, NULL, start, count, stride);
 }
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const escdf_grid_scalarfield_t *scalarfield,
                                                                         escdf_handle_t *file_id,
@@ -536,6 +500,13 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
     FULFILL_OR_RETURN(scalarfield->number_of_components.is_set, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
+    if (tbl != NULL) {
+        FULFILL_OR_RETURN(scalarfield->use_default_ordering.is_set &&
+                          !scalarfield->use_default_ordering.value, ESCDF_EUNINIT);
+    } else {
+        FULFILL_OR_RETURN(scalarfield->use_default_ordering.is_set &&
+                          scalarfield->use_default_ordering.value, ESCDF_EUNINIT);
+    }
     
     if ((loc_id = H5Gopen(file_id->group_id, scalarfield->path, H5P_DEFAULT)) < 0) {
         RETURN_WITH_ERROR(loc_id);
@@ -557,7 +528,8 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
     }
 
     /* Actual write action. */
-    if ((err = utils_hdf5_write_dataset(dtset_id, buf, H5T_NATIVE_DOUBLE,
+    if ((err = utils_hdf5_write_dataset(dtset_id, file_id->transfer_mode,
+                                        buf, H5T_NATIVE_DOUBLE,
                                         start, count, stride)) != ESCDF_SUCCESS) {
         H5Dclose(dtset_id);
         H5Gclose(loc_id);
@@ -566,26 +538,106 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const es
     H5Dclose(dtset_id);
 
     /* For the lookup table. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering",
-                                      bounds + 1, 1, &dtset_id)) != ESCDF_SUCCESS) {
-        H5Gclose(loc_id);
-        return err;
-    }
+    if (tbl != NULL) {
+        if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering",
+                                          bounds + 1, 1, &dtset_id)) != ESCDF_SUCCESS) {
+            H5Gclose(loc_id);
+            return err;
+        }
 
-    /* Actual write action. */
-    if ((err = utils_hdf5_write_dataset(dtset_id, tbl, H5T_NATIVE_INT,
-                                        (start) ? start + 1 : NULL,
-                                        (count) ? count + 1 : NULL,
-                                        (stride) ? stride + 1 : NULL)) != ESCDF_SUCCESS) {
+        /* Actual write action. */
+        if ((err = utils_hdf5_write_dataset(dtset_id, file_id->transfer_mode,
+                                            tbl, H5T_NATIVE_INT,
+                                            (start) ? start + 1 : NULL,
+                                            (count) ? count + 1 : NULL,
+                                            (stride) ? stride + 1 : NULL)) != ESCDF_SUCCESS) {
+            H5Dclose(dtset_id);
+            H5Gclose(loc_id);
+            return err;
+        }
         H5Dclose(dtset_id);
-        H5Gclose(loc_id);
-        return err;
     }
 
-    H5Dclose(dtset_id);
     H5Gclose(loc_id);
     return ESCDF_SUCCESS;
 }
+/**
+ * This method is used to write values known on a slice of grid
+ * points. The union of all slices among processors should correspond
+ * to the box itself. Then each slices are written on disk in a packed
+ * way, ordered by processor id. This is a collective call.
+ *
+ * The values @buf can use a non-default ordering, as defined by
+ * @tbl, or a default ordering if @tbl is NULL. The size of @buf is
+ * implicit and corresponds to the product of @len,
+ * @scalarfield(real_or_complex) and
+ * @scalarfield(number_of_components). If given, the size of @tbl in
+ * given by @len.
+ *
+ * @param[in] scalarfield: instance of the scalarfield group.
+ * @param[in] file_id: the handle on the opened HDF5 file.
+ * @param[in] buf: values of the scalarfield on a slice of grid
+ * points, with the full component values for each points.
+ * @param[in] tbl: a lookup table that provides for each points in the
+ * slice its index in the global zyx ordering.
+ * @param[in] len: the size of the slice.
+ * @return error code.
+ */
+escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_sliced(const escdf_grid_scalarfield_t *scalarfield,
+                                                                 escdf_handle_t *file_id,
+                                                                 const double *buf,
+                                                                 const unsigned int *tbl,
+                                                                 const hsize_t len)
+{
+    hsize_t start[3], count[3], nGridPoints;
+    unsigned int i;
+    hsize_t nValues;
+    unsigned long long int len_;
+    unsigned long long int *shifts;
+
+    FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
+    FULFILL_OR_RETURN(scalarfield->number_of_components.is_set, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(scalarfield->number_of_grid_points, ESCDF_EUNINIT);
+    FULFILL_OR_RETURN(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT);
+
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = scalarfield->number_of_components.value;
+    count[1] = len;
+    count[2] = scalarfield->real_or_complex.value;
+
+    nGridPoints = scalarfield->number_of_grid_points[0];
+    for (i = 1; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
+        nGridPoints *= scalarfield->number_of_grid_points[i];
+    }
+
+    /* Modify the start[1] value from the gather of len. */
+    shifts = malloc(sizeof(unsigned long long int) * file_id->mpi_size);
+    len_ = (unsigned long long int)len;
+#ifdef HAVE_MPI
+    MPI_Allgather(&len_, 1, MPI_UNSIGNED_LONG_LONG,
+                  shifts, 1, MPI_UNSIGNED_LONG_LONG, file_id->comm);
+#else
+    shifts[0] = len_;
+#endif
+    for (i = 0; i < file_id->mpi_rank; i++) {
+        start[1] += shifts[i];
+    }
+
+    /* Check that sum(shifts) == product(number_of_grid_points). */
+    nValues = shifts[0];
+    for (i = 1; i < file_id->mpi_size; i++) {
+        nValues += shifts[i];
+    }
+    FULFILL_OR_RETURN(nValues == nGridPoints, ESCDF_ESIZE);
+
+    free(shifts);
+    
+    return escdf_grid_scalarfield_write_values_on_grid_with_ordering
+        (scalarfield, file_id, buf, tbl, start, count, NULL);
+}
+
 escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
                                                          escdf_handle_t *file_id, double *buf,
                                                          const hsize_t *start,
@@ -622,7 +674,8 @@ escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalar
     }
 
     /* Actual read action. */
-    if ((err = utils_hdf5_read_dataset(dtset_id, buf, H5T_NATIVE_DOUBLE,
+    if ((err = utils_hdf5_read_dataset(dtset_id, file_id->transfer_mode,
+                                       buf, H5T_NATIVE_DOUBLE,
                                        start, count, stride)) != ESCDF_SUCCESS) {
         H5Dclose(dtset_id);
         H5Gclose(loc_id);
