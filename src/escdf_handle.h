@@ -44,11 +44,11 @@ typedef struct {
 
     hid_t group_id; /**< HDF5 group identifier that is to be considered as root */
 
+    int mpi_size, mpi_rank;
+    hid_t transfer_mode;
+
 #ifdef HAVE_MPI
     MPI_Comm comm;
-    int mpi_size, mpi_rank;
-
-    hid_t transfer_mode;
 #endif
 } escdf_handle_t;
 
