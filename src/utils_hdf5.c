@@ -1,3 +1,4 @@
+/*  -*- c-basic-offset: 4 -*- */
 /*
   Copyright (C) 2016 D. Caliste, M. Oliveira
 
@@ -40,39 +41,45 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
 escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, hsize_t *dims,
                                      unsigned int ndims)
 {
-    htri_t bool_id;
+    H5S_class_t type_id;
     int ndims_id;
     hsize_t *dims_v, *maxdims_v;
     unsigned int i;
 
-    if ((bool_id = H5Sis_simple(dtspace_id)) < 0) {
-        RETURN_WITH_ERROR(bool_id);
+    if ((type_id = H5Sget_simple_extent_type(dtspace_id)) == H5S_NO_CLASS) {
+        RETURN_WITH_ERROR(ESCDF_ERROR_ARGS);
     }
-    if (!bool_id) {
-        RETURN_WITH_ERROR(ESCDF_ERROR_DIM);
-    }
-    if ((ndims_id = H5Sget_simple_extent_ndims(dtspace_id)) < 0) {
-        RETURN_WITH_ERROR(ndims_id);
-    }
-    if ((unsigned int)ndims_id != ndims) {
-        RETURN_WITH_ERROR(ESCDF_ERROR_DIM);
-    }
-    dims_v = malloc(sizeof(hsize_t) * ndims);
-    maxdims_v = malloc(sizeof(hsize_t) * ndims);
-    if ((ndims_id = H5Sget_simple_extent_dims(dtspace_id, dims_v, maxdims_v)) < 0) {
-        DEFER_FUNC_ERROR(ndims_id);
-        goto cleanup_dims;
-    }
-    for (i = 0; i < ndims; i++) {
-        if (dims_v[i] != dims[i] || maxdims_v[i] < dims[i]) {
-            DEFER_FUNC_ERROR(ESCDF_ERROR_DIM);
+    FULFILL_OR_RETURN(type_id == H5S_SCALAR || type_id == H5S_SIMPLE, ESCDF_ERROR_DIM);
+    
+    switch (type_id) {
+    case H5S_SCALAR:
+        FULFILL_OR_RETURN(dims == NULL && ndims == 0, ESCDF_ERROR);
+        break;
+    case H5S_SIMPLE:
+        if ((ndims_id = H5Sget_simple_extent_ndims(dtspace_id)) < 0) {
+            RETURN_WITH_ERROR(ndims_id);
+        }
+        dims_v = malloc(sizeof(hsize_t) * ndims_id);
+        maxdims_v = malloc(sizeof(hsize_t) * ndims_id);
+        if ((ndims_id = H5Sget_simple_extent_dims(dtspace_id, dims_v, maxdims_v)) < 0) {
+            DEFER_FUNC_ERROR(ndims_id);
             goto cleanup_dims;
         }
+        FULFILL_OR_RETURN((unsigned int)ndims_id == ndims ||
+                          (ndims == 0 && ndims_id == 1 &&
+                           dims_v[0] == 1), ESCDF_ERROR_DIM);
+        for (i = 0; i < ndims; i++) {
+            if (dims_v[i] != dims[i] || maxdims_v[i] < dims[i]) {
+                DEFER_FUNC_ERROR(ESCDF_ERROR_DIM);
+                goto cleanup_dims;
+            }
+        }
+        free(dims_v);
+        free(maxdims_v);
+        break;
     }
-    free(dims_v);
-    free(maxdims_v);
     return ESCDF_SUCCESS;
-
+    
     cleanup_dims:
     free(dims_v);
     free(maxdims_v);
@@ -150,7 +157,8 @@ escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name,
     hid_t attr_id;
     herr_t err_id;
 
-    if ((err = utils_hdf5_check_attr(loc_id, name, dims, ndims, &attr_id)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_attr(loc_id, name,
+                                     dims, ndims, &attr_id)) != ESCDF_SUCCESS) {
         return err;
     }
 
@@ -169,9 +177,9 @@ escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name,
 {
     escdf_errno_t err;
     int value;
-    hsize_t dims[1] = {1};
 
-    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, 1, &value)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT,
+                                    NULL, 0, &value)) != ESCDF_SUCCESS) {
         return err;
     }
     *scalar = _bool_set((bool)value);
@@ -184,9 +192,9 @@ escdf_errno_t utils_hdf5_read_uint(hid_t loc_id, const char *name,
 {
     escdf_errno_t err;
     int value;
-    hsize_t dims[1] = {1};
 
-    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, 1, &value)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT,
+                                    NULL, 0, &value)) != ESCDF_SUCCESS) {
         return err;
     }
     if ((unsigned int)value < range[0] || (unsigned int)value > range[1]) {
@@ -202,9 +210,9 @@ escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name,
 {
     escdf_errno_t err;
     int value;
-    hsize_t dims[1] = {1};
 
-    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT, dims, 1, &value)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT,
+                                    NULL, 0, &value)) != ESCDF_SUCCESS) {
         return err;
     }
     if (value < range[0] || value > range[1]) {
@@ -359,11 +367,18 @@ escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name,
     hid_t attr_id, dtspace_id;
 
     /* Create space dimensions. */
-    if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
-        RETURN_WITH_ERROR(dtspace_id);
+    if (!dims || !ndims) {
+        if ((dtspace_id = H5Screate(H5S_SCALAR)) < 0) {
+            RETURN_WITH_ERROR(dtspace_id);
+        }
+    } else {
+        if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
+            RETURN_WITH_ERROR(dtspace_id);
+        }
     }
 
-    if ((attr_id = H5Acreate(loc_id, name, type_id, dtspace_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+    if ((attr_id = H5Acreate(loc_id, name, type_id, dtspace_id,
+                             H5P_DEFAULT, H5P_DEFAULT)) < 0) {
         DEFER_FUNC_ERROR(attr_id);
         goto cleanup_dtspace;
     }
@@ -390,7 +405,8 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name,
     hid_t attr_id;
     herr_t err_id;
 
-    if ((err = utils_hdf5_create_attr(loc_id, name, disk_type_id, dims, ndims, &attr_id)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_create_attr(loc_id, name, disk_type_id,
+                                      dims, ndims, &attr_id)) != ESCDF_SUCCESS) {
         return err;
     }
 

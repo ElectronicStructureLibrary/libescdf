@@ -194,9 +194,8 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
     FULFILL_OR_RETURN(gid >= 0, gid);
 
     /* Write to file. */
-    dims[0] = 1;
     if ((err = utils_hdf5_write_attr
-         (gid, "number_of_physical_dimensions", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "number_of_physical_dimensions", H5T_STD_U32LE, NULL, 0, H5T_NATIVE_INT,
           &scalarfield->cell.number_of_physical_dimensions.value)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
@@ -226,26 +225,23 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
         return err;
     }
 
-    dims[0] = 1;
     if ((err = utils_hdf5_write_attr
-         (gid, "number_of_components", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "number_of_components", H5T_STD_U32LE, NULL, 0, H5T_NATIVE_INT,
           &scalarfield->number_of_components.value)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
     }
 
-    dims[0] = 1;
     if ((err = utils_hdf5_write_attr
-         (gid, "real_or_complex", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "real_or_complex", H5T_STD_U32LE, NULL, 0, H5T_NATIVE_INT,
           &scalarfield->real_or_complex.value)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
     }
 
-    dims[0] = 1;
     value = (int)scalarfield->use_default_ordering.value;
     if ((err = utils_hdf5_write_attr
-         (gid, "use_default_ordering", H5T_STD_U32LE, dims, 1, H5T_NATIVE_INT,
+         (gid, "use_default_ordering", H5T_STD_U32LE, NULL, 0, H5T_NATIVE_INT,
           &value)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
