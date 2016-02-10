@@ -427,7 +427,7 @@ START_TEST(test_write_values_on_grid)
     for (i = 0; i  < 18; i++) {
         dens[i] = i;
     }
-    err = escdf_grid_scalarfield_write_values_on_grid(scalarfield, file_id, dens, start, count, NULL);
+    err = escdf_grid_scalarfield_write_values_on_grid_ordered(scalarfield, file_id, dens, start, count, NULL);
     ck_assert(err == ESCDF_SUCCESS);
 
     err = escdf_grid_scalarfield_read_values_on_grid(scalarfield, file_id, dens, NULL, NULL, NULL);

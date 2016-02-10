@@ -469,23 +469,23 @@ escdf_errno_t escdf_grid_scalarfield_set_use_default_ordering(escdf_grid_scalarf
 /*******************/
 /* Data accessors. */
 /*******************/
+escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_ordered(const escdf_grid_scalarfield_t *scalarfield,
+                                                                  escdf_handle_t *file_id,
+                                                                  const double *buf,
+                                                                  const hsize_t *start,
+                                                                  const hsize_t *count,
+                                                                  const hsize_t *stride)
+{
+    return escdf_grid_scalarfield_write_values_on_grid
+        (scalarfield, file_id, buf, NULL, start, count, stride);
+}
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
                                                           escdf_handle_t *file_id,
                                                           const double *buf,
+                                                          const unsigned int *tbl,
                                                           const hsize_t *start,
                                                           const hsize_t *count,
                                                           const hsize_t *stride)
-{
-    return escdf_grid_scalarfield_write_values_on_grid_with_ordering
-        (scalarfield, file_id, buf, NULL, start, count, stride);
-}
-escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_with_ordering(const escdf_grid_scalarfield_t *scalarfield,
-                                                                        escdf_handle_t *file_id,
-                                                                        const double *buf,
-                                                                        const unsigned int *tbl,
-                                                                        const hsize_t *start,
-                                                                        const hsize_t *count,
-                                                                        const hsize_t *stride)
 {
     escdf_errno_t err;
     hid_t dtset_id, loc_id;
@@ -611,11 +611,14 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_sliced(const escdf_gri
     /* Modify the start[1] value from the gather of len. */
     shifts = malloc(sizeof(unsigned long long int) * file_id->mpi_size);
     len_ = (unsigned long long int)len;
+    if (file_id->mpi_size == 1) {
+        shifts[0] = len_;
+    }
 #ifdef HAVE_MPI
-    MPI_Allgather(&len_, 1, MPI_UNSIGNED_LONG_LONG,
-                  shifts, 1, MPI_UNSIGNED_LONG_LONG, file_id->comm);
-#else
-    shifts[0] = len_;
+    else {
+        MPI_Allgather(&len_, 1, MPI_UNSIGNED_LONG_LONG,
+                      shifts, 1, MPI_UNSIGNED_LONG_LONG, file_id->comm);
+    }
 #endif
     for (i = 0; i < file_id->mpi_rank; i++) {
         start[1] += shifts[i];
@@ -630,7 +633,7 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_sliced(const escdf_gri
 
     free(shifts);
     
-    return escdf_grid_scalarfield_write_values_on_grid_with_ordering
+    return escdf_grid_scalarfield_write_values_on_grid
         (scalarfield, file_id, buf, tbl, start, count, NULL);
 }
 
