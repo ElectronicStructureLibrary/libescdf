@@ -88,6 +88,12 @@ escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id,
                                       const hsize_t *start,
                                       const hsize_t *count,
                                       const hsize_t *stride);
+escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id,
+                                         hid_t xfer_id,
+                                         void *buf,
+                                         hid_t mem_type_id,
+                                         size_t num_points,
+                                         const hsize_t *coord);
 
 #if H5_VERS_MINOR < 8 || H5_VERS_RELEASE < 5
 htri_t H5Oexists_by_name(hid_t loc_id, const char *name, hid_t lapl_id);
