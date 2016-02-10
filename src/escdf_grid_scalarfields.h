@@ -156,5 +156,10 @@ escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalar
                                                          const hsize_t *start,
                                                          const hsize_t *count,
                                                          const hsize_t *stride);
+escdf_errno_t escdf_grid_scalarfield_read_values_on_grid_sliced(const escdf_grid_scalarfield_t *scalarfield,
+                                                                escdf_handle_t *file_id,
+                                                                double *buf,
+                                                                const unsigned int *tbl,
+                                                                const hsize_t len);
 
 #endif
