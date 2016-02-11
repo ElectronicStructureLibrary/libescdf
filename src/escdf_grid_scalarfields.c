@@ -599,40 +599,61 @@ static escdf_errno_t _read_at(const escdf_grid_scalarfield_t *scalarfield,
     size_t num_elements;
     unsigned int i, j;
 
+    /* To limit the size of coord array, only MAX_BLOCK_SIZE grid
+       points are read at once. Thus the memory footprint of this
+       function is MAX_BLOCK_SIZE * 16 bytes (times 2 if complex). */
+    size_t iblock, nblock, j0;
+    size_t blocksize, offset;
+#define MAX_BLOCK_SIZE (1024 * 1024)
+
     /* Check that variable on disk is consistent with metadata in scalarfield. */
     if ((err = _get_values_on_grid(scalarfield, loc_id, &dtset_id)) != ESCDF_SUCCESS) {
         return err;
     }
 
-    /* We generate an element selection in the disk dataspace. */
-    num_elements = scalarfield->number_of_components.value *
-        glen *
-        scalarfield->real_or_complex.value;
-    coord = malloc(sizeof(hsize_t) * num_elements * 3);
-    for (i = 0; i < scalarfield->number_of_components.value; i++) {
-        if (scalarfield->real_or_complex.value == 2) {
-            for (j = 0; j < glen; j++) {
-                coord[((i * glen + j) * 2 + 0) * 3 + 0] = i;
-                coord[((i * glen + j) * 2 + 0) * 3 + 1] = indirect[j];
-                coord[((i * glen + j) * 2 + 0) * 3 + 2] = 0;
-                coord[((i * glen + j) * 2 + 1) * 3 + 0] = i;
-                coord[((i * glen + j) * 2 + 1) * 3 + 1] = indirect[j];
-                coord[((i * glen + j) * 2 + 1) * 3 + 2] = 1;
-            }
-        } else {
-            for (j = 0; j < glen; j++) {
-                coord[(i * glen + j) * 3 + 0] = i;
-                coord[(i * glen + j) * 3 + 1] = indirect[j];
-                coord[(i * glen + j) * 3 + 2] = 0;
-            }
-        }
+    /* We generate an element selection in the disk dataspace. To
+       limit the size of the coord array, the various scalarfield
+       components are read separately. */
+    num_elements = glen * scalarfield->real_or_complex.value;
+    
+    nblock = glen / MAX_BLOCK_SIZE;
+    if (nblock * MAX_BLOCK_SIZE < glen) {
+        nblock += 1;
     }
-    if ((err = utils_hdf5_read_dataset_at(dtset_id, file_id->transfer_mode,
-                                          buf, H5T_NATIVE_DOUBLE,
-                                          num_elements, coord)) != ESCDF_SUCCESS) {
-        free(coord);
-        H5Dclose(dtset_id);
-        return err;
+
+    coord = malloc(sizeof(hsize_t) * MAX_BLOCK_SIZE *
+                   scalarfield->real_or_complex.value * 3);
+    for (i = 0; i < scalarfield->number_of_components.value; i++) {
+        j0 = 0;
+        for (iblock = 0; iblock < nblock; iblock++) {
+            blocksize = (glen - j0 < MAX_BLOCK_SIZE) ? glen - j0 : MAX_BLOCK_SIZE;
+            if (scalarfield->real_or_complex.value == ESCDF_COMPLEX) {
+                for (j = 0; j < blocksize; j++) {
+                    coord[(j * 2 + 0) * 3 + 0] = i;
+                    coord[(j * 2 + 0) * 3 + 1] = indirect[j0 + j];
+                    coord[(j * 2 + 0) * 3 + 2] = 0;
+                    coord[(j * 2 + 1) * 3 + 0] = i;
+                    coord[(j * 2 + 1) * 3 + 1] = indirect[j0 + j];
+                    coord[(j * 2 + 1) * 3 + 2] = 1;
+                }
+            } else {
+                for (j = 0; j < blocksize; j++) {
+                    coord[j * 3 + 0] = i;
+                    coord[j * 3 + 1] = indirect[j0 + j];
+                    coord[j * 3 + 2] = 0;
+                }
+            }
+            offset = i * num_elements + j0 * scalarfield->real_or_complex.value;
+            if ((err = utils_hdf5_read_dataset_at(dtset_id, file_id->transfer_mode,
+                                                  buf + offset,
+                                                  H5T_NATIVE_DOUBLE,
+                                                  blocksize * scalarfield->real_or_complex.value, coord)) != ESCDF_SUCCESS) {
+                free(coord);
+                H5Dclose(dtset_id);
+                return err;
+            }
+            j0 += blocksize;
+        }
     }
     free(coord);
     H5Dclose(dtset_id);
