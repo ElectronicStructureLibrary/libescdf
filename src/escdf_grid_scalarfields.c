@@ -589,30 +589,19 @@ static escdf_errno_t _read_at(const escdf_grid_scalarfield_t *scalarfield,
     escdf_errno_t err;
     hid_t dtset_id;
     hsize_t *coord;
+    size_t num_elements;
     unsigned int i, j;
-    hsize_t bounds[3];
 
     /* Check that variable on disk is consistent with metadata in scalarfield. */
-    /* Create the global distribution bounds. */
-    bounds[0] = scalarfield->number_of_components.value;
-    bounds[1] = scalarfield->number_of_grid_points[0];
-    for (i = 1; i < scalarfield->cell.number_of_physical_dimensions.value; i++) {
-        bounds[1] *= scalarfield->number_of_grid_points[i];
-    }
-    bounds[2] = scalarfield->real_or_complex.value;
-
-    /* Get the dataset for this variable and check its dimensions. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid",
-                                      bounds, 3, &dtset_id)) != ESCDF_SUCCESS) {
+    if ((err = _get_values_on_grid(scalarfield, loc_id, &dtset_id)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* We generate an element selection in the disk dataspace. */
-    coord = malloc(sizeof(hsize_t) *
-                   scalarfield->number_of_components.value *
-                   glen *
-                   scalarfield->real_or_complex.value *
-                   3);
+    num_elements = scalarfield->number_of_components.value *
+        glen *
+        scalarfield->real_or_complex.value;
+    coord = malloc(sizeof(hsize_t) * num_elements * 3);
     for (i = 0; i < scalarfield->number_of_components.value; i++) {
         if (scalarfield->real_or_complex.value == 2) {
             for (j = 0; j < glen; j++) {
@@ -633,7 +622,7 @@ static escdf_errno_t _read_at(const escdf_grid_scalarfield_t *scalarfield,
     }
     if ((err = utils_hdf5_read_dataset_at(dtset_id, file_id->transfer_mode,
                                           buf, H5T_NATIVE_DOUBLE,
-                                          glen, coord)) != ESCDF_SUCCESS) {
+                                          num_elements, coord)) != ESCDF_SUCCESS) {
         free(coord);
         H5Dclose(dtset_id);
         return err;
@@ -901,16 +890,15 @@ escdf_errno_t escdf_grid_scalarfield_read_values_on_grid_sliced(const escdf_grid
         count[1] = len;
         count[2] = scalarfield->real_or_complex.value;
 
-        if ((err = _get_proc_grid_offset(&start[1], file_id,
-                                         scalarfield->cell.number_of_physical_dimensions.value,
-                                         scalarfield->number_of_grid_points,
-                                         len)) != ESCDF_SUCCESS) {
+        if ((err = _get_proc_grid_offset
+             (&start[1], file_id, scalarfield->cell.number_of_physical_dimensions.value,
+              scalarfield->number_of_grid_points, len)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }
 
-        if ((err = escdf_grid_scalarfield_read_values_on_grid(scalarfield, file_id,
-                                                              buf, start, count, NULL)) != ESCDF_SUCCESS) {
+        if ((err = escdf_grid_scalarfield_read_values_on_grid
+             (scalarfield, file_id, buf, start, count, NULL)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }
