@@ -447,6 +447,135 @@ START_TEST(test_write_values_on_grid)
 }
 END_TEST
 
+START_TEST(test_read_values_on_grid_sliced)
+{
+    escdf_handle_t *file_id;
+    escdf_errno_t err;
+    escdf_grid_scalarfield_t *scalarfield;
+    unsigned int uarr[2], uval;
+    double darr[4];
+
+    double dens[48];
+    unsigned int *tbl;
+    unsigned int i, j;
+    
+    /* Generate a density on disk with default ordering. */
+    scalarfield = escdf_grid_scalarfield_new(NULL);
+
+    escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
+    uarr[0] = 0;
+    uarr[1] = 2;
+    escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
+    darr[0] = 1.;
+    darr[1] = 2.;
+    darr[2] = 3.;
+    darr[3] = 4.;
+    escdf_grid_scalarfield_set_lattice_vectors(scalarfield, darr, 4);
+    uarr[0] = 6;
+    uarr[1] = 4;
+    escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
+    escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
+    escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
+    escdf_grid_scalarfield_set_use_default_ordering(scalarfield, true);
+    
+    /* Create a new file using default properties. */
+    file_id = escdf_create("tmp_grid_scalarfield_read.h5", NULL);
+    ck_assert(file_id != NULL);
+
+    err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
+    ck_assert(err == ESCDF_SUCCESS);
+
+    for (i = 0; i  < 48; i++) {
+      dens[i] = (i < 24) ? (double)i : -((double)i - 24);
+    }
+    err = escdf_grid_scalarfield_write_values_on_grid_ordered(scalarfield, file_id,
+                                                              dens, NULL, NULL, NULL);
+    if (err != ESCDF_SUCCESS) {
+      escdf_error_show(err, __FILE__, __LINE__, __func__);
+    }
+    ck_assert(err == ESCDF_SUCCESS);
+
+    for (i = 0; i  < 48; i++) {
+      dens[i] = 0.;
+    }
+
+    /* Test the ordered reading. */
+    err = escdf_grid_scalarfield_read_values_on_grid_sliced(scalarfield, file_id,
+                                                            dens, NULL, 24);
+    ck_assert(err == ESCDF_SUCCESS);
+    
+    for (i = 0; i  < 48; i++) {
+      ck_assert((i < 24) ? (dens[i] == (double)i) : (dens[i] == -((double)i - 24)));
+    }
+
+    /* Test the disordered reading. */
+    tbl = malloc(sizeof(unsigned int) * 24);
+    for (i = 0; i  < 24; i++) {
+      tbl[i] = (i + 12) % 24;
+    }
+    err = escdf_grid_scalarfield_read_values_on_grid_sliced(scalarfield, file_id,
+                                                            dens, tbl, 24);
+    free(tbl);
+    ck_assert(err == ESCDF_SUCCESS);
+    
+    for (i = 0; i  < 48; i++) {
+      ck_assert((i < 24) ? (dens[i] == (double)((i + 12) % 24)) :
+                (dens[i] == -(double)((i + 12) % 24)));
+    }
+
+    escdf_close(file_id);
+
+    file_id = escdf_create("tmp_grid_scalarfield_read.h5", NULL);
+    ck_assert(file_id != NULL);
+
+    /* Recreate the file disordered. */
+    escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
+    err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
+    ck_assert(err == ESCDF_SUCCESS);
+
+    tbl = malloc(sizeof(unsigned int) * 24);
+    for (i = 0; i  < 24; i++) {
+      tbl[i] = (i + 12) % 24;
+    }
+    for (i = 0; i  < 48; i++) {
+      dens[i] = (i < 24) ? (double)tbl[i % 24] : -(double)tbl[i % 24];
+    }
+    err = escdf_grid_scalarfield_write_values_on_grid_sliced(scalarfield, file_id,
+                                                             dens, tbl, 24);
+    free(tbl);
+    for (i = 0; i  < 48; i++) {
+      dens[i] = 0.;
+    }
+
+    /* Test the ordered reading. */
+    err = escdf_grid_scalarfield_read_values_on_grid_sliced(scalarfield, file_id,
+                                                            dens, NULL, 24);
+    ck_assert(err == ESCDF_SUCCESS);
+    
+    for (i = 0; i  < 48; i++) {
+      ck_assert((i < 24) ? (dens[i] == (double)i) : (dens[i] == -((double)i - 24)));
+    }
+
+    /* Test the disordered reading. */
+    tbl = malloc(sizeof(unsigned int) * 24);
+    for (i = 0; i  < 24; i++) {
+      tbl[i] = (i < 12) ? i * 2 : (i % 12) * 2 + 1;
+    }
+    err = escdf_grid_scalarfield_read_values_on_grid_sliced(scalarfield, file_id,
+                                                            dens, tbl, 24);
+    ck_assert(err == ESCDF_SUCCESS);
+    
+    for (i = 0; i  < 48; i++) {
+      ck_assert((i < 24) ? (dens[i] == (double)tbl[i]) : (dens[i] == -(double)tbl[i - 24]));
+    }
+    free(tbl);
+
+    escdf_close(file_id);
+
+    escdf_grid_scalarfield_free(scalarfield);
+}
+END_TEST
+
 Suite * make_grid_scalarfield_suite(void)
 {
     Suite *s;
@@ -467,6 +596,7 @@ Suite * make_grid_scalarfield_suite(void)
     tcase_add_test(tc_info, test_write_metadata);
     tcase_add_test(tc_info, test_read_values_on_grid);
     tcase_add_test(tc_info, test_write_values_on_grid);
+    tcase_add_test(tc_info, test_read_values_on_grid_sliced);
     suite_add_tcase(s, tc_info);
 
     return s;
