@@ -123,6 +123,51 @@ escdf_handle_t * escdf_create_mpi(const char *filename, const char *path,
         return handle;
     }
 }
+
+escdf_handle_t * escdf_open_mpi(const char *filename, const char *path,
+    MPI_Comm comm)
+{
+    hid_t fapl_id;
+    herr_t err;
+    escdf_handle_t *handle = (escdf_handle_t *) malloc(sizeof(escdf_handle_t));
+    FULFILL_OR_RETURN_VAL(handle != NULL, ESCDF_ENOMEM, NULL);
+
+    handle->comm = comm;
+    MPI_Comm_size(handle->comm, &(handle->mpi_size));
+    MPI_Comm_rank(handle->comm, &(handle->mpi_rank));
+
+    handle->transfer_mode = H5Pcreate(H5P_DATASET_XFER);
+    H5Pset_dxpl_mpio(handle->transfer_mode, H5FD_MPIO_COLLECTIVE);
+
+    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) {
+        H5Pclose(handle->transfer_mode);
+        free(handle);
+        DEFER_FUNC_ERROR(fapl_id);
+        return NULL;
+    }
+    if ((err = H5Pset_fapl_mpio(fapl_id, comm, MPI_INFO_NULL)) < 0) {
+        H5Pclose(handle->transfer_mode);
+        H5Pclose(fapl_id);
+        free(handle);
+        DEFER_FUNC_ERROR(fapl_id);
+        return NULL;
+    }
+
+    if ((handle->file_id = H5Fopen(filename, H5F_ACC_RDONLY, fapl_id)) < 0) {
+        H5Pclose(handle->transfer_mode);
+        H5Pclose(fapl_id);
+        free(handle);
+        DEFER_FUNC_ERROR(handle->file_id);
+    };
+    H5Pclose(fapl_id);
+
+    if (_create_root(handle, path) != ESCDF_SUCCESS) {
+        escdf_close(handle);
+        return NULL;
+    } else {
+        return handle;
+    }
+}
 #endif
 
 escdf_errno_t escdf_close(escdf_handle_t *handle) {

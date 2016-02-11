@@ -66,6 +66,9 @@ escdf_errno_t escdf_close(escdf_handle_t *handle);
 #ifdef HAVE_MPI
 escdf_handle_t * escdf_create_mpi(const char *filename, const char *path,
     MPI_Comm comm);
+
+escdf_handle_t * escdf_open_mpi(const char *filename, const char *path,
+    MPI_Comm comm);
 #endif
 
 #endif
