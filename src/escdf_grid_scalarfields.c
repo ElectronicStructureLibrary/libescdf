@@ -282,21 +282,25 @@ unsigned int escdf_grid_scalarfield_get_number_of_physical_dimensions(const escd
     return scalarfield->cell.number_of_physical_dimensions.value;
 }
 escdf_errno_t escdf_grid_scalarfield_get_dimension_types(const escdf_grid_scalarfield_t *scalarfield,
-                                                         int *dimension_types,
+                                                         escdf_direction_type *dimension_types,
                                                          const size_t len)
 {
+    unsigned i;
+
     FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
     FULFILL_OR_RETURN(scalarfield->cell.dimension_types, ESCDF_EUNINIT);
     FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
 
-    memcpy(dimension_types, scalarfield->cell.dimension_types, sizeof(int) * len);
+    for (i = 0; i < len; i++) {
+        dimension_types[i] = (escdf_direction_type)scalarfield->cell.dimension_types[i];
+    }
     return ESCDF_SUCCESS;
 }
-const int* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield)
+const escdf_direction_type* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield)
 {
     FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, NULL);
 
-    return scalarfield->cell.dimension_types;
+    return (escdf_direction_type*)scalarfield->cell.dimension_types;
 }
 escdf_errno_t escdf_grid_scalarfield_get_lattice_vectors(const escdf_grid_scalarfield_t *scalarfield,
                                                          double *lattice_vectors,
@@ -340,12 +344,12 @@ unsigned int escdf_grid_scalarfield_get_number_of_components(const escdf_grid_sc
     
     return scalarfield->number_of_components.value;
 }
-unsigned int escdf_grid_scalarfield_get_real_or_complex(const escdf_grid_scalarfield_t *scalarfield)
+escdf_real_or_complex escdf_grid_scalarfield_get_real_or_complex(const escdf_grid_scalarfield_t *scalarfield)
 {
-    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, 0);
-    FULFILL_OR_RETURN_VAL(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT, 0);
+    FULFILL_OR_RETURN_VAL(scalarfield, ESCDF_EOBJECT, ESCDF_REAL);
+    FULFILL_OR_RETURN_VAL(scalarfield->real_or_complex.is_set, ESCDF_EUNINIT, ESCDF_REAL);
     
-    return scalarfield->real_or_complex.value;
+    return (escdf_real_or_complex)scalarfield->real_or_complex.value;
 }
 bool escdf_grid_scalarfield_get_use_default_ordering(const escdf_grid_scalarfield_t *scalarfield)
 {
@@ -373,7 +377,7 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_physical_dimensions(escdf_gri
 }
 
 escdf_errno_t escdf_grid_scalarfield_set_dimension_types(escdf_grid_scalarfield_t *scalarfield,
-                                                         const int *dimension_types,
+                                                         const escdf_direction_type *dimension_types,
                                                          const size_t len)
 {
     unsigned int i;
@@ -382,12 +386,15 @@ escdf_errno_t escdf_grid_scalarfield_set_dimension_types(escdf_grid_scalarfield_
     FULFILL_OR_RETURN(scalarfield->cell.number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
     FULFILL_OR_RETURN(len == scalarfield->cell.number_of_physical_dimensions.value, ESCDF_ESIZE);
     for (i = 0; i < len; i++) {
-        FULFILL_OR_RETURN(dimension_types[i] >= 0 && dimension_types[i] < 3, ESCDF_ERANGE);
+        FULFILL_OR_RETURN(dimension_types[i] >= ESCDF_DIRECTION_FREE &&
+                          dimension_types[i] < ESCDF_N_DIRECTION_TYPE, ESCDF_ERANGE);
     }
 
     free(scalarfield->cell.dimension_types);
     scalarfield->cell.dimension_types = malloc(sizeof(int) * len);
-    memcpy(scalarfield->cell.dimension_types, dimension_types, sizeof(int) * len);
+    for (i = 0; i < len; i++) {
+        scalarfield->cell.dimension_types[i] = (int)dimension_types[i];
+    }
 
     return ESCDF_SUCCESS;
 }
@@ -445,13 +452,13 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_components(escdf_grid_scalarf
 }
 
 escdf_errno_t escdf_grid_scalarfield_set_real_or_complex(escdf_grid_scalarfield_t *scalarfield,
-                                                         const unsigned int real_or_complex)
+                                                         const escdf_real_or_complex real_or_complex)
 {
     FULFILL_OR_RETURN(scalarfield, ESCDF_EOBJECT);
     FULFILL_OR_RETURN(real_or_complex > 0 &&
                       real_or_complex < 3, ESCDF_ERANGE);
 
-    scalarfield->real_or_complex = _uint_set(real_or_complex);
+    scalarfield->real_or_complex = _uint_set((unsigned int)real_or_complex);
 
     return ESCDF_SUCCESS;
 }

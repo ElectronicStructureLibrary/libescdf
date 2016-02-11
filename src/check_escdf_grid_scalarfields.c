@@ -59,15 +59,17 @@ START_TEST(test_write_metadata)
     escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
+    escdf_direction_type dirarr[2];
+    escdf_real_or_complex rc;
     unsigned int uarr[2], uval;
     double darr[4];
     
     scalarfield = escdf_grid_scalarfield_new(NULL);
 
     escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
-    uarr[0] = 0;
-    uarr[1] = 2;
-    escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
+    dirarr[0] = ESCDF_DIRECTION_FREE;
+    dirarr[1] = ESCDF_DIRECTION_SEMI_INFINITE;
+    escdf_grid_scalarfield_set_dimension_types(scalarfield, dirarr, 2);
     darr[0] = 1.;
     darr[1] = 2.;
     darr[2] = 3.;
@@ -77,7 +79,7 @@ START_TEST(test_write_metadata)
     uarr[1] = 4;
     escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
     escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
-    escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
+    escdf_grid_scalarfield_set_real_or_complex(scalarfield, ESCDF_REAL);
     escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
     
     /* Create a new file using default properties. */
@@ -102,9 +104,10 @@ START_TEST(test_write_metadata)
     uval = escdf_grid_scalarfield_get_number_of_physical_dimensions(scalarfield);
     ck_assert(uval == 2);
     
-    err = escdf_grid_scalarfield_get_dimension_types(scalarfield, uarr, 2);
+    err = escdf_grid_scalarfield_get_dimension_types(scalarfield, dirarr, 2);
     ck_assert(err == ESCDF_SUCCESS);
-    ck_assert(uarr[0] == 0 && uarr[1] == 2);
+    ck_assert(dirarr[0] == ESCDF_DIRECTION_FREE &&
+              dirarr[1] == ESCDF_DIRECTION_SEMI_INFINITE);
 
     err = escdf_grid_scalarfield_get_lattice_vectors(scalarfield, darr, 4);
     ck_assert(err == ESCDF_SUCCESS);
@@ -117,8 +120,8 @@ START_TEST(test_write_metadata)
     uval = escdf_grid_scalarfield_get_number_of_components(scalarfield);
     ck_assert(uval == 2);
     
-    uval = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
-    ck_assert(uval == 1);
+    rc = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
+    ck_assert(rc == ESCDF_REAL);
     
     uval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
     ck_assert(uval == 0);
@@ -134,10 +137,14 @@ START_TEST(test_getters)
     escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
+    escdf_direction_type dirarr[2];
+    const escdf_direction_type *dirpt;
+    escdf_real_or_complex rc;
     unsigned int uval, uarr[3];
     const unsigned int *upt;
     double darr[9];
     const double *dpt;
+    bool bval;
     
     /* Create a new file using default properties. */
     file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
@@ -152,12 +159,16 @@ START_TEST(test_getters)
     uval = escdf_grid_scalarfield_get_number_of_physical_dimensions(scalarfield);
     ck_assert(uval == 3);
     
-    err = escdf_grid_scalarfield_get_dimension_types(scalarfield, uarr, 3);
+    err = escdf_grid_scalarfield_get_dimension_types(scalarfield, dirarr, 3);
     ck_assert(err == ESCDF_SUCCESS);
-    ck_assert(uarr[0] == 0 && uarr[1] == 1 && uarr[2] == 0);
-    upt = escdf_grid_scalarfield_ptr_dimension_types(scalarfield);
-    ck_assert(upt != NULL);
-    ck_assert(upt[0] == 0 && upt[1] == 1 && upt[2] == 0);
+    ck_assert(dirarr[0] == ESCDF_DIRECTION_FREE &&
+              dirarr[1] == ESCDF_DIRECTION_PERIODIC &&
+              dirarr[2] == ESCDF_DIRECTION_FREE);
+    dirpt = escdf_grid_scalarfield_ptr_dimension_types(scalarfield);
+    ck_assert(dirpt != NULL);
+    ck_assert(dirpt[0] == ESCDF_DIRECTION_FREE &&
+              dirpt[1] == ESCDF_DIRECTION_PERIODIC &&
+              dirpt[2] == ESCDF_DIRECTION_FREE);
 
     err = escdf_grid_scalarfield_get_lattice_vectors(scalarfield, darr, 9);
     ck_assert(err == ESCDF_SUCCESS);
@@ -180,11 +191,11 @@ START_TEST(test_getters)
     uval = escdf_grid_scalarfield_get_number_of_components(scalarfield);
     ck_assert(uval == 2);
     
-    uval = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
-    ck_assert(uval == 1);
+    rc = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
+    ck_assert(rc == ESCDF_REAL);
     
-    uval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
-    ck_assert(uval == 1);
+    bval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
+    ck_assert(bval);
     
     escdf_grid_scalarfield_free(scalarfield);
 }
@@ -211,23 +222,25 @@ START_TEST(test_set_dimension_types)
 {
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
-    unsigned int uarr[3];
-    const unsigned int *upt;
+    escdf_direction_type dirarr[3];
+    const escdf_direction_type *dirpt;
 
     scalarfield = escdf_grid_scalarfield_new("density");
     err = escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
     ck_assert(err == ESCDF_SUCCESS);
     
-    uarr[0] = 2;
-    uarr[1] = 0;
-    err = escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
+    dirarr[0] = ESCDF_DIRECTION_SEMI_INFINITE;
+    dirarr[1] = ESCDF_DIRECTION_FREE;
+    err = escdf_grid_scalarfield_set_dimension_types(scalarfield, dirarr, 2);
     ck_assert(err == ESCDF_SUCCESS);
-    err = escdf_grid_scalarfield_get_dimension_types(scalarfield, uarr, 2);
+    err = escdf_grid_scalarfield_get_dimension_types(scalarfield, dirarr, 2);
     ck_assert(err == ESCDF_SUCCESS);
-    ck_assert(uarr[0] == 2 && uarr[1] == 0);
-    upt = escdf_grid_scalarfield_ptr_dimension_types(scalarfield);
-    ck_assert(upt != NULL);
-    ck_assert(upt[0] == 2 && upt[1] == 0);
+    ck_assert(dirarr[0] == ESCDF_DIRECTION_SEMI_INFINITE &&
+              dirarr[1] == ESCDF_DIRECTION_FREE);
+    dirpt = escdf_grid_scalarfield_ptr_dimension_types(scalarfield);
+    ck_assert(dirpt != NULL);
+    ck_assert(dirpt[0] == ESCDF_DIRECTION_SEMI_INFINITE &&
+              dirpt[1] == ESCDF_DIRECTION_FREE);
     
     escdf_grid_scalarfield_free(scalarfield);
 }
@@ -309,14 +322,14 @@ START_TEST(test_set_real_or_complex)
 {
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
-    unsigned int uval;
+    escdf_real_or_complex rc;
 
     scalarfield = escdf_grid_scalarfield_new("density");
 
-    err = escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
+    err = escdf_grid_scalarfield_set_real_or_complex(scalarfield, ESCDF_REAL);
     ck_assert(err == ESCDF_SUCCESS);
-    uval = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
-    ck_assert(uval == 1);
+    rc = escdf_grid_scalarfield_get_real_or_complex(scalarfield);
+    ck_assert(rc == ESCDF_REAL);
     
     escdf_grid_scalarfield_free(scalarfield);
 }
@@ -326,14 +339,14 @@ START_TEST(test_set_use_default_ordering)
 {
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
-    unsigned int uval;
+    bool bval;
 
     scalarfield = escdf_grid_scalarfield_new("density");
 
-    err = escdf_grid_scalarfield_set_use_default_ordering(scalarfield, 0);
+    err = escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
     ck_assert(err == ESCDF_SUCCESS);
-    uval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
-    ck_assert(uval == 0);
+    bval = escdf_grid_scalarfield_get_use_default_ordering(scalarfield);
+    ck_assert(!bval);
     
     escdf_grid_scalarfield_free(scalarfield);
 }
@@ -391,6 +404,7 @@ START_TEST(test_write_values_on_grid)
     escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
+    escdf_direction_type dirarr[2];
     unsigned int uarr[2], uval;
     double darr[4];
 
@@ -402,9 +416,9 @@ START_TEST(test_write_values_on_grid)
     scalarfield = escdf_grid_scalarfield_new(NULL);
 
     escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
-    uarr[0] = 0;
-    uarr[1] = 2;
-    escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
+    dirarr[0] = ESCDF_DIRECTION_FREE;
+    dirarr[1] = ESCDF_DIRECTION_SEMI_INFINITE;
+    escdf_grid_scalarfield_set_dimension_types(scalarfield, dirarr, 2);
     darr[0] = 1.;
     darr[1] = 2.;
     darr[2] = 3.;
@@ -414,7 +428,7 @@ START_TEST(test_write_values_on_grid)
     uarr[1] = 4;
     escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
     escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
-    escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
+    escdf_grid_scalarfield_set_real_or_complex(scalarfield, ESCDF_REAL);
     escdf_grid_scalarfield_set_use_default_ordering(scalarfield, true);
     
     /* Create a new file using default properties. */
@@ -452,6 +466,7 @@ START_TEST(test_read_values_on_grid_sliced)
     escdf_handle_t *file_id;
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
+    escdf_direction_type dirarr[2];
     unsigned int uarr[2], uval;
     double darr[4];
 
@@ -463,9 +478,9 @@ START_TEST(test_read_values_on_grid_sliced)
     scalarfield = escdf_grid_scalarfield_new(NULL);
 
     escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, 2);
-    uarr[0] = 0;
-    uarr[1] = 2;
-    escdf_grid_scalarfield_set_dimension_types(scalarfield, uarr, 2);
+    dirarr[0] = ESCDF_DIRECTION_FREE;
+    dirarr[1] = ESCDF_DIRECTION_SEMI_INFINITE;
+    escdf_grid_scalarfield_set_dimension_types(scalarfield, dirarr, 2);
     darr[0] = 1.;
     darr[1] = 2.;
     darr[2] = 3.;
@@ -475,7 +490,7 @@ START_TEST(test_read_values_on_grid_sliced)
     uarr[1] = 4;
     escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, 2);
     escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
-    escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
+    escdf_grid_scalarfield_set_real_or_complex(scalarfield, ESCDF_REAL);
     escdf_grid_scalarfield_set_use_default_ordering(scalarfield, true);
     
     /* Create a new file using default properties. */

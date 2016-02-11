@@ -41,6 +41,10 @@ typedef enum {
     ESCDF_N_DIRECTION_TYPE
 } escdf_direction_type;
 
+typedef enum {
+  ESCDF_REAL = 1,
+  ESCDF_COMPLEX = 2
+} escdf_real_or_complex;
 
 /******************************************************************************
  * Global functions                                                           *
@@ -93,12 +97,12 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_physical_dimensions(escdf_gri
 unsigned int escdf_grid_scalarfield_get_number_of_physical_dimensions(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_set_dimension_types(escdf_grid_scalarfield_t *scalarfield,
-                                                         const int *dimension_types,
+                                                         const escdf_direction_type *dimension_types,
                                                          const size_t len);
 escdf_errno_t escdf_grid_scalarfield_get_dimension_types(const escdf_grid_scalarfield_t *scalarfield,
-                                                         int *dimension_types,
+                                                         escdf_direction_type *dimension_types,
                                                          const size_t len);
-const int* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield);
+const escdf_direction_type* escdf_grid_scalarfield_ptr_dimension_types(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_set_lattice_vectors(escdf_grid_scalarfield_t *scalarfield,
                                                          const double *lattice_vectors,
@@ -121,8 +125,8 @@ escdf_errno_t escdf_grid_scalarfield_set_number_of_components(escdf_grid_scalarf
 unsigned int escdf_grid_scalarfield_get_number_of_components(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_set_real_or_complex(escdf_grid_scalarfield_t *scalarfield,
-                                                         const unsigned int real_or_complex);
-unsigned int escdf_grid_scalarfield_get_real_or_complex(const escdf_grid_scalarfield_t *scalarfield);
+                                                         const escdf_real_or_complex real_or_complex);
+escdf_real_or_complex escdf_grid_scalarfield_get_real_or_complex(const escdf_grid_scalarfield_t *scalarfield);
 
 escdf_errno_t escdf_grid_scalarfield_set_use_default_ordering(escdf_grid_scalarfield_t *scalarfield,
                                                               const bool use_default_ordering);
@@ -134,7 +138,8 @@ escdf_errno_t escdf_grid_scalarfield_serialise(escdf_grid_scalarfield_t *scalarf
 /* Data functions. */
 /*******************/
 escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_ordered(const escdf_grid_scalarfield_t *scalarfield,
-                                                                  escdf_handle_t *file_id, const double *buf,
+                                                                  escdf_handle_t *file_id,
+                                                                  const double *buf,
                                                                   const hsize_t *start,
                                                                   const hsize_t *count,
                                                                   const hsize_t *stride);
@@ -152,7 +157,8 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid_sliced(const escdf_gri
                                                                  const hsize_t len);
 
 escdf_errno_t escdf_grid_scalarfield_read_values_on_grid(const escdf_grid_scalarfield_t *scalarfield,
-                                                         escdf_handle_t *file_id, double *buf,
+                                                         escdf_handle_t *file_id,
+                                                         double *buf,
                                                          const hsize_t *start,
                                                          const hsize_t *count,
                                                          const hsize_t *stride);
