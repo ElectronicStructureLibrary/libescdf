@@ -34,18 +34,65 @@ int main(int argc, char **argv)
 #define NDIMS 3
     unsigned int uarr[NDIMS], uval;
     double darr[NDIMS * NDIMS];
+    char *filename;
 
+    int iproc, nproc;
     hsize_t slice, i, j, x, y, z, z0, nz;
-    double *dens, rx, ry, rz, fac;
+    double *dens, rx, ry, rz, fac, wallt;
+#define NCOMP 2
 #define NSIZE_X 600
 #define NSIZE_Y 300
 #define NSIZE_Z 200
 #define NDATA NSIZE_X * NSIZE_Y * NSIZE_Z
 
+#define SINGLE_FILE false
+#define NRETRY 10
+
     struct timespec begin, end;
 
+    /* Initialise MPI. */
     MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &iproc);
+    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+
+    /*****************************************************/
+    /* Create a gaussian density per slice of xy planes. */
+    /*****************************************************/
+    nz = NSIZE_Z / nproc;
+    if (iproc < (NSIZE_Z - nz * nproc))
+      nz += 1;
+    if (iproc <= (NSIZE_Z - nz * nproc))
+      z0 = (NSIZE_Z / nproc + 1) * iproc;
+    else
+      z0 = NSIZE_Z / nproc * iproc + NSIZE_Z - nz * nproc;
+    /* fprintf(stderr, "%d: %lld / %lld\n", iproc, z0, nz); */
+    dens = malloc(sizeof(double) * nz * NSIZE_Y * NSIZE_X * NCOMP);
+    for (i = 0; i < NCOMP; i++) {
+      j = 0;
+      fac = (i % NCOMP) ? +1. : -1.;
+      for (slice = 0; slice < nz; slice++) {
+        z = z0 + slice;
+        rz = ((double)z / (double)NSIZE_Z - 0.5) * darr[8];
+        rz *= rz;
+        for (y = 0; y < NSIZE_Y; y++) {
+          ry = ((double)y / (double)NSIZE_Y - 0.5) * darr[4];
+          ry *= ry;
+          for (x = 0; x < NSIZE_X; x++) {
+            rx = ((double)x / (double)NSIZE_X - 0.5) * darr[0];
+            rx *= rx;
+            /* Centred gaussian. */
+            dens[i * nz * NSIZE_Y * NSIZE_X + j++] = fac * exp(-(rx + ry + rz));
+          }
+        }
+      }
+    }
+    if (iproc == 0) {
+    fprintf(stderr, "Data size: %g MB\n", 8. * nz * NSIZE_Y * NSIZE_X * NCOMP / 1024. / 1024.);
+    }
     
+    /**************************************/
+    /* Create a ESCDF scalarfield object. */
+    /**************************************/
     scalarfield = escdf_grid_scalarfield_new(NULL);
 
     escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, NDIMS);
@@ -65,78 +112,67 @@ int main(int argc, char **argv)
     escdf_grid_scalarfield_set_lattice_vectors(scalarfield, darr, NDIMS * NDIMS);
     uarr[0] = NSIZE_X;
     uarr[1] = NSIZE_Y;
-    uarr[2] = NSIZE_Z;
+    uarr[2] = (SINGLE_FILE) ? NSIZE_Z : nz;
     escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, NDIMS);
-    escdf_grid_scalarfield_set_number_of_components(scalarfield, 2);
+    escdf_grid_scalarfield_set_number_of_components(scalarfield, NCOMP);
     escdf_grid_scalarfield_set_real_or_complex(scalarfield, 1);
     escdf_grid_scalarfield_set_use_default_ordering(scalarfield, true);
-    
-    /* Create a new file. */
-    file_id = escdf_create_mpi("grid_scalarfield.h5", NULL, MPI_COMM_WORLD);
-    if (file_id == NULL) {
-      escdf_error_show(escdf_error_get_last(__func__), __FILE__, __LINE__, __func__);
-      return escdf_error_get_last(__func__);
-    }
 
-    err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
-    if (err != ESCDF_SUCCESS) {
-      escdf_error_show(err, __FILE__, __LINE__, __func__);
-      return err;
-    }
-
-    /* Write density per slice of xy planes. */
-    nz = NSIZE_Z / file_id->mpi_size;
-    if (file_id->mpi_rank < (NSIZE_Z - nz * file_id->mpi_size))
-      nz += 1;
-    if (file_id->mpi_rank <= (NSIZE_Z - nz * file_id->mpi_size))
-      z0 = (NSIZE_Z / file_id->mpi_size + 1) * file_id->mpi_rank;
-    else
-      z0 = NSIZE_Z / file_id->mpi_size * file_id->mpi_rank + NSIZE_Z - nz * file_id->mpi_size;
-    /* fprintf(stderr, "%d: %d / %d\n", file_id->mpi_rank, z0, nz); */
-    dens = malloc(sizeof(double) * nz * NSIZE_Y * NSIZE_X * 2);
-    for (i = 0; i < 2; i++) {
-      j = 0;
-      fac = (i % 2) ? +1. : -1.;
-      for (slice = 0; slice < nz; slice++) {
-        z = z0 + slice;
-        rz = ((double)z / (double)NSIZE_Z - 0.5) * darr[8];
-        rz *= rz;
-        for (y = 0; y < NSIZE_Y; y++) {
-          ry = ((double)y / (double)NSIZE_Y - 0.5) * darr[4];
-          ry *= ry;
-          for (x = 0; x < NSIZE_X; x++) {
-            rx = ((double)x / (double)NSIZE_X - 0.5) * darr[0];
-            rx *= rx;
-            /* Centred gaussian. */
-            dens[i * nz * NSIZE_Y * NSIZE_X + j++] = fac * exp(-(rx + ry + rz));
-          }
-        }
+    wallt = 0.;
+    for (i = 0; i < NRETRY; i++) {
+      /* Create a new file. */
+      if (SINGLE_FILE) {
+        file_id = escdf_create_mpi("grid_scalarfield.h5", NULL, MPI_COMM_WORLD);
+      } else {
+        filename = malloc(sizeof(char) *
+                          (snprintf(NULL, 0, "grid_scalarfield.%04d.h5", iproc) + 1));
+        sprintf(filename, "grid_scalarfield.%04d.h5", iproc);
+        file_id = escdf_create(filename, NULL);
+        free(filename);
       }
-    }
-    if (file_id->mpi_rank == 0) {
-      fprintf(stderr, "Data size: %gMo\n", 8. * nz * NSIZE_Y * NSIZE_X * 2. / 1024. / 1024.);
-    }
+      if (file_id == NULL) {
+        escdf_error_show(escdf_error_get_last(__func__), __FILE__, __LINE__, __func__);
+        return escdf_error_get_last(__func__);
+      }
+
+      err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
+      if (err != ESCDF_SUCCESS) {
+        escdf_error_show(err, __FILE__, __LINE__, __func__);
+        return err;
+      }
     
-    MPI_Barrier(MPI_COMM_WORLD);
-    clock_gettime(CLOCK_REALTIME, &begin);
-    err = escdf_grid_scalarfield_write_values_on_grid_sliced(scalarfield, file_id, dens, NULL, nz * NSIZE_Y * NSIZE_X);
-    if (err != ESCDF_SUCCESS) {
-      escdf_error_show(err, __FILE__, __LINE__, __func__);
-      return err;
+      /**************************************************************/
+      /* Write the density slices, providing only slices of data and
+         slice sizes */
+      /**************************************************************/
+      MPI_Barrier(MPI_COMM_WORLD);
+      clock_gettime(CLOCK_REALTIME, &begin);
+      err = escdf_grid_scalarfield_write_values_on_grid_sliced(scalarfield, file_id, dens, NULL, nz * NSIZE_Y * NSIZE_X);
+      if (err != ESCDF_SUCCESS) {
+        escdf_error_show(err, __FILE__, __LINE__, __func__);
+        return err;
+      }
+
+      escdf_close(file_id);
+
+      MPI_Barrier(MPI_COMM_WORLD);
+      clock_gettime(CLOCK_REALTIME, &end);
+
+      wallt += (double)(end.tv_sec - begin.tv_sec) +
+        1e-9 * (end.tv_nsec - begin.tv_nsec);
     }
+
+    /***********/
+    /* Cleanup */
+    /***********/
     free(dens);
-
     escdf_grid_scalarfield_free(scalarfield);
-
-    escdf_close(file_id);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    clock_gettime(CLOCK_REALTIME, &end);
-
-    if (file_id->mpi_rank == 0) {
-      fprintf(stderr, "Wall time: %gs\n",
-              (double)(end.tv_sec - begin.tv_sec) +
-              1e-9 * (end.tv_nsec - begin.tv_nsec));
+    
+    if (iproc == 0) {
+      fprintf(stderr, "Wall time: %g s\n", wallt / NRETRY);
+      fprintf(stderr, "Write spd: %g MB/s\n",
+              (8. * nz * NSIZE_Y * NSIZE_X * NCOMP / 1024. / 1024.) /
+              (wallt / NRETRY));
     }
 
     MPI_Finalize();
