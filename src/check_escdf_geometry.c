@@ -23,8 +23,21 @@
 #include "escdf_geometry.h"
 
 #define FILE "check_escdf_geometry_test_file.h5"
+#define GROUP_A "GroupA"
+
+static escdf_geometry_t *geo1 = NULL;
 
 void geometry_setup(void) {
+    escdf_geometry_free(geo1);
+    geo1 = escdf_geometry_new();
+}
+
+void geometry_teardown(void) {
+    escdf_geometry_free(geo1);
+    geo1 = NULL;
+}
+
+void geometry_setup_full(void) {
 
     char *escdf_root_path=NULL;
     char *silicon_geom_path=NULL;
@@ -153,32 +166,74 @@ void geometry_setup(void) {
     status = H5Fclose(file_id);
 }
 
-void geometry_teardown(void)
+void geometry_teardown_full(void)
 {
     unlink(FILE);
 }
 
 START_TEST(test_geometry_new)
 {
-    escdf_handle_t *handle;
-    escdf_geometry_t *geometry;
-
-    ck_assert((handle = escdf_create(FILE, NULL)) != NULL);
-    ck_assert((geometry = escdf_geometry_new(handle, ".")) != NULL);
-    ck_assert(escdf_geometry_free(geometry) == ESCDF_SUCCESS);
+    ck_assert((geo1 = escdf_geometry_new()) != NULL);
 }
 END_TEST
+
+START_TEST(test_geometry_open_group)
+{
+    ck_assert(escdf_geometry_open_group(geo1, NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_geometry_open_group_path)
+{
+    ck_assert(escdf_geometry_open_group(geo1, GROUP_A) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_geometry_create_group)
+{
+    ck_assert(escdf_geometry_create_group(geo1, NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_geometry_create_group_path)
+{
+    ck_assert(escdf_geometry_create_group(geo1, GROUP_A) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_geometry_close_group)
+{
+    ck_assert(escdf_geometry_close_group(geo1) == ESCDF_SUCCESS);
+}
+END_TEST
+
 
 Suite * make_geometry_suite(void)
 {
     Suite *s;
-    TCase *tc_geometry;
+    TCase *tc_geometry_new, *tc_geometry_new, *tc_geometry_open_group, *tc_geometry_create_group, *tc_geometry_close_group;
 
     s = suite_create("Geometry");
 
-    tc_geometry = tcase_create("New file");
-    tcase_add_checked_fixture(tc_geometry, geometry_setup, geometry_teardown);
-    tcase_add_test(tc_geometry, test_geometry_new);
-    suite_add_tcase(s, tc_geometry);
+    tc_geometry_new = tcase_create("New");
+    tcase_add_checked_fixture(tc_geometry_new, NULL, geometry_teardown);
+    tcase_add_test(tc_geometry_new, test_geometry_new);
+    suite_add_tcase(s, tc_geometry_new);
+
+    tc_geometry_new = tcase_create("Open group");
+    tcase_add_checked_fixture(tc_geometry_new, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry_new, test_geometry_open_group);
+    suite_add_tcase(s, tc_geometry_new);
+
+    tc_geometry_new = tcase_create("Create group");
+    tcase_add_checked_fixture(tc_geometry_new, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry_new, test_geometry_create_group);
+    suite_add_tcase(s, tc_geometry_new);
+
+    tc_geometry_new = tcase_create("Close group");
+    tcase_add_checked_fixture(tc_geometry_new, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry_new, test_geometry_close_group);
+    suite_add_tcase(s, tc_geometry_new);
+
     return s;
 }
