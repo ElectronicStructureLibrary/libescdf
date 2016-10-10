@@ -18,6 +18,7 @@
 */
 
 #include <check.h>
+#include <unistd.h>
 
 #include "escdf_geometry.h"
 
