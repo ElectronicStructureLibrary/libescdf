@@ -17,6 +17,8 @@
 
 */
 
+#include <check.h>
+
 #include "escdf_geometry.h"
 
 #define FILE "check_escdf_geometry.h5"
