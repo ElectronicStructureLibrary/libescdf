@@ -220,20 +220,22 @@ Suite * make_geometry_suite(void)
     tcase_add_test(tc_geometry_new, test_geometry_new);
     suite_add_tcase(s, tc_geometry_new);
 
-    tc_geometry_new = tcase_create("Open group");
-    tcase_add_checked_fixture(tc_geometry_new, geometry_setup, geometry_teardown);
-    tcase_add_test(tc_geometry_new, test_geometry_open_group);
-    suite_add_tcase(s, tc_geometry_new);
+    tc_geometry_open_group = tcase_create("Open group");
+    tcase_add_checked_fixture(tc_geometry_open_group, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry_open_group, test_geometry_open_group);
+    tcase_add_test(tc_geometry_open_group, test_geometry_open_group_path);
+    suite_add_tcase(s, tc_geometry_open_group);
 
-    tc_geometry_new = tcase_create("Create group");
-    tcase_add_checked_fixture(tc_geometry_new, geometry_setup, geometry_teardown);
-    tcase_add_test(tc_geometry_new, test_geometry_create_group);
-    suite_add_tcase(s, tc_geometry_new);
+    tc_geometry_create_group = tcase_create("Create group");
+    tcase_add_checked_fixture(tc_geometry_create_group, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry_create_group, test_geometry_create_group);
+    tcase_add_test(tc_geometry_create_group, test_geometry_create_group_path);
+    suite_add_tcase(s, tc_geometry_create_group);
 
-    tc_geometry_new = tcase_create("Close group");
-    tcase_add_checked_fixture(tc_geometry_new, geometry_setup, geometry_teardown);
-    tcase_add_test(tc_geometry_new, test_geometry_close_group);
-    suite_add_tcase(s, tc_geometry_new);
+    tc_geometry_close_group = tcase_create("Close group");
+    tcase_add_checked_fixture(tc_geometry_close_group, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry_close_group, test_geometry_close_group);
+    suite_add_tcase(s, tc_geometry_close_group);
 
     return s;
 }
