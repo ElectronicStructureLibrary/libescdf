@@ -21,7 +21,7 @@
 
 #include "escdf_geometry.h"
 
-#define FILE "check_escdf_geometry.h5"
+#define FILE "check_escdf_geometry_test_file.h5"
 
 void geometry_setup(void) {
 
