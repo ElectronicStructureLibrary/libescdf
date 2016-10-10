@@ -211,7 +211,7 @@ END_TEST
 Suite * make_geometry_suite(void)
 {
     Suite *s;
-    TCase *tc_geometry_new, *tc_geometry_new, *tc_geometry_open_group, *tc_geometry_create_group, *tc_geometry_close_group;
+    TCase *tc_geometry_new, *tc_geometry_open_group, *tc_geometry_create_group, *tc_geometry_close_group;
 
     s = suite_create("Geometry");
 
