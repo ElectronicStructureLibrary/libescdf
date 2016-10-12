@@ -20,27 +20,19 @@
 #include <check.h>
 #include <unistd.h>
 
+#include "escdf_handle.h"
 #include "escdf_geometry.h"
 
-#define FILE "check_escdf_geometry_test_file.h5"
-#define GROUP_A "GroupA"
+#define FILE_R "check_escdf_geometry_test_file_R.h5"
+#define FILE_A "check_escdf_geometry_test_file_A.h5"
+#define FILE_E "check_escdf_geometry_test_file_E.h5"
+#define GROUP "Silicon"
 
-static escdf_geometry_t *geo1 = NULL;
+static escdf_handle_t *handle_r = NULL, *handle_a = NULL, *handle_e = NULL;
+static escdf_geometry_t *geo = NULL;
 
-void geometry_setup(void) {
-    escdf_geometry_free(geo1);
-    geo1 = escdf_geometry_new();
-}
-
-void geometry_teardown(void) {
-    escdf_geometry_free(geo1);
-    geo1 = NULL;
-}
-
-void geometry_setup_full(void) {
-
-    char *escdf_root_path=NULL;
-    char *silicon_geom_path=NULL;
+void geometry_setup_file(const char *file, const char *geom_path)
+{
     hid_t file_id, escdf_root_id, geom_root_id, silicon_geom_id;
     hid_t dataspace_id, attribute_id, dataset_id, string_len_3;
     hsize_t dims_1D, dims_2D[2];
@@ -63,17 +55,13 @@ void geometry_setup_full(void) {
     double atomic_numbers[1] = {14.0};
 
     /* create file with a silicon geometry group */
-    file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    if (escdf_root_path == NULL) {
-        escdf_root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
-    } else {
-        escdf_root_id = H5Gcreate(file_id, escdf_root_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    }
+    file_id = H5Fcreate(file, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    escdf_root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
     geom_root_id = H5Gcreate(escdf_root_id, "geometries", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    if (silicon_geom_path == NULL) {
+    if (geom_path == NULL) {
         silicon_geom_id = H5Gopen(geom_root_id, ".", H5P_DEFAULT);
     } else {
-        silicon_geom_id = H5Gcreate(geom_root_id, silicon_geom_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        silicon_geom_id = H5Gcreate(geom_root_id, geom_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     }
 
     /* write attributes of the group: */
@@ -166,44 +154,71 @@ void geometry_setup_full(void) {
     status = H5Fclose(file_id);
 }
 
-void geometry_teardown_full(void)
+void geometry_setup_geo(void)
 {
-    unlink(FILE);
+    escdf_geometry_free(geo);
+    geo = escdf_geometry_new();
+}
+
+void geometry_teardown_geo(void)
+{
+    escdf_geometry_free(geo);
+    geo = NULL;
+}
+
+void geometry_setup(void)
+{
+    geometry_setup_file(FILE_R, NULL);
+    geometry_setup_file(FILE_A, GROUP);
+    handle_r = escdf_open(FILE_R, NULL);
+    handle_a = escdf_open(FILE_A, NULL);
+    handle_e = escdf_create(FILE_E, NULL);
+    geometry_setup_geo();
+}
+
+void geometry_teardown(void) {
+    geometry_teardown_geo();
+    escdf_close(handle_r);
+    escdf_close(handle_a);
+    escdf_close(handle_e);
+    unlink(FILE_R);
+    unlink(FILE_A);
+    unlink(FILE_E);
 }
 
 START_TEST(test_geometry_new)
 {
-    ck_assert((geo1 = escdf_geometry_new()) != NULL);
+    ck_assert((geo = escdf_geometry_new()) != NULL);
 }
 END_TEST
 
 START_TEST(test_geometry_open_group)
 {
-    ck_assert(escdf_geometry_open_group(geo1, NULL) == ESCDF_SUCCESS);
+    ck_assert(escdf_geometry_open_group(geo, handle_r, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_geometry_open_group_path)
 {
-    ck_assert(escdf_geometry_open_group(geo1, GROUP_A) == ESCDF_SUCCESS);
+    ck_assert(escdf_geometry_open_group(geo, handle_a, GROUP) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_geometry_create_group)
 {
-    ck_assert(escdf_geometry_create_group(geo1, NULL) == ESCDF_SUCCESS);
+    ck_assert(escdf_geometry_create_group(geo, handle_e, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_geometry_create_group_path)
 {
-    ck_assert(escdf_geometry_create_group(geo1, GROUP_A) == ESCDF_SUCCESS);
+    ck_assert(escdf_geometry_create_group(geo, handle_e, GROUP) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_geometry_close_group)
 {
-    ck_assert(escdf_geometry_close_group(geo1) == ESCDF_SUCCESS);
+    ck_assert(escdf_geometry_close_group(geo) == ESCDF_SUCCESS);
 }
 END_TEST
 
@@ -216,7 +231,7 @@ Suite * make_geometry_suite(void)
     s = suite_create("Geometry");
 
     tc_geometry_new = tcase_create("New");
-    tcase_add_checked_fixture(tc_geometry_new, NULL, geometry_teardown);
+    tcase_add_checked_fixture(tc_geometry_new, NULL, geometry_teardown_geo);
     tcase_add_test(tc_geometry_new, test_geometry_new);
     suite_add_tcase(s, tc_geometry_new);
 
