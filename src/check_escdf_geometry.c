@@ -218,6 +218,7 @@ END_TEST
 
 START_TEST(test_geometry_close_group)
 {
+    escdf_geometry_open_group(geo, handle_r, NULL);
     ck_assert(escdf_geometry_close_group(geo) == ESCDF_SUCCESS);
 }
 END_TEST
