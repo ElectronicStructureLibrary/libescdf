@@ -21,6 +21,7 @@
 
 #include "escdf_geometry.h"
 
+#include "escdf_error.h"
 #include "utils.h"
 #include "utils_hdf5.h"
 
@@ -51,10 +52,74 @@ struct escdf_geometry {
 
 
 /******************************************************************************
+ * Low-level creators and destructors                                         *
+ ******************************************************************************/
+
+escdf_geometry_t * escdf_geometry_new()
+{
+    escdf_geometry_t *geometry;
+
+    geometry = (escdf_geometry_t *) malloc(sizeof(escdf_geometry_t));
+
+    return geometry;
+}
+
+void escdf_geometry_free(escdf_geometry_t *geometry)
+{
+    if (geometry != NULL) {
+        free(geometry);
+    }
+}
+
+escdf_errno_t escdf_geometry_open_group(escdf_geometry_t *geometry, escdf_handle_t *handle, const char *path)
+{
+    char group_name[ESCDF_STRLEN_GROUP];
+
+    if (path == NULL) {
+        sprintf(group_name, "%s", "geometries");
+    } else {
+        sprintf(group_name, "%s/%s", "geometries", path);
+    }
+
+    geometry->group_id = H5Gopen(handle->group_id, group_name, H5P_DEFAULT);
+
+    FULFILL_OR_RETURN(geometry->group_id >= 0, geometry->group_id);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_create_group(escdf_geometry_t *geometry, escdf_handle_t *handle, const char *path)
+{
+    char group_name[ESCDF_STRLEN_GROUP];
+
+    if (path == NULL) {
+        sprintf(group_name, "%s", "geometries");
+    } else {
+        sprintf(group_name, "%s/%s", "geometries", path);
+    }
+    geometry->group_id = H5Gcreate(handle->group_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    FULFILL_OR_RETURN(geometry->group_id >= 0, geometry->group_id);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_close_group(escdf_geometry_t *geometry)
+{
+    herr_t herr_status;
+
+    /* close the group */
+    herr_status = H5Gclose(geometry->group_id);
+    FULFILL_OR_RETURN(herr_status >= 0, herr_status);
+
+    return ESCDF_SUCCESS;
+}
+
+/******************************************************************************
  * Global functions                                                           *
  ******************************************************************************/
 
-escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
+escdf_geometry_t * escdf_geometry_open(const escdf_handle_t *handle,
         const char *name)
 {
     escdf_geometry_t *geometry;
@@ -95,7 +160,7 @@ escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
     return geometry;
 }
 
-escdf_errno_t escdf_geometry_free(escdf_geometry_t * geometry)
+escdf_errno_t escdf_geometry_close(escdf_geometry_t * geometry)
 {
     herr_t herr_status;
 

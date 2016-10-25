@@ -36,14 +36,68 @@
 
 typedef struct escdf_geometry escdf_geometry_t;
 
-
 /******************************************************************************
- * Global functions                                                           *
+ * Low-level creators and destructors                                         *
  ******************************************************************************/
 
 /**
- * Creates a new instance of the geometry data type and opens the group
- * associated with it.
+ * This function takes care of creating an instance of escdf_geometry_t by
+ * allocating the corresponding memory. It also initializes all its contents to
+ * the default values.
+ *
+ * @return instance of the geometry data type.
+ */
+escdf_geometry_t * escdf_geometry_new();
+
+/**
+ * Free all memory associated with the geometry.
+ *
+ * @param[in,out] geometry: the geometry.
+ */
+void escdf_geometry_free(escdf_geometry_t * geometry);
+
+/**
+ * Open the group associated with the geometry. If a path is given,
+ * the group path will be 'geometries/path', otherwise, if path is NULL, it
+ * is 'geometries'. If the group does not exist, an error is returned.
+ *
+ * @param[in,out] geometry: the geometry.
+ * @param[in] handle: the file handle.
+ * @param[in] path: path to the geometry group.
+ * @return Error code.
+ */
+escdf_errno_t escdf_geometry_open_group(escdf_geometry_t *geometry, escdf_handle_t *handle, const char *path);
+
+/**
+ * Create a group to be associated with the geometry. If a path is given,
+ * the group path will be 'geometries/path', otherwise, if path is NULL, it
+ * is 'geometries'. If the group already exist, all previous contents of the group are
+ * deleted.
+ *
+ * @param[in,out] geometry: the geometry.
+ * @param[in] handle: the file handle.
+ * @param[in] path: path to the geometry group.
+ * @return Error code.
+ */
+escdf_errno_t escdf_geometry_create_group(escdf_geometry_t *geometry, escdf_handle_t *handle, const char *path);
+
+/**
+ * Closes the group associated with the geometry.
+ *
+ * @param[in,out] geometry: the geometry.
+ * @return Error code.
+ */
+escdf_errno_t escdf_geometry_close_group(escdf_geometry_t *geometry);
+
+
+/******************************************************************************
+ * High-level creators and destructors                                        *
+ ******************************************************************************/
+
+/**
+ * This function takes care of creating an instance of escdf_geometry_t by
+ * allocating the memory. It also initializes all its contents to the default
+ * values.
  *
  * @param[in] handle: the file/group handle defining the root where to open
  * the "/geometries" group.
@@ -51,7 +105,7 @@ typedef struct escdf_geometry escdf_geometry_t;
  * "/geometries" group, otherwise "/geometries/name" is used.
  * @return instance of the geometry data type.
  */
-escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
+escdf_geometry_t * escdf_geometry_open(const escdf_handle_t *handle,
         const char *name);
 
 /**
@@ -60,7 +114,7 @@ escdf_geometry_t * escdf_geometry_new(const escdf_handle_t *handle,
  * @param[in,out] geometry: the geometry.
  * @return error code.
  */
-escdf_errno_t escdf_geometry_free(escdf_geometry_t * geometry);
+escdf_errno_t escdf_geometry_close(escdf_geometry_t * geometry);
 
 
 /******************************************************************************
