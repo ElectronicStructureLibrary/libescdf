@@ -97,7 +97,7 @@ escdf_errno_t escdf_geometry_create_group(escdf_geometry_t *geometry, escdf_hand
     } else {
         sprintf(group_name, "%s/%s", "geometries", path);
     }
-    geometry->group_id = H5Gcreate(handle->group_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    utils_hdf5_create_group(handle->file_id, group_name, &(geometry->group_id));
 
     FULFILL_OR_RETURN(geometry->group_id >= 0, geometry->group_id);
 
