@@ -23,6 +23,9 @@
 /* IMPORTANT: this file must contain defines only, in order to be readable from Fortran. */
 #include <stdbool.h>
 
+/* Strings */
+#define ESCDF_STRLEN_GROUP 256
+
 /**
  * Error codes
  *

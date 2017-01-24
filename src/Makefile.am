@@ -100,6 +100,7 @@ check_escdf_SOURCES = \
   check_escdf.c \
   check_escdf_error.c \
   check_escdf_grid_scalarfields.c \
+  check_escdf_geometry.c \
   check_escdf_handle.c \
   check_escdf_info.c \
   check_utils.c
