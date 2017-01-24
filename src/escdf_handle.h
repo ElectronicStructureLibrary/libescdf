@@ -32,13 +32,16 @@
 #include <mpi.h>
 #endif
 
+
+
 /******************************************************************************
  * Data structures                                                            *
  ******************************************************************************/
 
 /**
-*
-*/
+ * This handle is an abstract reference to an ESCDF file and all access to a file
+ * through Libescd is done through it.
+ */
 typedef struct {
     hid_t file_id;  /**< HDF5 file identifier */
 
@@ -57,18 +60,54 @@ typedef struct {
  * Global functions                                                           *
  ******************************************************************************/
 
+/**
+ * Create a file an returns a handle to it. Optionally, the root group is set to
+ * 'path' if path is not NULL.
+ *
+ * @param[in] filename: the name of the file to be created.
+ * @param[in] path: path for the root group inside the file.
+ * @return instance of the handle.
+ */
 escdf_handle_t * escdf_create(const char *filename, const char *path);
 
+/**
+ * Opens a file an returns a handle to it. Optionally, consider the root group
+ * to be given by 'path' if path is not NULL.
+ *
+ * @param[in] filename: the name of the file to be created.
+ * @param[in] path: path for the root group inside the file.
+ * @return instance of the handle.
+ */
 escdf_handle_t * escdf_open(const char *filename, const char *path);
 
+/**
+ * Close the file and free the memory.
+ *
+ * @return error code.
+ */
 escdf_errno_t escdf_close(escdf_handle_t *handle);
 
-#ifdef HAVE_MPI
-escdf_handle_t * escdf_create_mpi(const char *filename, const char *path,
-    MPI_Comm comm);
 
-escdf_handle_t * escdf_open_mpi(const char *filename, const char *path,
-    MPI_Comm comm);
+#ifdef HAVE_MPI
+/**
+ * Creates a file an returns a handle to it. ptionally, the root group is set to
+ * 'path' if path is not NULL.
+ *
+ * @param[in] filename: the name of the file to be created.
+ * @param[in] path: path for the root group inside the file.
+ * @return instance of the handle.
+ */
+escdf_handle_t * escdf_create_mpi(const char *filename, const char *path, MPI_Comm comm);
+
+/**
+ * Opens a file an returns a handle to it. Optionally, consider the root group
+ * to be given by 'path' if path is not NULL.
+ *
+ * @param[in] filename: the name of the file to be created.
+ * @param[in] path: path for the root group inside the file.
+ * @return instance of the handle.
+ */
+escdf_handle_t * escdf_open_mpi(const char *filename, const char *path, MPI_Comm comm);
 #endif
 
 #endif
