@@ -23,61 +23,69 @@
 #include "escdf_common.h"
 #include "escdf_handle.h"
 
-#define FILE "test_file.h5"
+#define FILE "check_escdf_handle_test_file.h5"
 #define GROUP_A "GroupA"
 #define GROUP_B "GroupB"
 
-void handle_setup(void)
+static escdf_handle_t *handle = NULL;
+
+void handle_setup_file(void)
 {
     hid_t file_id, group_id1, group_id2;
 
     file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    group_id1 = H5Gcreate(file_id, GROUP_A, H5P_DEFAULT, H5P_DEFAULT,
-            H5P_DEFAULT);
-    group_id2 = H5Gcreate(group_id1, GROUP_B, H5P_DEFAULT, H5P_DEFAULT,
-            H5P_DEFAULT);
+    group_id1 = H5Gcreate(file_id, GROUP_A, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    group_id2 = H5Gcreate(group_id1, GROUP_B, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Gclose(group_id2);
     H5Gclose(group_id1);
     H5Fclose(file_id);
 }
 
-void handle_teardown(void)
+void handle_teardown_file(void)
 {
     unlink(FILE);
 }
 
+void handle_setup(void)
+{
+    handle_setup_file();
+    handle = escdf_open(FILE, NULL);
+}
+
+void handle_teardown(void)
+{
+    escdf_close(handle);
+    handle = NULL;
+    handle_teardown_file();
+}
+
+
 START_TEST(test_handle_open)
 {
-    escdf_handle_t *handle;
-
     ck_assert((handle = escdf_open(FILE, NULL)) != NULL);
-    ck_assert(escdf_close(handle) == ESCDF_SUCCESS);
-}
-END_TEST
-
-START_TEST(test_handle_create)
-{
-    escdf_handle_t *handle;
-
-    ck_assert((handle = escdf_create(FILE, NULL)) != NULL);
-    ck_assert(escdf_close(handle) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_handle_open_path)
 {
-    escdf_handle_t *handle;
-
     ck_assert((handle = escdf_open(FILE, GROUP_A"/"GROUP_B)) != NULL);
-    ck_assert(escdf_close(handle) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_handle_create)
+{
+    ck_assert((handle = escdf_create(FILE, NULL)) != NULL);
 }
 END_TEST
 
 START_TEST(test_handle_create_path)
 {
-    escdf_handle_t *handle;
-
     ck_assert((handle = escdf_create(FILE, GROUP_A"/"GROUP_B)) != NULL);
+}
+END_TEST
+
+START_TEST(test_handle_close)
+{
     ck_assert(escdf_close(handle) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -86,21 +94,32 @@ END_TEST
 Suite * make_handle_suite(void)
 {
     Suite *s;
-    TCase *tc_handle_new, *tc_handle_existing;
+    TCase *tc_handle_open, *tc_handle_create, *tc_handle_overwrite, *tc_handle_close;
 
     s = suite_create("Handle");
 
-    tc_handle_new = tcase_create("New file");
-    tcase_add_checked_fixture(tc_handle_new, NULL, handle_teardown);
-    tcase_add_test(tc_handle_new, test_handle_create);
-    tcase_add_test(tc_handle_new, test_handle_create_path);
-    suite_add_tcase(s, tc_handle_new);
+    tc_handle_open = tcase_create("Open file");
+    tcase_add_checked_fixture(tc_handle_open, handle_setup_file, handle_teardown);
+    tcase_add_test(tc_handle_open, test_handle_open);
+    tcase_add_test(tc_handle_open, test_handle_open_path);
+    suite_add_tcase(s, tc_handle_open);
 
-    tc_handle_existing = tcase_create("Existing file");
-    tcase_add_checked_fixture(tc_handle_existing, handle_setup, handle_teardown);
-    tcase_add_test(tc_handle_existing, test_handle_open);
-    tcase_add_test(tc_handle_existing, test_handle_open_path);
-    suite_add_tcase(s, tc_handle_existing);
+    tc_handle_create = tcase_create("Create file");
+    tcase_add_checked_fixture(tc_handle_create, NULL, handle_teardown);
+    tcase_add_test(tc_handle_create, test_handle_create);
+    tcase_add_test(tc_handle_create, test_handle_create_path);
+    suite_add_tcase(s, tc_handle_create);
+
+    tc_handle_overwrite = tcase_create("Overwrite file");
+    tcase_add_checked_fixture(tc_handle_overwrite, handle_setup_file, handle_teardown);
+    tcase_add_test(tc_handle_overwrite, test_handle_create);
+    tcase_add_test(tc_handle_overwrite, test_handle_create_path);
+    suite_add_tcase(s, tc_handle_overwrite);
+
+    tc_handle_close = tcase_create("Close file");
+    tcase_add_checked_fixture(tc_handle_close, handle_setup, handle_teardown_file);
+    tcase_add_test(tc_handle_close, test_handle_close);
+    suite_add_tcase(s, tc_handle_close);
 
     return s;
 }
