@@ -20,8 +20,10 @@
 #ifndef LIBESCDF_utils_hdf5_H
 #define LIBESCDF_utils_hdf5_H
 
-#include "utils.h"
 #include <hdf5.h>
+
+#include "escdf_error.h"
+#include "utils.h"
 
 
 /******************************************************************************
