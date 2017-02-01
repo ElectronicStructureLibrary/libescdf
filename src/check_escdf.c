@@ -31,6 +31,7 @@ int main(void)
     sr = srunner_create(make_info_suite());
     srunner_add_suite(sr, make_error_suite());
     srunner_add_suite(sr, make_utils_suite());
+    srunner_add_suite(sr, make_utils_hdf5_suite());
     srunner_add_suite(sr, make_handle_suite());
     srunner_add_suite(sr, make_geometry_suite());
     srunner_add_suite(sr, make_grid_scalarfield_suite());

@@ -103,7 +103,8 @@ check_escdf_SOURCES = \
   check_escdf_geometry.c \
   check_escdf_handle.c \
   check_escdf_info.c \
-  check_utils.c
+  check_utils.c \
+  check_utils_hdf5.c
 
 check_escdf_CPPFLAGS = -I$(top_srcdir)/src @escdf_check_incs@
 check_escdf_CFLAGS = @escdf_check_cflags@
