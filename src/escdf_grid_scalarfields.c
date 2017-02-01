@@ -154,14 +154,14 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *sca
         valDims[1] *= scalarfield->number_of_grid_points[i];
     }
     valDims[2] = scalarfield->real_or_complex.value;
-    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid", valDims, 3, NULL)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_dataset(loc_id, "values_on_grid", valDims, 3, NULL)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
     scalarfield->values_on_grid_is_present = true;
 
     if (!scalarfield->use_default_ordering.value) {
-        if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering", valDims + 1, 1, NULL)) != ESCDF_SUCCESS) {
+        if ((err = utils_hdf5_check_dataset(loc_id, "grid_ordering", valDims + 1, 1, NULL)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }
@@ -536,8 +536,8 @@ static escdf_errno_t _get_values_on_grid(const escdf_grid_scalarfield_t *scalarf
     }
     bounds[2] = scalarfield->real_or_complex.value;
     /* Get the dataset for this variable and check its dimensions. */
-    FULFILL_OR_RETURN(utils_hdf5_check_dtset(loc_id, "values_on_grid",
-                                             bounds, 3, dtset_id) == ESCDF_SUCCESS,
+    FULFILL_OR_RETURN(utils_hdf5_check_dataset(loc_id, "values_on_grid",
+                                               bounds, 3, dtset_id) == ESCDF_SUCCESS,
                       ESCDF_ERROR);
     return ESCDF_SUCCESS;
 }
@@ -563,8 +563,8 @@ static escdf_errno_t _get_g2d(const escdf_grid_scalarfield_t *scalarfield,
     }
 
     /* Get the lookup table for this variable and check its dimensions. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering",
-                                      &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_dataset(loc_id, "grid_ordering",
+                                        &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
         return err;
     }
     /* Actual read of all the lookup table. */
@@ -721,8 +721,8 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scala
             len *= scalarfield->number_of_grid_points[i];
         }
 
-        if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering",
-                                          &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
+        if ((err = utils_hdf5_check_dataset(loc_id, "grid_ordering",
+                                            &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }

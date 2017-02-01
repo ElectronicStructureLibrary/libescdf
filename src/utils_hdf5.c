@@ -26,6 +26,10 @@
 #include "utils_hdf5.h"
 
 
+/******************************************************************************
+ * check methods                                                              *
+ ******************************************************************************/
+
 bool utils_hdf5_check_present(hid_t loc_id, const char *name)
 {
     htri_t bool_id;
@@ -38,8 +42,7 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
     return true;
 }
 
-escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, hsize_t *dims,
-                                     unsigned int ndims)
+escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, const hsize_t *dims, unsigned int ndims)
 {
     H5S_class_t type_id;
     int ndims_id;
@@ -88,9 +91,7 @@ escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, hsize_t *dims,
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_check_attr(hid_t loc_id, const char *name,
-                                    hsize_t *dims, unsigned int ndims,
-                                    hid_t *attr_pt)
+escdf_errno_t utils_hdf5_check_attr(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims, hid_t *attr_pt)
 {
     hid_t attr_id, dtspace_id;
 
@@ -119,9 +120,7 @@ escdf_errno_t utils_hdf5_check_attr(hid_t loc_id, const char *name,
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_check_dtset(hid_t loc_id, const char *name,
-                                     hsize_t *dims, unsigned int ndims,
-                                     hid_t *dtset_pt)
+escdf_errno_t utils_hdf5_check_dataset(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims, hid_t *dtset_pt)
 {
     hid_t dtset_id, dtspace_id;
 
@@ -150,9 +149,12 @@ escdf_errno_t utils_hdf5_check_dtset(hid_t loc_id, const char *name,
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name,
-                                   hid_t mem_type_id, hsize_t *dims,
-                                   unsigned int ndims, void *buf)
+
+/******************************************************************************
+ * read methods                                                               *
+ ******************************************************************************/
+
+escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name, hid_t mem_type_id, const hsize_t *dims, unsigned int ndims, void *buf)
 {
     escdf_errno_t err;
 
@@ -174,8 +176,7 @@ escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name,
     return err;
 }
 
-escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name,
-                                          _bool_set_t *scalar)
+escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name, _bool_set_t *scalar)
 {
     escdf_errno_t err;
     int value;
@@ -189,8 +190,7 @@ escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_uint(hid_t loc_id, const char *name,
-                                   _uint_set_t *scalar, unsigned int range[2])
+escdf_errno_t utils_hdf5_read_uint(hid_t loc_id, const char *name, _uint_set_t *scalar, unsigned int range[2])
 {
     escdf_errno_t err;
     unsigned int value;
@@ -207,8 +207,7 @@ escdf_errno_t utils_hdf5_read_uint(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name,
-                                  _int_set_t *scalar, int range[2])
+escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name, _int_set_t *scalar, int range[2])
 {
     escdf_errno_t err;
     int value;
@@ -225,9 +224,7 @@ escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name,
-                                         unsigned int **array, hsize_t *dims,
-                                         unsigned int ndims, unsigned int range[2])
+escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name, unsigned int **array, const hsize_t *dims, unsigned int ndims, unsigned int range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -253,9 +250,7 @@ escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_int_array(hid_t loc_id, const char *name,
-                                        int **array, hsize_t *dims,
-                                        unsigned int ndims, int range[2])
+escdf_errno_t utils_hdf5_read_int_array(hid_t loc_id, const char *name, int **array, const hsize_t *dims, unsigned int ndims, int range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -281,9 +276,7 @@ escdf_errno_t utils_hdf5_read_int_array(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name,
-                                        double **array, hsize_t *dims,
-                                        unsigned int ndims, double range[2])
+escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name, double **array, const hsize_t *dims, unsigned int ndims, double range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -309,6 +302,82 @@ escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name,
     return ESCDF_SUCCESS;
 }
 
+escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id, hid_t xfer_id, void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
+{
+    escdf_errno_t err;
+    hid_t memspace_id, diskspace_id;
+    herr_t err_id;
+
+    if ((err = utils_hdf5_select_slice(dtset_id, &diskspace_id, &memspace_id,
+                                       start, count, stride)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* Read */
+    if ((err_id = H5Dread(dtset_id, mem_type_id, memspace_id,
+                          diskspace_id, xfer_id, buf)) < 0) {
+        H5Sclose(diskspace_id);
+        H5Sclose(memspace_id);
+        RETURN_WITH_ERROR(err_id);
+    }
+
+    H5Sclose(diskspace_id);
+    H5Sclose(memspace_id);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id, hid_t xfer_id, void *buf, hid_t mem_type_id, hsize_t num_points, const hsize_t *coord)
+{
+    hid_t memspace_id, diskspace_id;
+    herr_t err_id;
+    hsize_t len;
+
+    /* disk use the start, count and stride. */
+    if ((diskspace_id = H5Dget_space(dtset_id)) < 0) {
+        RETURN_WITH_ERROR(diskspace_id);
+    }
+
+    if (num_points) {
+        if ((err_id = H5Sselect_elements(diskspace_id, H5S_SELECT_SET,
+                                         num_points, coord)) < 0) {
+            H5Sclose(diskspace_id);
+            RETURN_WITH_ERROR(err_id);
+        }
+        /* memory is a flat array with the size on the slice. */
+        len = (hsize_t)num_points;
+        memspace_id = H5Screate_simple(1, &len, NULL);
+    } else {
+        if ((err_id = H5Sselect_none(diskspace_id)) < 0) {
+            H5Sclose(diskspace_id);
+            RETURN_WITH_ERROR(err_id);
+        }
+        memspace_id = H5Screate(H5S_NULL);
+    }
+    if (memspace_id < 0) {
+        H5Sclose(diskspace_id);
+        RETURN_WITH_ERROR(memspace_id);
+    }
+
+    /* Read */
+    if ((err_id = H5Dread(dtset_id, mem_type_id, memspace_id,
+                          diskspace_id, xfer_id, buf)) < 0) {
+        H5Sclose(diskspace_id);
+        H5Sclose(memspace_id);
+        RETURN_WITH_ERROR(err_id);
+    }
+
+    H5Sclose(diskspace_id);
+    H5Sclose(memspace_id);
+
+    return ESCDF_SUCCESS;
+}
+
+
+/******************************************************************************
+ * create methods                                                             *
+ ******************************************************************************/
+
 escdf_errno_t utils_hdf5_create_group(hid_t loc_id, const char *path, hid_t *group_pt)
 {
     char *token, *lpath;
@@ -330,41 +399,13 @@ escdf_errno_t utils_hdf5_create_group(hid_t loc_id, const char *path, hid_t *gro
 
     if (group_pt != NULL)
         *group_pt = group_id;
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name,
-                                        hid_t type_id, hsize_t *dims,
-                                        unsigned int ndims, hid_t *dtset_pt)
-{
-    hid_t dtset_id, dtspace_id;
-
-    /* Create space dimensions. */
-    if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
-        RETURN_WITH_ERROR(dtspace_id);
-    }
-
-    if ((dtset_id = H5Dcreate(loc_id, name, type_id, dtspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
-        DEFER_FUNC_ERROR(dtset_id);
-        goto cleanup_dtspace;
-    }
-
-    H5Sclose(dtspace_id);
-    if (dtset_pt)
-        *dtset_pt = dtset_id;
     else
-        H5Dclose(dtset_id);
-    return ESCDF_SUCCESS;
+        H5Gclose(group_id);
 
-    cleanup_dtspace:
-    H5Sclose(dtset_id);
-    return ESCDF_ERROR;
+    return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name,
-                                     hid_t type_id, hsize_t *dims,
-                                     unsigned int ndims, hid_t *attr_pt)
+escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, unsigned int ndims, hid_t *attr_pt)
 {
     hid_t attr_id, dtspace_id;
 
@@ -397,10 +438,38 @@ escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name,
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name,
-                                    hid_t disk_type_id, hsize_t *dims,
-                                    unsigned int ndims, hid_t mem_type_id,
-                                    const void *buf)
+escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, unsigned int ndims, hid_t *dtset_pt)
+{
+    hid_t dtset_id, dtspace_id;
+
+    /* Create space dimensions. */
+    if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
+        RETURN_WITH_ERROR(dtspace_id);
+    }
+
+    if ((dtset_id = H5Dcreate(loc_id, name, type_id, dtspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        DEFER_FUNC_ERROR(dtset_id);
+        goto cleanup_dtspace;
+    }
+
+    H5Sclose(dtspace_id);
+    if (dtset_pt)
+        *dtset_pt = dtset_id;
+    else
+        H5Dclose(dtset_id);
+    return ESCDF_SUCCESS;
+
+    cleanup_dtspace:
+    H5Sclose(dtset_id);
+    return ESCDF_ERROR;
+}
+
+
+/******************************************************************************
+ * write methods                                                              *
+ ******************************************************************************/
+
+escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_type_id, const hsize_t *dims, unsigned int ndims, hid_t mem_type_id, const void *buf)
 {
     escdf_errno_t err;
 
@@ -422,12 +491,36 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name,
     return err;
 }
 
-escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id,
-                                      hid_t *diskspace_id,
-                                      hid_t *memspace_id,
-                                      const hsize_t *start,
-                                      const hsize_t *count,
-                                      const hsize_t *stride)
+escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
+{
+    escdf_errno_t err;
+    hid_t memspace_id, diskspace_id;
+    herr_t err_id;
+
+    err = utils_hdf5_select_slice(dtset_id, &diskspace_id, &memspace_id,
+                                  start, count, stride);
+    FULFILL_OR_RETURN(err == ESCDF_SUCCESS, err);
+    
+    /* Write */
+    if ((err_id = H5Dwrite(dtset_id, mem_type_id, memspace_id,
+                           diskspace_id, xfer_id, buf)) < 0) {
+        H5Sclose(diskspace_id);
+        H5Sclose(memspace_id);
+        RETURN_WITH_ERROR(err_id);
+    }
+
+    H5Sclose(diskspace_id);
+    H5Sclose(memspace_id);
+
+    return ESCDF_SUCCESS;
+}
+
+
+/******************************************************************************
+ * misc methods                                                               *
+ ******************************************************************************/
+
+escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id, hid_t *diskspace_id, hid_t *memspace_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
 {
     herr_t err_id;
     hssize_t len;
@@ -473,118 +566,6 @@ escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id,
         H5Sclose(*diskspace_id);
         RETURN_WITH_ERROR(*memspace_id);
     }
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id,
-                                       hid_t xfer_id,
-                                       const void *buf,
-                                       hid_t mem_type_id,
-                                       const hsize_t *start,
-                                       const hsize_t *count,
-                                       const hsize_t *stride)
-{
-    escdf_errno_t err;
-    hid_t memspace_id, diskspace_id;
-    herr_t err_id;
-
-    err = utils_hdf5_select_slice(dtset_id, &diskspace_id, &memspace_id,
-                                  start, count, stride);
-    FULFILL_OR_RETURN(err == ESCDF_SUCCESS, err);
-    
-    /* Write */
-    if ((err_id = H5Dwrite(dtset_id, mem_type_id, memspace_id,
-                           diskspace_id, xfer_id, buf)) < 0) {
-        H5Sclose(diskspace_id);
-        H5Sclose(memspace_id);
-        RETURN_WITH_ERROR(err_id);
-    }
-
-    H5Sclose(diskspace_id);
-    H5Sclose(memspace_id);
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id,
-                                      hid_t xfer_id,
-                                      void *buf,
-                                      hid_t mem_type_id,
-                                      const hsize_t *start,
-                                      const hsize_t *count,
-                                      const hsize_t *stride)
-{
-    escdf_errno_t err;
-    hid_t memspace_id, diskspace_id;
-    herr_t err_id;
-
-    if ((err = utils_hdf5_select_slice(dtset_id, &diskspace_id, &memspace_id,
-                                       start, count, stride)) != ESCDF_SUCCESS) {
-        return err;
-    }
-    
-    /* Read */
-    if ((err_id = H5Dread(dtset_id, mem_type_id, memspace_id,
-                          diskspace_id, xfer_id, buf)) < 0) {
-        H5Sclose(diskspace_id);
-        H5Sclose(memspace_id);
-        RETURN_WITH_ERROR(err_id);
-    }
-
-    H5Sclose(diskspace_id);
-    H5Sclose(memspace_id);
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id,
-                                         hid_t xfer_id,
-                                         void *buf,
-                                         hid_t mem_type_id,
-                                         size_t num_points,
-                                         const hsize_t *coord)
-{
-    hid_t memspace_id, diskspace_id;
-    herr_t err_id;
-    hsize_t len;
-
-    /* disk use the start, count and stride. */
-    if ((diskspace_id = H5Dget_space(dtset_id)) < 0) {
-        RETURN_WITH_ERROR(diskspace_id);
-    }
-    
-    if (num_points) {
-        if ((err_id = H5Sselect_elements(diskspace_id, H5S_SELECT_SET,
-                                         num_points, coord)) < 0) {
-            H5Sclose(diskspace_id);
-            RETURN_WITH_ERROR(err_id);
-        }
-        /* memory is a flat array with the size on the slice. */
-        len = (hsize_t)num_points;
-        memspace_id = H5Screate_simple(1, &len, NULL);
-    } else {
-        if ((err_id = H5Sselect_none(diskspace_id)) < 0) {
-            H5Sclose(diskspace_id);
-            RETURN_WITH_ERROR(err_id);
-        }
-        memspace_id = H5Screate(H5S_NULL);
-    }
-    if (memspace_id < 0) {
-        H5Sclose(diskspace_id);
-        RETURN_WITH_ERROR(memspace_id);
-    }
-
-    /* Read */
-    if ((err_id = H5Dread(dtset_id, mem_type_id, memspace_id,
-                          diskspace_id, xfer_id, buf)) < 0) {
-        H5Sclose(diskspace_id);
-        H5Sclose(memspace_id);
-        RETURN_WITH_ERROR(err_id);
-    }
-
-    H5Sclose(diskspace_id);
-    H5Sclose(memspace_id);
 
     return ESCDF_SUCCESS;
 }
