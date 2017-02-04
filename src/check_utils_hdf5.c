@@ -31,6 +31,7 @@
 static hid_t file_id, root_id, group_id;
 static hid_t space_scalar_id, space_array_id, space_null_id;
 static hid_t attribute_scalar_id, attribute_array_id;
+static hid_t dataset_id;
 
 void utils_hdf5_setup(void)
 {
@@ -46,10 +47,13 @@ void utils_hdf5_setup(void)
 
     attribute_scalar_id = H5Acreate(group_id, ATTRIBUTE_S, H5T_NATIVE_DOUBLE, space_scalar_id, H5P_DEFAULT, H5P_DEFAULT);
     attribute_array_id = H5Acreate(group_id, ATTRIBUTE_A, H5T_NATIVE_DOUBLE, space_array_id, H5P_DEFAULT, H5P_DEFAULT);
+
+    dataset_id = H5Dcreate(group_id, DATASET, H5T_NATIVE_DOUBLE, space_array_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 }
 
 void utils_hdf5_teardown(void)
 {
+    H5Dclose(dataset_id);
     H5Aclose(attribute_scalar_id);
     H5Aclose(attribute_array_id);
     H5Sclose(space_scalar_id);
@@ -129,6 +133,13 @@ START_TEST(test_utils_hdf5_check_attr_array)
 }
 END_TEST
 
+START_TEST(test_utils_hdf5_check_attr_array_wrong)
+{
+    hsize_t dims[2] = {1, 3};
+    ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_A, dims, 2, NULL) == ESCDF_ERROR);
+}
+END_TEST
+
 START_TEST(test_utils_hdf5_check_attr_ptr)
 {
     hid_t attr_id = 0;
@@ -138,11 +149,36 @@ START_TEST(test_utils_hdf5_check_attr_ptr)
 }
 END_TEST
 
+/* check_dataset */
+START_TEST(test_utils_hdf5_check_dataset)
+{
+    hsize_t dims[2] = {3, 2};
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_check_dataset_wrong)
+{
+    hsize_t dims[2] = {1, 3};
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, NULL) == ESCDF_ERROR);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_check_dataset_ptr)
+{
+    hid_t dtset_id = 0;
+    hsize_t dims[2] = {3, 2};
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(dtset_id != 0);
+    H5Dclose(dtset_id);
+}
+END_TEST
+
 
 Suite * make_utils_hdf5_suite(void)
 {
     Suite *s;
-    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr;
+    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
 
     s = suite_create("HDF5 utilities");
 
@@ -166,8 +202,17 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_checked_fixture(tc_utils_hdf5_check_attr, utils_hdf5_setup, utils_hdf5_teardown);
     tcase_add_test(tc_utils_hdf5_check_attr, test_utils_hdf5_check_attr_scalar);
     tcase_add_test(tc_utils_hdf5_check_attr, test_utils_hdf5_check_attr_array);
+    tcase_add_test(tc_utils_hdf5_check_attr, test_utils_hdf5_check_attr_array_wrong);
     tcase_add_test(tc_utils_hdf5_check_attr, test_utils_hdf5_check_attr_ptr);
     suite_add_tcase(s, tc_utils_hdf5_check_attr);
+
+    tc_utils_hdf5_check_dataset = tcase_create("Check dataset");
+    tcase_add_checked_fixture(tc_utils_hdf5_check_dataset, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_check_dataset, test_utils_hdf5_check_dataset);
+    tcase_add_test(tc_utils_hdf5_check_dataset, test_utils_hdf5_check_dataset_wrong);
+    tcase_add_test(tc_utils_hdf5_check_dataset, test_utils_hdf5_check_dataset_ptr);
+    suite_add_tcase(s, tc_utils_hdf5_check_dataset);
+
 
     return s;
 }
