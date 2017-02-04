@@ -35,8 +35,11 @@ static hid_t dataset_id;
 
 void utils_hdf5_setup(void)
 {
+    double scalar = 10.0;
     hsize_t dims[2] = {3, 2};
-
+    double array[3][2] = {{1.0, 2.0},
+                          {3.0, 4.0},
+                          {5.0, 6.0}};
     file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
     group_id = H5Gcreate(root_id, GROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -46,7 +49,9 @@ void utils_hdf5_setup(void)
     space_null_id = H5Screate(H5S_NULL);
 
     attribute_scalar_id = H5Acreate(group_id, ATTRIBUTE_S, H5T_NATIVE_DOUBLE, space_scalar_id, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(attribute_scalar_id, H5T_NATIVE_DOUBLE, &scalar);
     attribute_array_id = H5Acreate(group_id, ATTRIBUTE_A, H5T_NATIVE_DOUBLE, space_array_id, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(attribute_array_id, H5T_NATIVE_DOUBLE, &array);
 
     dataset_id = H5Dcreate(group_id, DATASET, H5T_NATIVE_DOUBLE, space_array_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 }
@@ -174,11 +179,34 @@ START_TEST(test_utils_hdf5_check_dataset_ptr)
 }
 END_TEST
 
+/* read_attr */
+START_TEST(test_utils_hdf5_read_attr_scalar)
+{
+    double value;
+    ck_assert(utils_hdf5_read_attr(group_id, ATTRIBUTE_S, H5T_NATIVE_DOUBLE, NULL, 0, &value) == ESCDF_SUCCESS);
+    ck_assert(value == 10.0);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_read_attr_array)
+{
+    hsize_t dims[2] = {3, 2};
+    double values[3][2];
+    ck_assert(utils_hdf5_read_attr(group_id, ATTRIBUTE_A, H5T_NATIVE_DOUBLE, dims, 2, &values) == ESCDF_SUCCESS);
+    ck_assert(values[0][0] == 1.0);
+    ck_assert(values[0][1] == 2.0);
+    ck_assert(values[1][0] == 3.0);
+    ck_assert(values[1][1] == 4.0);
+    ck_assert(values[2][0] == 5.0);
+    ck_assert(values[2][1] == 6.0);
+}
+END_TEST
 
 Suite * make_utils_hdf5_suite(void)
 {
     Suite *s;
     TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
+    TCase *tc_utils_hdf5_read_attr;
 
     s = suite_create("HDF5 utilities");
 
@@ -212,6 +240,12 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_check_dataset, test_utils_hdf5_check_dataset_wrong);
     tcase_add_test(tc_utils_hdf5_check_dataset, test_utils_hdf5_check_dataset_ptr);
     suite_add_tcase(s, tc_utils_hdf5_check_dataset);
+
+    tc_utils_hdf5_read_attr = tcase_create("Read attribute");
+    tcase_add_checked_fixture(tc_utils_hdf5_read_attr, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_scalar);
+    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_array);
+    suite_add_tcase(s, tc_utils_hdf5_read_attr);
 
 
     return s;
