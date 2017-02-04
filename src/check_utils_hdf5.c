@@ -24,11 +24,13 @@
 
 #define FILE "check_utils_hdf5_test_file.h5"
 #define GROUP "mygroup"
-#define ATTRIBUTE "myattribute"
+#define ATTRIBUTE_S "myscalarattribute"
+#define ATTRIBUTE_A "myarrayattribute"
 #define DATASET "mydataset"
 
-static hid_t file_id, root_id, group_id, attr_id, dtset_id;
+static hid_t file_id, root_id, group_id;
 static hid_t space_scalar_id, space_array_id, space_null_id;
+static hid_t attribute_scalar_id, attribute_array_id;
 
 void utils_hdf5_setup(void)
 {
@@ -41,10 +43,15 @@ void utils_hdf5_setup(void)
     space_scalar_id = H5Screate(H5S_SCALAR);
     space_array_id = H5Screate_simple(2, dims, NULL);
     space_null_id = H5Screate(H5S_NULL);
+
+    attribute_scalar_id = H5Acreate(group_id, ATTRIBUTE_S, H5T_NATIVE_DOUBLE, space_scalar_id, H5P_DEFAULT, H5P_DEFAULT);
+    attribute_array_id = H5Acreate(group_id, ATTRIBUTE_A, H5T_NATIVE_DOUBLE, space_array_id, H5P_DEFAULT, H5P_DEFAULT);
 }
 
 void utils_hdf5_teardown(void)
 {
+    H5Aclose(attribute_scalar_id);
+    H5Aclose(attribute_array_id);
     H5Sclose(space_scalar_id);
     H5Sclose(space_array_id);
     H5Sclose(space_null_id);
@@ -108,11 +115,34 @@ START_TEST(test_utils_hdf5_check_shape_wrong_class)
 }
 END_TEST
 
+/* check_attr */
+START_TEST(test_utils_hdf5_check_attr_scalar)
+{
+    ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_S, NULL, 0, NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_check_attr_array)
+{
+    hsize_t dims[2] = {3, 2};
+    ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_A, dims, 2, NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_check_attr_ptr)
+{
+    hid_t attr_id = 0;
+    ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_S, NULL, 0, &attr_id) == ESCDF_SUCCESS);
+    ck_assert(attr_id != 0);
+    H5Aclose(attr_id);
+}
+END_TEST
+
 
 Suite * make_utils_hdf5_suite(void)
 {
     Suite *s;
-    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape;
+    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr;
 
     s = suite_create("HDF5 utilities");
 
@@ -131,6 +161,13 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_no_class);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_wrong_class);
     suite_add_tcase(s, tc_utils_hdf5_check_shape);
+
+    tc_utils_hdf5_check_attr = tcase_create("Check attribute");
+    tcase_add_checked_fixture(tc_utils_hdf5_check_attr, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_check_attr, test_utils_hdf5_check_attr_scalar);
+    tcase_add_test(tc_utils_hdf5_check_attr, test_utils_hdf5_check_attr_array);
+    tcase_add_test(tc_utils_hdf5_check_attr, test_utils_hdf5_check_attr_ptr);
+    suite_add_tcase(s, tc_utils_hdf5_check_attr);
 
     return s;
 }
