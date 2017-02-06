@@ -54,6 +54,7 @@ void utils_hdf5_setup(void)
     H5Awrite(attribute_array_id, H5T_NATIVE_DOUBLE, &array);
 
     dataset_id = H5Dcreate(group_id, DATASET, H5T_NATIVE_DOUBLE, space_array_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, space_array_id, space_array_id, H5P_DEFAULT, &array);
 }
 
 void utils_hdf5_teardown(void)
@@ -202,11 +203,46 @@ START_TEST(test_utils_hdf5_read_attr_array)
 }
 END_TEST
 
+/* read_dataset */
+START_TEST(test_utils_hdf5_read_dataset)
+{
+    hid_t dtset_id = 0;
+    hsize_t dims[2] = {3, 2};
+    double values[3][2];
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
+    ck_assert(values[0][0] == 1.0);
+    ck_assert(values[0][1] == 2.0);
+    ck_assert(values[1][0] == 3.0);
+    ck_assert(values[1][1] == 4.0);
+    ck_assert(values[2][0] == 5.0);
+    ck_assert(values[2][1] == 6.0);
+    H5Dclose(dtset_id);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_read_dataset_sliced)
+{
+    hid_t dtset_id = 0;
+    hsize_t dims[2] = {3, 2};
+    double values[3];
+    hsize_t start[2] = {0, 0};
+    hsize_t count[2] = {3, 1};
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
+    ck_assert(values[0] == 1.0);
+    ck_assert(values[1] == 3.0);
+    ck_assert(values[2] == 5.0);
+    H5Dclose(dtset_id);
+}
+END_TEST
+
+
 Suite * make_utils_hdf5_suite(void)
 {
     Suite *s;
     TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
-    TCase *tc_utils_hdf5_read_attr;
+    TCase *tc_utils_hdf5_read_attr, *tc_utils_hdf5_read_dataset;
 
     s = suite_create("HDF5 utilities");
 
@@ -247,6 +283,11 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_array);
     suite_add_tcase(s, tc_utils_hdf5_read_attr);
 
+    tc_utils_hdf5_read_dataset = tcase_create("Read dataset");
+    tcase_add_checked_fixture(tc_utils_hdf5_read_dataset, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset);
+    tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset_sliced);
+    suite_add_tcase(s, tc_utils_hdf5_read_dataset);
 
     return s;
 }
