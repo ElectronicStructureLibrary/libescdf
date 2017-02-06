@@ -237,6 +237,43 @@ START_TEST(test_utils_hdf5_read_dataset_sliced)
 }
 END_TEST
 
+START_TEST(test_utils_hdf5_read_dataset_at)
+{
+    hid_t dtset_id = 0;
+    hsize_t dims[2] = {3, 2};
+    hsize_t number_of_points = 6;
+    hsize_t coordinates[6][2] = {{0, 0},
+                                 {1, 0},
+                                 {2, 0},
+                                 {0, 1},
+                                 {1, 1},
+                                 {2, 1}};
+    double values[6];
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
+    ck_assert(values[0] == 1.0);
+    ck_assert(values[1] == 3.0);
+    ck_assert(values[2] == 5.0);
+    ck_assert(values[3] == 2.0);
+    ck_assert(values[4] == 4.0);
+    ck_assert(values[5] == 6.0);
+    H5Dclose(dtset_id);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_read_dataset_at_empty)
+{
+    hid_t dtset_id = 0;
+    hsize_t dims[2] = {3, 2};
+    hsize_t number_of_points = 0;
+    double *values = NULL, *coordinates = NULL;
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
+    ck_assert_ptr_eq(values, NULL);
+    H5Dclose(dtset_id);
+}
+END_TEST
+
 
 Suite * make_utils_hdf5_suite(void)
 {
@@ -287,6 +324,8 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_checked_fixture(tc_utils_hdf5_read_dataset, utils_hdf5_setup, utils_hdf5_teardown);
     tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset);
     tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset_sliced);
+    tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset_at);
+    tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset_at_empty);
     suite_add_tcase(s, tc_utils_hdf5_read_dataset);
 
     return s;
