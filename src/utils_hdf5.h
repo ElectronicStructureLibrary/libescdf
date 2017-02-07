@@ -20,8 +20,10 @@
 #ifndef LIBESCDF_utils_hdf5_H
 #define LIBESCDF_utils_hdf5_H
 
-#include "utils.h"
 #include <hdf5.h>
+
+#include "escdf_error.h"
+#include "utils.h"
 
 
 /******************************************************************************
@@ -29,13 +31,23 @@
  ******************************************************************************/
 
 /**
- * Checks if an object has a given attribute attached to it.
+ * Checks if some location has a given object attached to it.
  *
- * @param[in] loc_id: object identifier to which the attribute is attached.
- * @param[in] name: attribute name.
- * @return true if attribute is present, false otherwise.
+ * @param[in] loc_id: location identifier to which the object is attached.
+ * @param[in] name: object name.
+ * @return true if object is present, false otherwise.
  */
 bool utils_hdf5_check_present(hid_t loc_id, const char *name);
+
+/**
+ * Checks if some location has a given object attached to it. Existance of any
+ * intermediate groups specified in the path will also be checked.
+ *
+ * @param[in] loc_id: location identifier to which the object is attached.
+ * @param[in] name: object name.
+ * @return true if object is present, false otherwise.
+ */
+bool utils_hdf5_check_present_recursive(hid_t loc_id, const char *name);
 
 /**
  * Checks if the dimensions of a dataspace match some given values.

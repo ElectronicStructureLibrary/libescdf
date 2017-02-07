@@ -51,12 +51,14 @@ escdf_handle_t * escdf_create(const char *filename, const char *path)
     handle->file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     FULFILL_OR_RETURN_VAL(handle->file_id >= 0, ESCDF_EFILE_CORRUPT, NULL)
 
-    if (_create_root(handle, path) != ESCDF_SUCCESS) {
-        free(handle);
-        return NULL;
+    if (path != NULL) {
+        utils_hdf5_create_group(handle->file_id, path, &(handle->group_id));
     } else {
-        return handle;
+        handle->group_id = H5Gopen(handle->file_id, "/", H5P_DEFAULT);
     }
+    FULFILL_OR_RETURN_VAL(handle->group_id >= 0, ESCDF_EOBJECT, NULL);
+
+    return handle;
 }
 
 escdf_handle_t * escdf_open(const char *filename, const char *path) {
@@ -69,12 +71,16 @@ escdf_handle_t * escdf_open(const char *filename, const char *path) {
     handle->file_id = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT);
     FULFILL_OR_RETURN_VAL(handle->file_id >= 0, ESCDF_EFILE_CORRUPT, NULL)
 
-    if (_create_root(handle, path) != ESCDF_SUCCESS) {
-        free(handle);
-        return NULL;
+    if (path != NULL) {
+        FULFILL_OR_RETURN_VAL(utils_hdf5_check_present_recursive(handle->file_id, path), ESCDF_EFILE_CORRUPT, NULL)
+        handle->group_id = H5Gopen(handle->file_id, path, H5P_DEFAULT);
     } else {
-        return handle;
+        handle->group_id = H5Gopen(handle->file_id, "/", H5P_DEFAULT);
     }
+
+    FULFILL_OR_RETURN_VAL(handle->group_id >= 0, ESCDF_EFILE_CORRUPT, NULL)
+
+    return handle;
 }
 
 #ifdef HAVE_MPI

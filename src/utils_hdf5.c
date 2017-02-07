@@ -42,6 +42,25 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
     return true;
 }
 
+bool utils_hdf5_check_present_recursive(hid_t loc_id, const char *path)
+{
+    htri_t bool_id;
+    char lpath[ESCDF_STRLEN_GROUP];
+    char *p;
+
+    strcpy(lpath, path);
+
+    for (p = lpath + 1; *p; p++) {
+        if (*p == '/') {
+            *p = '\0';
+            if (!utils_hdf5_check_present(loc_id, lpath))
+                return false;
+            *p = '/';
+        }
+    }
+    return utils_hdf5_check_present(loc_id, lpath);
+}
+
 escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, const hsize_t *dims, unsigned int ndims)
 {
     H5S_class_t type_id;
@@ -380,29 +399,36 @@ escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id, hid_t xfer_id, void *bu
 
 escdf_errno_t utils_hdf5_create_group(hid_t loc_id, const char *path, hid_t *group_pt)
 {
-    char *token, *lpath;
-    hid_t group_id;
+    escdf_errno_t err;
+    hid_t group_id, lcpl_id;
 
-    group_id = loc_id;
-    lpath = strdup(path);
-    for (token = strtok(lpath, "/"); token != NULL; token = strtok(NULL, "/")) {
-        if (utils_hdf5_check_present(group_id, token)) {
-            group_id = H5Gopen(group_id, path, H5P_DEFAULT);
-        } else {
-            group_id = H5Gcreate(group_id, token, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-        }
-        DEFER_TEST_ERROR(group_id >= 0, ESCDF_ERROR);
+    if (utils_hdf5_check_present_recursive(loc_id, path))
+        return ESCDF_ERROR_ARGS;
+
+    if ((lcpl_id = H5Pcreate(H5P_LINK_CREATE)) < 0) {
+        RETURN_WITH_ERROR(lcpl_id);
     }
-    free(lpath);
+    if ((err = H5Pset_create_intermediate_group(lcpl_id, 1)) < 0) {
+        DEFER_FUNC_ERROR(err);
+        goto cleanup_prop;
+    }
 
-    RETURN_ON_DEFERRED_ERROR
+    if ((group_id = H5Gcreate(loc_id, path, lcpl_id, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        DEFER_FUNC_ERROR(group_id);
+        goto cleanup_prop;
+    }
 
+    H5Pclose(lcpl_id);
     if (group_pt != NULL)
         *group_pt = group_id;
     else
         H5Gclose(group_id);
 
     return ESCDF_SUCCESS;
+
+    cleanup_prop:
+    H5Pclose(lcpl_id);
+    return ESCDF_ERROR;
 }
 
 escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, unsigned int ndims, hid_t *attr_pt)
