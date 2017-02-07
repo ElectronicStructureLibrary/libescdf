@@ -24,11 +24,13 @@
 
 #define FILE "check_utils_hdf5_test_file.h5"
 #define GROUP "mygroup"
+#define SUBGROUP "mysubgroup"
 #define ATTRIBUTE_S "myscalarattribute"
 #define ATTRIBUTE_A "myarrayattribute"
 #define DATASET "mydataset"
 
-static hid_t file_id, root_id, group_id;
+static hid_t file_id, root_id;
+static hid_t group_id, subgroup_id;
 static hid_t space_scalar_id, space_array_id, space_null_id;
 static hid_t attribute_scalar_id, attribute_array_id;
 static hid_t dataset_id;
@@ -43,6 +45,7 @@ void utils_hdf5_setup(void)
     file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
     group_id = H5Gcreate(root_id, GROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    subgroup_id = H5Gcreate(group_id, SUBGROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     space_scalar_id = H5Screate(H5S_SCALAR);
     space_array_id = H5Screate_simple(2, dims, NULL);
@@ -81,6 +84,19 @@ END_TEST
 START_TEST(test_utils_hdf5_check_present_false)
 {
     ck_assert(!utils_hdf5_check_present(root_id, "not_present"));
+}
+END_TEST
+
+/* check_present_recursive */
+START_TEST(test_utils_hdf5_check_present_recursive_true)
+{
+    ck_assert(utils_hdf5_check_present_recursive(root_id, GROUP"/"SUBGROUP));
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_check_present_recursive_false)
+{
+    ck_assert(!utils_hdf5_check_present_recursive(root_id, GROUP"/not_present"));
 }
 END_TEST
 
@@ -312,7 +328,7 @@ END_TEST
 Suite * make_utils_hdf5_suite(void)
 {
     Suite *s;
-    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
+    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_present_recursive, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
     TCase *tc_utils_hdf5_read_attr, *tc_utils_hdf5_read_dataset;
     TCase *tc_utils_hdf5_create_group;
 
@@ -324,13 +340,19 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_check_present, test_utils_hdf5_check_present_false);
     suite_add_tcase(s, tc_utils_hdf5_check_present);
 
+    tc_utils_hdf5_check_present_recursive = tcase_create("Check present recursive");
+    tcase_add_checked_fixture(tc_utils_hdf5_check_present_recursive, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_check_present_recursive, test_utils_hdf5_check_present_recursive_true);
+    tcase_add_test(tc_utils_hdf5_check_present_recursive, test_utils_hdf5_check_present_recursive_false);
+    suite_add_tcase(s, tc_utils_hdf5_check_present_recursive);
+
     tc_utils_hdf5_check_shape = tcase_create("Check shape");
     tcase_add_checked_fixture(tc_utils_hdf5_check_shape, utils_hdf5_setup, utils_hdf5_teardown);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_scalar_correct);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_array_correct);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_scalar_wrong_args);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_array_wrong_args);
-//    tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_no_class);
+    tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_no_class);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_wrong_class);
     suite_add_tcase(s, tc_utils_hdf5_check_shape);
 
