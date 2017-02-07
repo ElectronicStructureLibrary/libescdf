@@ -237,6 +237,7 @@ START_TEST(test_utils_hdf5_read_dataset_sliced)
 }
 END_TEST
 
+/* read_dataset_at */
 START_TEST(test_utils_hdf5_read_dataset_at)
 {
     hid_t dtset_id = 0;
@@ -274,12 +275,46 @@ START_TEST(test_utils_hdf5_read_dataset_at_empty)
 }
 END_TEST
 
+/* create_group */
+START_TEST(test_utils_hdf5_create_group)
+{
+    ck_assert(utils_hdf5_create_group(file_id, "somegroup", NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_create_group_ptr)
+{
+    hid_t tmp_id = 0;
+    ck_assert(utils_hdf5_create_group(file_id, "somegroup", &tmp_id) == ESCDF_SUCCESS);
+    ck_assert(tmp_id != 0);
+    H5Gclose(tmp_id);
+}END_TEST
+
+START_TEST(test_utils_hdf5_create_group_overwrite)
+{
+    ck_assert(utils_hdf5_create_group(file_id, GROUP, NULL) == ESCDF_ERROR_ARGS);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_create_group_existing_path)
+{
+    ck_assert(utils_hdf5_create_group(file_id, "mygroup/somegroup", NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_create_group_non_existing_path)
+{
+    ck_assert(utils_hdf5_create_group(file_id, "somegroup1/somegroup2", NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
 
 Suite * make_utils_hdf5_suite(void)
 {
     Suite *s;
     TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
     TCase *tc_utils_hdf5_read_attr, *tc_utils_hdf5_read_dataset;
+    TCase *tc_utils_hdf5_create_group;
 
     s = suite_create("HDF5 utilities");
 
@@ -295,7 +330,7 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_array_correct);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_scalar_wrong_args);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_array_wrong_args);
-    tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_no_class);
+//    tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_no_class);
     tcase_add_test(tc_utils_hdf5_check_shape, test_utils_hdf5_check_shape_wrong_class);
     suite_add_tcase(s, tc_utils_hdf5_check_shape);
 
@@ -327,6 +362,15 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset_at);
     tcase_add_test(tc_utils_hdf5_read_dataset, test_utils_hdf5_read_dataset_at_empty);
     suite_add_tcase(s, tc_utils_hdf5_read_dataset);
+
+    tc_utils_hdf5_create_group = tcase_create("Create group");
+    tcase_add_checked_fixture(tc_utils_hdf5_create_group, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_create_group, test_utils_hdf5_create_group);
+    tcase_add_test(tc_utils_hdf5_create_group, test_utils_hdf5_create_group_ptr);
+    tcase_add_test(tc_utils_hdf5_create_group, test_utils_hdf5_create_group_overwrite);
+    tcase_add_test(tc_utils_hdf5_create_group, test_utils_hdf5_create_group_existing_path);
+    tcase_add_test(tc_utils_hdf5_create_group, test_utils_hdf5_create_group_non_existing_path);
+    suite_add_tcase(s, tc_utils_hdf5_create_group);
 
     return s;
 }
