@@ -324,10 +324,10 @@ START_TEST(test_utils_hdf5_create_group_non_existing_path)
 }
 END_TEST
 
-/* create_group */
+/* create_attribute */
 START_TEST(test_utils_hdf5_create_attribute_scalar)
 {
-    ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 1, NULL) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
@@ -341,7 +341,7 @@ END_TEST
 START_TEST(test_utils_hdf5_create_attribute_ptr)
 {
     hid_t attr_id = 0;
-    ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 1, &attr_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, &attr_id) == ESCDF_SUCCESS);
     ck_assert(attr_id != 0);
     H5Aclose(attr_id);
 }
@@ -349,7 +349,61 @@ END_TEST
 
 START_TEST(test_utils_hdf5_create_attribute_existing)
 {
-    ck_assert(utils_hdf5_create_attr(group_id, ATTRIBUTE_S, H5T_NATIVE_DOUBLE, NULL, 1, NULL) == ESCDF_ERROR);
+    ck_assert(utils_hdf5_create_attr(group_id, ATTRIBUTE_S, H5T_NATIVE_DOUBLE, NULL, 0, NULL) == ESCDF_ERROR);
+}
+END_TEST
+
+/* create_dataset */
+START_TEST(test_utils_hdf5_create_dataset)
+{
+    hsize_t dims[2] = {3, 2};
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, NULL) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_create_dataset_ptr)
+{
+    hsize_t dims[2] = {3, 2};
+    hid_t dtset_id = 0;
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(dtset_id != 0);
+    H5Dclose(dtset_id);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_create_dataset_existing)
+{
+    hsize_t dims[2] = {3, 2};
+    ck_assert(utils_hdf5_create_dataset(group_id, DATASET, H5T_NATIVE_DOUBLE, &dims, 2, NULL) == ESCDF_ERROR);
+}
+END_TEST
+
+/* write_attribute */
+START_TEST(test_utils_hdf5_write_attribute_scalar)
+{
+    double scalar = 3., value = 0.;
+    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, H5T_NATIVE_DOUBLE, &scalar) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, &value) == ESCDF_SUCCESS);
+    ck_assert(scalar == value);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_write_attribute_array)
+{
+    int i;
+    hsize_t dims[2] = {3, 2};
+    double array[3][2] = {{1.0, 2.0},
+                          {3.0, 4.0},
+                          {5.0, 6.0}};
+    double values[3][2] = {{ 7.0,  8.0},
+                           { 9.0, 10.0},
+                           {11.0, 12.0}};
+    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, &dims, 2, H5T_NATIVE_DOUBLE, &array) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, &dims, 2, &values) == ESCDF_SUCCESS);
+    for (i=0; i<3; i++) {
+        ck_assert(array[i][0] == values[i][0]);
+        ck_assert(array[i][1] == values[i][1]);
+    }
 }
 END_TEST
 
@@ -359,7 +413,8 @@ Suite * make_utils_hdf5_suite(void)
     Suite *s;
     TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_present_recursive, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
     TCase *tc_utils_hdf5_read_attr, *tc_utils_hdf5_read_dataset;
-    TCase *tc_utils_hdf5_create_group, *tc_utils_hdf5_create_attribute;
+    TCase *tc_utils_hdf5_create_group, *tc_utils_hdf5_create_attribute, *tc_utils_hdf5_create_dataset;
+    TCase *tc_utils_hdf5_write_attribute;
 
     s = suite_create("HDF5 utilities");
 
@@ -430,7 +485,19 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_create_attribute, test_utils_hdf5_create_attribute_ptr);
     tcase_add_test(tc_utils_hdf5_create_attribute, test_utils_hdf5_create_attribute_existing);
     suite_add_tcase(s, tc_utils_hdf5_create_attribute);
+    
+    tc_utils_hdf5_create_dataset = tcase_create("Create dataset");
+    tcase_add_checked_fixture(tc_utils_hdf5_create_dataset, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_create_dataset, test_utils_hdf5_create_dataset);
+    tcase_add_test(tc_utils_hdf5_create_dataset, test_utils_hdf5_create_dataset_ptr);
+    tcase_add_test(tc_utils_hdf5_create_dataset, test_utils_hdf5_create_dataset_existing);
+    suite_add_tcase(s, tc_utils_hdf5_create_dataset);
 
+    tc_utils_hdf5_write_attribute = tcase_create("Write attribute");
+    tcase_add_checked_fixture(tc_utils_hdf5_write_attribute, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attribute_scalar);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attribute_array);
+    suite_add_tcase(s, tc_utils_hdf5_write_attribute);
 
     return s;
 }
