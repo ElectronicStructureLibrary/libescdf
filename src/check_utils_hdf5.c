@@ -395,15 +395,55 @@ START_TEST(test_utils_hdf5_write_attribute_array)
     double array[3][2] = {{1.0, 2.0},
                           {3.0, 4.0},
                           {5.0, 6.0}};
-    double values[3][2] = {{ 7.0,  8.0},
-                           { 9.0, 10.0},
-                           {11.0, 12.0}};
+    double values[3][2];
     ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, &dims, 2, H5T_NATIVE_DOUBLE, &array) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, &dims, 2, &values) == ESCDF_SUCCESS);
     for (i=0; i<3; i++) {
         ck_assert(array[i][0] == values[i][0]);
         ck_assert(array[i][1] == values[i][1]);
     }
+}
+END_TEST
+
+/* write_dataset */
+START_TEST(test_utils_hdf5_write_dataset)
+{
+    int i;
+    hid_t dtset_id;
+    hsize_t dims[2] = {3, 2};
+    double array[3][2] = {{1.0, 2.0},
+                          {3.0, 4.0},
+                          {5.0, 6.0}};
+    double values[3][2];
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_write_dataset(dtset_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
+    for (i=0; i<3; i++) {
+        ck_assert(array[i][0] == values[i][0]);
+        ck_assert(array[i][1] == values[i][1]);
+    }
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_write_dataset_slice)
+{
+    int i;
+    hid_t dtset_id;
+    hsize_t dims[2] = {3, 2};
+/*    double array[3][2] = {{1.0, 2.0},
+                          {3.0, 4.0},
+                          {5.0, 6.0}};*/
+
+    double array[3] = {1.0, 2.0, 3.0};
+    double values[3];
+    hsize_t start[2] = {0, 0};
+    hsize_t count[2] = {3, 1};
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_write_dataset(dtset_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
+    ck_assert(values[0] == array[0]);
+    ck_assert(values[1] == array[1]);
+    ck_assert(values[2] == array[2]);
 }
 END_TEST
 
@@ -414,7 +454,7 @@ Suite * make_utils_hdf5_suite(void)
     TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_present_recursive, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
     TCase *tc_utils_hdf5_read_attr, *tc_utils_hdf5_read_dataset;
     TCase *tc_utils_hdf5_create_group, *tc_utils_hdf5_create_attribute, *tc_utils_hdf5_create_dataset;
-    TCase *tc_utils_hdf5_write_attribute;
+    TCase *tc_utils_hdf5_write_attribute, *tc_utils_hdf5_write_dataset;
 
     s = suite_create("HDF5 utilities");
 
@@ -498,6 +538,12 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attribute_scalar);
     tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attribute_array);
     suite_add_tcase(s, tc_utils_hdf5_write_attribute);
+
+    tc_utils_hdf5_write_dataset = tcase_create("Write dataset");
+    tcase_add_checked_fixture(tc_utils_hdf5_write_dataset, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_write_dataset, test_utils_hdf5_write_dataset);
+    tcase_add_test(tc_utils_hdf5_write_dataset, test_utils_hdf5_write_dataset_slice);
+    suite_add_tcase(s, tc_utils_hdf5_write_dataset);
 
     return s;
 }
