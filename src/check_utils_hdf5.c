@@ -259,12 +259,12 @@ START_TEST(test_utils_hdf5_read_dataset_at)
     hid_t dtset_id = 0;
     hsize_t dims[2] = {3, 2};
     hsize_t number_of_points = 6;
-    hsize_t coordinates[6][2] = {{0, 0},
-                                 {1, 0},
-                                 {2, 0},
-                                 {0, 1},
-                                 {1, 1},
-                                 {2, 1}};
+    hsize_t coordinates[12] = {0, 0,
+                               1, 0,
+                               2, 0,
+                               0, 1,
+                               1, 1,
+                               2, 1};
     double values[6];
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
@@ -283,7 +283,8 @@ START_TEST(test_utils_hdf5_read_dataset_at_empty)
     hid_t dtset_id = 0;
     hsize_t dims[2] = {3, 2};
     hsize_t number_of_points = 0;
-    double *values = NULL, *coordinates = NULL;
+    double *values = NULL;
+    hsize_t *coordinates = NULL;
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
     ck_assert_ptr_eq(values, NULL);
@@ -334,7 +335,7 @@ END_TEST
 START_TEST(test_utils_hdf5_create_attribute_array)
 {
     hsize_t dims[2] = {3, 2};
-    ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, &dims, 2, NULL) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
@@ -357,7 +358,7 @@ END_TEST
 START_TEST(test_utils_hdf5_create_dataset)
 {
     hsize_t dims[2] = {3, 2};
-    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, NULL) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
@@ -365,7 +366,7 @@ START_TEST(test_utils_hdf5_create_dataset_ptr)
 {
     hsize_t dims[2] = {3, 2};
     hid_t dtset_id = 0;
-    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(dtset_id != 0);
     H5Dclose(dtset_id);
 }
@@ -374,7 +375,7 @@ END_TEST
 START_TEST(test_utils_hdf5_create_dataset_existing)
 {
     hsize_t dims[2] = {3, 2};
-    ck_assert(utils_hdf5_create_dataset(group_id, DATASET, H5T_NATIVE_DOUBLE, &dims, 2, NULL) == ESCDF_ERROR);
+    ck_assert(utils_hdf5_create_dataset(group_id, DATASET, H5T_NATIVE_DOUBLE, dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
 
@@ -390,55 +391,52 @@ END_TEST
 
 START_TEST(test_utils_hdf5_write_attribute_array)
 {
-    int i;
     hsize_t dims[2] = {3, 2};
     double array[3][2] = {{1.0, 2.0},
                           {3.0, 4.0},
                           {5.0, 6.0}};
     double values[3][2];
-    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, &dims, 2, H5T_NATIVE_DOUBLE, &array) == ESCDF_SUCCESS);
-    ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, &dims, 2, &values) == ESCDF_SUCCESS);
-    for (i=0; i<3; i++) {
-        ck_assert(array[i][0] == values[i][0]);
-        ck_assert(array[i][1] == values[i][1]);
-    }
+    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, H5T_NATIVE_DOUBLE, &array) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, &values) == ESCDF_SUCCESS);
+    ck_assert(array[0][0] == values[0][0]);
+    ck_assert(array[0][1] == values[0][1]);
+    ck_assert(array[1][0] == values[1][0]);
+    ck_assert(array[1][1] == values[1][1]);
+    ck_assert(array[2][0] == values[2][0]);
+    ck_assert(array[2][1] == values[2][1]);
 }
 END_TEST
 
 /* write_dataset */
 START_TEST(test_utils_hdf5_write_dataset)
 {
-    int i;
     hid_t dtset_id;
     hsize_t dims[2] = {3, 2};
     double array[3][2] = {{1.0, 2.0},
                           {3.0, 4.0},
                           {5.0, 6.0}};
     double values[3][2];
-    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_write_dataset(dtset_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
-    for (i=0; i<3; i++) {
-        ck_assert(array[i][0] == values[i][0]);
-        ck_assert(array[i][1] == values[i][1]);
-    }
+    ck_assert(array[0][0] == values[0][0]);
+    ck_assert(array[0][1] == values[0][1]);
+    ck_assert(array[1][0] == values[1][0]);
+    ck_assert(array[1][1] == values[1][1]);
+    ck_assert(array[2][0] == values[2][0]);
+    ck_assert(array[2][1] == values[2][1]);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_write_dataset_slice)
 {
-    int i;
     hid_t dtset_id;
     hsize_t dims[2] = {3, 2};
-/*    double array[3][2] = {{1.0, 2.0},
-                          {3.0, 4.0},
-                          {5.0, 6.0}};*/
-
     double array[3] = {1.0, 2.0, 3.0};
     double values[3];
     hsize_t start[2] = {0, 0};
     hsize_t count[2] = {3, 1};
-    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, &dims, 2, &dtset_id) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_write_dataset(dtset_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
     ck_assert(values[0] == array[0]);
