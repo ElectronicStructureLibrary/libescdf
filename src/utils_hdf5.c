@@ -460,7 +460,7 @@ escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_
     return ESCDF_SUCCESS;
 
     cleanup_dtspace:
-    H5Sclose(attr_id);
+    H5Sclose(dtspace_id);
     return ESCDF_ERROR;
 }
 
@@ -486,7 +486,7 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
     return ESCDF_SUCCESS;
 
     cleanup_dtspace:
-    H5Sclose(dtset_id);
+    H5Sclose(dtspace_id);
     return ESCDF_ERROR;
 }
 
