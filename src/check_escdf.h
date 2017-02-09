@@ -28,6 +28,7 @@
 Suite *make_info_suite(void);
 Suite *make_error_suite(void);
 Suite *make_utils_suite(void);
+Suite *make_utils_hdf5_suite(void);
 Suite *make_handle_suite(void);
 Suite *make_geometry_suite(void);
 Suite *make_grid_scalarfield_suite(void);
