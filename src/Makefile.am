@@ -137,4 +137,5 @@ MOSTLYCLEANFILES = *.gcda *.gcno *.gcov test_*.tmp
 
 # Binary files generated during the tests
 CLEANFILES = \
+  tmp_grid_scalarfield_read.h5 \
   tmp_grid_scalarfield_write.h5

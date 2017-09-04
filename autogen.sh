@@ -38,21 +38,6 @@ mkdir -p config/gnu config/m4
 #echo "Generating makefiles..."
 #echo "done."
 
-# Generate M4 includes
-echo "Generating aclocal.m4..."
-aclocal -I config/m4
-echo "done."
-
-# Generate configure auxiliary files
-echo "Generating config.h.in..."
-autoheader
-echo "done."
-
-# Generate configure
-echo "Generating configure script..."
-autoconf
-echo "done."
-
 # Generate libtool scripts
 echo "Generating libtool scripts..."
 my_libtoolize="libtoolize"
@@ -66,6 +51,21 @@ if test "${?}" != "0"; then
   exit 1
 fi
 ${my_libtoolize} --automake --copy --force
+echo "done."
+
+# Generate M4 includes
+echo "Generating aclocal.m4..."
+aclocal -I config/m4
+echo "done."
+
+# Generate configure auxiliary files
+echo "Generating config.h.in..."
+autoheader
+echo "done."
+
+# Generate configure
+echo "Generating configure script..."
+autoconf
 echo "done."
 
 # Generate makefile inputs
