@@ -42,14 +42,14 @@ struct escdf_geometry {
 
     /* The metadata */
     char *system_name;
-    _int_set_t number_of_physical_dimensions;
+    _uint_set_t number_of_physical_dimensions;
     int *dimension_types;
     _bool_set_t embedded_system;
-    _int_set_t number_of_species;
-    _int_set_t number_of_sites;
-    _int_set_t number_of_symmetry_operations;
+    _uint_set_t number_of_species;
+    _uint_set_t number_of_sites;
+    _uint_set_t number_of_symmetry_operations;
     double *lattice_vector;
-    _int_set_t spacegroup_3D_number;
+    _uint_set_t spacegroup_3D_number;
     _bool_set_t symmorphic;
     _bool_set_t time_reversal_symmetry;
     double *bulk_regions_for_semi_infinite_dimension;
@@ -226,20 +226,20 @@ escdf_errno_t escdf_geometry_close(escdf_geometry_t * geometry)
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
     escdf_errno_t err;
-    int number_of_physical_dimensions_range[2] = {3, 3};
+    unsigned int number_of_physical_dimensions_range[2] = {3, 3};
     int dimension_types_range[2] = {0, 2};
-    int number_of_species_range[2] = {1, 1000};
-    int number_of_sites_range[2] = {1, 1000};
+    unsigned int number_of_species_range[2] = {1, 1000};
+    unsigned int number_of_sites_range[2] = {1, 1000};
     int absolute_or_reduced_coordinates_range[2] = {1, 2};
-    int number_of_symmetry_operations_range[2] = {1, 1000};
+    unsigned int number_of_symmetry_operations_range[2] = {1, 1000};
     hsize_t oneDims[1];
 
     /* read attributes of the group: */
 
     /* --number_of_physical_dimensions */
-    if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_physical_dimensions",
-                                   &geometry->number_of_physical_dimensions,
-                                   number_of_physical_dimensions_range)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_uint(geometry->group_id, "number_of_physical_dimensions",
+                                    &geometry->number_of_physical_dimensions,
+                                    number_of_physical_dimensions_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
@@ -258,23 +258,23 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     }
 
     /* --number_of_species */
-    if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_species",
-                                   &geometry->number_of_species,
-                                   number_of_species_range)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_uint(geometry->group_id, "number_of_species",
+                                    &geometry->number_of_species,
+                                    number_of_species_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --number_of_sites */
-    if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_sites",
-                                   &geometry->number_of_sites,
-                                   number_of_sites_range)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_uint(geometry->group_id, "number_of_sites",
+                                    &geometry->number_of_sites,
+                                    number_of_sites_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --number_of_symmetry_operations */
-    if ((err = utils_hdf5_read_int(geometry->group_id, "number_of_symmetry_operations",
-                                   &geometry->number_of_symmetry_operations,
-                                   number_of_symmetry_operations_range)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_uint(geometry->group_id, "number_of_symmetry_operations",
+                                    &geometry->number_of_symmetry_operations,
+                                    number_of_symmetry_operations_range)) != ESCDF_SUCCESS) {
         return err;
     }
 
@@ -290,7 +290,7 @@ escdf_errno_t escdf_geometry_set_number_of_physical_dimensions(
     FULFILL_OR_RETURN(number_of_physical_dimensions == 3, ESCDF_EVALUE);
 
     /* set the value and status */
-    geometry->number_of_physical_dimensions = _int_set(number_of_physical_dimensions);
+    geometry->number_of_physical_dimensions = _uint_set(number_of_physical_dimensions);
 
     return ESCDF_SUCCESS;
 }
@@ -377,7 +377,7 @@ escdf_errno_t escdf_geometry_set_number_of_species(
         escdf_geometry_t *geometry, const int number_of_species)
 {
     /* set the value and status */
-    geometry->number_of_species = _int_set(number_of_species);
+    geometry->number_of_species = _uint_set(number_of_species);
 
     return ESCDF_SUCCESS;
 }
@@ -401,7 +401,7 @@ escdf_errno_t escdf_geometry_set_number_of_sites(
         escdf_geometry_t *geometry, const int number_of_sites)
 {
     /* set the value and status */
-    geometry->number_of_sites = _int_set(number_of_sites);
+    geometry->number_of_sites = _uint_set(number_of_sites);
 
     return ESCDF_SUCCESS;
 }
@@ -425,7 +425,7 @@ escdf_errno_t escdf_geometry_set_number_of_symmetry_operations(
         escdf_geometry_t *geometry, const int number_of_symmetry_operations)
 {
     /* set the value and status */
-    geometry->number_of_symmetry_operations = _int_set(number_of_symmetry_operations);
+    geometry->number_of_symmetry_operations = _uint_set(number_of_symmetry_operations);
 
     return ESCDF_SUCCESS;
 }
