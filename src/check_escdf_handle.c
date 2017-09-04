@@ -23,7 +23,7 @@
 #include "escdf_common.h"
 #include "escdf_handle.h"
 
-#define FILE "check_escdf_handle_test_file.h5"
+#define CHKFILE "check_escdf_handle_test_file.h5"
 #define GROUP_A "GroupA"
 #define GROUP_B "GroupB"
 
@@ -33,7 +33,7 @@ void handle_setup_file(void)
 {
     hid_t file_id, group_id1, group_id2;
 
-    file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_id = H5Fcreate(CHKFILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     group_id1 = H5Gcreate(file_id, GROUP_A, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     group_id2 = H5Gcreate(group_id1, GROUP_B, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Gclose(group_id2);
@@ -43,13 +43,13 @@ void handle_setup_file(void)
 
 void handle_teardown_file(void)
 {
-    unlink(FILE);
+    unlink(CHKFILE);
 }
 
 void handle_setup(void)
 {
     handle_setup_file();
-    handle = escdf_open(FILE, NULL);
+    handle = escdf_open(CHKFILE, NULL);
 }
 
 void handle_teardown(void)
@@ -62,25 +62,25 @@ void handle_teardown(void)
 
 START_TEST(test_handle_open)
 {
-    ck_assert((handle = escdf_open(FILE, NULL)) != NULL);
+    ck_assert((handle = escdf_open(CHKFILE, NULL)) != NULL);
 }
 END_TEST
 
 START_TEST(test_handle_open_path)
 {
-    ck_assert((handle = escdf_open(FILE, GROUP_A"/"GROUP_B)) != NULL);
+    ck_assert((handle = escdf_open(CHKFILE, GROUP_A"/"GROUP_B)) != NULL);
 }
 END_TEST
 
 START_TEST(test_handle_create)
 {
-    ck_assert((handle = escdf_create(FILE, NULL)) != NULL);
+    ck_assert((handle = escdf_create(CHKFILE, NULL)) != NULL);
 }
 END_TEST
 
 START_TEST(test_handle_create_path)
 {
-    ck_assert((handle = escdf_create(FILE, GROUP_A"/"GROUP_B)) != NULL);
+    ck_assert((handle = escdf_create(CHKFILE, GROUP_A"/"GROUP_B)) != NULL);
 }
 END_TEST
 

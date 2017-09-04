@@ -22,7 +22,7 @@
 
 #include "utils_hdf5.h"
 
-#define FILE "check_utils_hdf5_test_file.h5"
+#define CHKFILE "check_utils_hdf5_test_file.h5"
 #define GROUP "mygroup"
 #define SUBGROUP "mysubgroup"
 #define ATTRIBUTE_S "myscalarattribute"
@@ -42,7 +42,7 @@ void utils_hdf5_setup(void)
     double array[3][2] = {{1.0, 2.0},
                           {3.0, 4.0},
                           {5.0, 6.0}};
-    file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_id = H5Fcreate(CHKFILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
     group_id = H5Gcreate(root_id, GROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     subgroup_id = H5Gcreate(group_id, SUBGROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -71,7 +71,7 @@ void utils_hdf5_teardown(void)
     H5Gclose(group_id);
     H5Gclose(root_id);
     H5Fclose(file_id);
-    unlink(FILE);
+    unlink(CHKFILE);
 }
 
 /* check_present */
