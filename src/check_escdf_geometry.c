@@ -39,18 +39,18 @@ void geometry_setup_file(const char *file, const char *geom_path)
     herr_t status;
 
     /* set some data to write */
-    uint number_of_physical_dimensions = 3;
+    unsigned int number_of_physical_dimensions = 3;
     int dimension_types[3] = {1, 1, 1};
     char *embedded_system = "no";
-    uint number_of_species = 1;
-    uint number_of_sites = 2;
+    unsigned int number_of_species = 1;
+    unsigned int number_of_sites = 2;
     int absolute_or_reduced_coordinates = 2;
     double lattice_vectors[3][3] = {{5.0964124, 5.0964124, 0.0000000},
                                     {5.0964124, 0.0000000, 5.0964124},
                                     {0.0000000, 5.0964124, 5.0964124}};
     double site_positions[2][3] = {{0.00, 0.00, 0.00},
                                    {0.25, 0.25, 0.25}};
-    uint species_at_sites[2][1] = {{1},
+    unsigned int species_at_sites[2][1] = {{1},
                                    {1}};
     double atomic_numbers[1] = {14.0};
 
