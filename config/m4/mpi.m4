@@ -25,10 +25,6 @@ AC_DEFUN([ESCDF_MPI_DETECT], [
   AC_MSG_RESULT([${escdf_mpi_cc_set}])
   AC_MSG_CHECKING([whether the MPI C compiler is wrapped])
   AC_MSG_RESULT([${escdf_mpi_cc_wrap}])
-  AC_MSG_CHECKING([whether the MPI Fortran compiler is set])
-  AC_MSG_RESULT([${escdf_mpi_fc_set}])
-  AC_MSG_CHECKING([whether the MPI Fortran compiler is wrapped])
-  AC_MSG_RESULT([${escdf_mpi_fc_wrap}])
 
   dnl Warn if serial component of wrapped compilers supports MPI
   if test "${escdf_mpi_cc_wrap}" = "yes"; then
@@ -42,27 +38,13 @@ AC_DEFUN([ESCDF_MPI_DETECT], [
       sleep 5
     fi
   fi
-  if test "${escdf_mpi_fc_wrap}" = "yes"; then
-    AC_MSG_NOTICE([validating that '${escdf_serfc}' is indeed serial])
-    _ESCDF_MPI_CHECK_FC([${escdf_serfc}])
-    if test "${escdf_mpi_fc_ok}" = "yes"; then
-      AC_MSG_WARN([the serial Fortran compiler is MPI-aware
-                    Your current configuration is probably ill-defined.
-                    The build will likely fail.])
-      sleep 5
-    fi
-  fi
 
   dnl Test MPI compilers
   _ESCDF_MPI_CHECK_CC([${CC}])
-  if test "${escdf_mpi_cc_ok}" = "yes"; then
-    _ESCDF_MPI_CHECK_FC([${FC}])
-  fi
 
   dnl Take final decision
   AC_MSG_CHECKING([whether we have a full MPI support])
-  if test "${escdf_mpi_cc_ok}" = "yes" -a \
-          "${escdf_mpi_fc_ok}" = "yes"; then
+  if test "${escdf_mpi_cc_ok}" = "yes"; then
     escdf_mpi_ok="yes"
   else
     escdf_mpi_ok="no"
@@ -85,7 +67,6 @@ AC_DEFUN([ESCDF_MPI_INIT], [
       _AC_SRCDIRS(["."])
     fi
     _ESCDF_MPI_INIT_CC
-    _ESCDF_MPI_INIT_FC
   fi
 ]) # ESCDF_MPI_INIT
 
@@ -140,61 +121,6 @@ AC_DEFUN([_ESCDF_MPI_CHECK_CC], [
   unset tmp_mpi_cache
   unset tmp_mpi_header
 ]) # _ESCDF_MPI_CHECK_CC
-
-
-
-# _ESCDF_MPI_CHECK_FC(FC)
-# -----------------------
-#
-# Check whether the MPI Fortran compiler is working.
-#
-AC_DEFUN([_ESCDF_MPI_CHECK_FC], [
-  dnl Init
-  escdf_mpi_fc_ok="unknown"
-  escdf_mpi_fc_has_funs="unknown"
-  escdf_mpi_fc_has_mods="unknown"
-
-  dnl Prepare environment
-  escdf_saved_FC="${FC}"
-  FC="$1"
-
-  dnl Look for Fortran modules
-  AC_LANG_PUSH([Fortran])
-  AC_MSG_CHECKING([for a Fortran MPI module])
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([],
-    [[
-      use mpi
-    ]])], [escdf_mpi_fc_has_mods="yes"], [escdf_mpi_fc_has_mods="no"])
-  AC_MSG_RESULT([${escdf_mpi_fc_has_mods}])
-  AC_LANG_POP([Fortran])
-
-  dnl Look for Fortran functions
-  if test "${escdf_mpi_fc_has_mods}" = "yes"; then
-    AC_LANG_PUSH([Fortran])
-    AC_MSG_CHECKING([for a Fortran MPI_Init])
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([],
-      [[
-        use mpi
-        integer :: ierr
-        call mpi_init(ierr)
-      ]])], [escdf_mpi_fc_has_funs="yes"], [escdf_mpi_fc_has_funs="no"])
-    AC_MSG_RESULT([${escdf_mpi_fc_has_funs}])
-    AC_LANG_POP([Fortran])
-  fi
-
-  dnl Validate Fortran support
-  AC_MSG_CHECKING([whether the MPI Fortran compiler works])
-  if test "${escdf_mpi_fc_has_funs}" = "yes" -a \
-          "${escdf_mpi_fc_has_mods}" = "yes"; then
-    escdf_mpi_fc_ok="yes"
-  else
-    escdf_mpi_fc_ok="no"
-  fi
-  AC_MSG_RESULT([${escdf_mpi_fc_ok}])
-
-  dnl Restore environment
-  FC="${escdf_saved_FC}"
-]) # _ESCDF_MPI_CHECK_FC
 
 
 
@@ -258,69 +184,6 @@ AC_DEFUN([_ESCDF_MPI_INIT_CC], [
     escdf_mpi_cc_set="yes"
   fi
 ]) # _ESCDF_MPI_INIT_CC
-
-
-
-# _ESCDF_MPI_INIT_FC()
-# --------------------
-#
-# Initializes MPI parameters related to the Fortran compiler.
-#
-AC_DEFUN([_ESCDF_MPI_INIT_FC], [
-  dnl Init
-  escdf_serfc="${FC}"
-  escdf_mpifc=""
-  escdf_mpi_fc_set="no"
-  escdf_mpi_fc_wrap="unknown"
-
-  dnl Look for a MPI Fortran compiler
-  case "${escdf_mpi_type}" in
-
-    def)
-      escdf_mpi_fc_wrap="no"
-      ;;
-
-    dir)
-      escdf_mpifc="${with_mpi}/bin/mpif90"
-      if test -x "${escdf_mpifc}"; then
-        AC_MSG_CHECKING([for an executable MPI Fortran compiler])
-        AC_MSG_RESULT([${escdf_mpifc}])
-        if test "${escdf_serfc}" = ""; then
-          AC_MSG_NOTICE([setting FC to '${escdf_mpifc}'])
-          FC="${escdf_mpifc}"
-          escdf_mpi_fc_set="yes"
-          escdf_mpi_fc_wrap="no"
-        else
-          escdf_mpi_fc_wrap="yes"
-        fi
-      else
-        AC_MSG_ERROR([MPI Fortran compiler not found in ${with_mpi}/bin])
-      fi
-      ;;
-
-    env|yon)
-      if test -n "${MPIFC}"; then
-        escdf_mpifc="${MPIFC}"
-      else
-        AC_CHECK_PROGS([escdf_mpifc], [mpif90 mpif95])
-      fi
-      if test -n "${escdf_serfc}" -a -n "${escdf_mpifc}"; then
-        escdf_mpi_fc_wrap="yes"
-      elif test -n "${escdf_mpifc}"; then
-        AC_MSG_NOTICE([setting FC to '${escdf_mpifc}'])
-        FC="${escdf_mpifc}"
-        escdf_mpi_fc_set="yes"
-        escdf_mpi_fc_wrap="no"
-      fi
-      ;;
-
-  esac
-
-  if test "${escdf_mpi_fc_wrap}" = "yes"; then
-    _ESCDF_MPI_CREATE_WRAPPER([FC], [${escdf_serfc}], [${escdf_mpifc}])
-    escdf_mpi_fc_set="yes"
-  fi
-]) # _ESCDF_MPI_INIT_FC
 
 
 

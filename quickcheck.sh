@@ -43,33 +43,33 @@ sleep 3
 echo ""
 echo "### SERIAL ###"
 ../configure \
-  CC="gcc" CFLAGS="${DBGFLAGS}" FC="gfortran" FCFLAGS="${DBGFLAGS}"
+  CC="gcc" CFLAGS="${DBGFLAGS}"
 sleep 3
 #echo ""
 #echo "### MPI(def) ###"
 #../configure \
-#  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
+#  CC="mpicc" CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(dir) ###"
 #../configure \
-#  --with-mpi=/usr CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  --with-mpi=/usr CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(env) ###"
 #../configure \
-#  MPICC="mpicc" MPIFC="mpif90" CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  MPICC="mpicc" CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(wrap) ###"
 #../configure \
-#  CC="gcc" FC="gfortran" MPICC="mpicc" MPIFC="mpif90" \
-#  CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  CC="gcc" MPICC="mpicc" \
+#  CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(yon) ###"
 #../configure \
-#  --with-mpi CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  --with-mpi CFLAGS="${DBGFLAGS}"
 #sleep 3
 cd ..
 
@@ -77,7 +77,7 @@ cd ..
 mkdir tmp-minimal
 cd tmp-minimal
 ../configure \
-  CC="gcc" CFLAGS="${DBGFLAGS}" FC="gfortran" FCFLAGS="${DBGFLAGS}"
+  CC="gcc" CFLAGS="${DBGFLAGS}"
 sleep 3
 make dist
 make
@@ -91,7 +91,7 @@ cd ..
 #mkdir tmp-mpi
 #cd tmp-mpi
 #../configure \
-#  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
+#  CC="mpicc" CFLAGS="${DBGFLAGS}"
 #sleep 3
 #make
 #make clean && make -j4
@@ -102,7 +102,7 @@ cd ..
 mkdir tmp-distcheck
 cd tmp-distcheck
 ../configure \
-  CC="gcc" CFLAGS="${DBGFLAGS}" FC="gfortran" FCFLAGS="${DBGFLAGS}"
+  CC="gcc" CFLAGS="${DBGFLAGS}"
 sleep 3
 make distcheck -j4
 make distcleancheck
