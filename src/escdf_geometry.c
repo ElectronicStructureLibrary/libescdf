@@ -230,7 +230,6 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     int dimension_types_range[2] = {0, 2};
     unsigned int number_of_species_range[2] = {1, 1000};
     unsigned int number_of_sites_range[2] = {1, 1000};
-    int absolute_or_reduced_coordinates_range[2] = {1, 2};
     unsigned int number_of_symmetry_operations_range[2] = {1, 1000};
     hsize_t oneDims[1];
 
