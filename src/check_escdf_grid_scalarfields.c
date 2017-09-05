@@ -32,6 +32,7 @@
 #include <hdf5.h>
 
 #include "escdf_grid_scalarfields.h"
+#include "utils_hdf5.h"
 
 #if defined HAVE_CONFIG_H
 #include "config.h"
@@ -41,19 +42,13 @@
 #define CHKFILE "check_grid_scalarfield_read_test_file.h5"
 
 static hid_t file_id, root_id, group_id, subgroup_id;
-static hid_t a_dr_id, v_dr_id;
-static hid_t a_dt_id, v_dt_id;
-static hid_t a_lv_id, v_lv_id;
-static hid_t a_nc_id, v_nc_id;
-static hid_t a_ng_id, v_ng_id;
-static hid_t a_np_id, v_np_id;
-static hid_t a_rc_id, v_rc_id;
 static hid_t array_id, dataset_id;
 
 
 void grid_scalarfield_setup(void)
 {
     /* Dimensions: d3_1 = 1D length 3, d3_2 = 2D, length (3,3) */
+    hsize_t d1_1[1] = {1};
     hsize_t d3_1[1] = {3};
     hsize_t d3_2[2] = {3, 3};
 
@@ -70,8 +65,11 @@ void grid_scalarfield_setup(void)
     hsize_t adims[3] = {2, 54, 1};
     double array[2][54][1];
 
+    /* Internal variables */
+    int ierr, i, j;
+
+
     /* Fill-in dataset */
-    int i, j;
     for (i=0; i<2; i++) {
         for (j=0; j<54; j++) {
             array[i][j][0] = (double)(i * 16 + j);
@@ -81,65 +79,35 @@ void grid_scalarfield_setup(void)
     /* File structure */
     file_id = H5Fcreate(CHKFILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
-    group_id = H5Gcreate(root_id, "densities", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    subgroup_id = H5Gcreate(group_id, "pseudo_density", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    ierr = utils_hdf5_create_group(root_id, "densities", &group_id);
+    ierr = utils_hdf5_create_group(group_id, "pseudo_density", &subgroup_id);
 
     /* Dimension types */
-    v_dt_id = H5Screate_simple(1, d3_1, NULL);
-    a_dt_id = H5Acreate(subgroup_id, "dimension_types", H5T_NATIVE_HSIZE, v_dt_id, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(a_dt_id, H5T_NATIVE_HSIZE, &dt);
+    ierr = utils_hdf5_write_attr(subgroup_id, "dimension_types", H5T_NATIVE_HSIZE, d3_1, 1, H5T_NATIVE_HSIZE, dt);
 
     /* Lattice vectors */
-    v_lv_id = H5Screate_simple(2, d3_2, NULL);
-    a_lv_id = H5Acreate(subgroup_id, "lattice_vectors", H5T_NATIVE_DOUBLE, v_lv_id, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(a_lv_id, H5T_NATIVE_DOUBLE, &lv);
+    ierr = utils_hdf5_write_attr(subgroup_id, "lattice_vectors", H5T_NATIVE_DOUBLE, d3_2, 2, H5T_NATIVE_DOUBLE, lv);
 
     /* Number of components */
-    v_nc_id = H5Screate(H5S_SCALAR);
-    a_nc_id = H5Acreate(subgroup_id, "number_of_components", H5T_NATIVE_HSIZE, v_nc_id, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(a_nc_id, H5T_NATIVE_HSIZE, &nc);
+    ierr = utils_hdf5_write_attr(subgroup_id, "number_of_components", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &nc);
 
     /* Number of grid points */
-    v_ng_id = H5Screate_simple(1, d3_1, NULL);
-    a_ng_id = H5Acreate(subgroup_id, "number_of_grid_points", H5T_NATIVE_HSIZE, v_ng_id, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(a_ng_id, H5T_NATIVE_HSIZE, &ng);
+    ierr = utils_hdf5_write_attr(subgroup_id, "number_of_grid_points", H5T_NATIVE_HSIZE, d3_1, 1, H5T_NATIVE_HSIZE, ng);
 
     /* Number of physical dimensions */
-    v_np_id = H5Screate(H5S_SCALAR);
-    a_np_id = H5Acreate(subgroup_id, "number_of_physical_dimensions", H5T_NATIVE_HSIZE, v_np_id, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(a_np_id, H5T_NATIVE_HSIZE, &np);
+    ierr = utils_hdf5_write_attr(subgroup_id, "number_of_physical_dimensions", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &np);
 
     /* Real or complex */
-    v_rc_id = H5Screate(H5S_SCALAR);
-    a_rc_id = H5Acreate(subgroup_id, "real_or_complex", H5T_NATIVE_HSIZE, v_rc_id, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(a_rc_id, H5T_NATIVE_HSIZE, &rc);
+    ierr = utils_hdf5_write_attr(subgroup_id, "real_or_complex", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &rc);
 
     /* Use default ordering */
-    v_dr_id = H5Screate(H5S_SCALAR);
-    a_dr_id = H5Acreate(subgroup_id, "use_default_ordering", H5T_NATIVE_HSIZE, v_dr_id, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(a_dr_id, H5T_NATIVE_HSIZE, &dr);
+    ierr = utils_hdf5_write_attr(subgroup_id, "use_default_ordering", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &dr);
 
     /* Values on grid */
-    array_id = H5Screate_simple(3, adims, NULL);
-    dataset_id = H5Dcreate(subgroup_id, "values_on_grid", H5T_NATIVE_DOUBLE, array_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, array_id, array_id, H5P_DEFAULT, &array);
+    ierr = utils_hdf5_create_dataset(subgroup_id, "values_on_grid", H5T_NATIVE_DOUBLE, adims, 3, &array_id);
+    ierr = utils_hdf5_write_dataset(subgroup_id, array_id, array, H5T_NATIVE_DOUBLE, NULL, NULL, NULL);
 
-    H5Dclose(dataset_id);
-    H5Sclose(array_id);
-    H5Aclose(a_dr_id);
-    H5Sclose(v_dr_id);
-    H5Aclose(a_dt_id);
-    H5Sclose(v_dt_id);
-    H5Aclose(a_lv_id);
-    H5Sclose(v_lv_id);
-    H5Aclose(a_nc_id);
-    H5Sclose(v_nc_id);
-    H5Aclose(a_ng_id);
-    H5Sclose(v_ng_id);
-    H5Aclose(a_np_id);
-    H5Sclose(v_np_id);
-    H5Aclose(a_rc_id);
-    H5Sclose(v_rc_id);
+    /* Close everything, since the purpose is to read the file */
     H5Gclose(subgroup_id);
     H5Gclose(group_id);
     H5Gclose(root_id);
