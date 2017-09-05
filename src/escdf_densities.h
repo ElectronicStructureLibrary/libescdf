@@ -22,6 +22,10 @@
 #ifndef LIBESCDF_DENSITIES_H
 #define LIBESCDF_DENSITIES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "escdf_grid_scalarfields.h"
 
 struct _escdf_densities_t;
@@ -59,5 +63,9 @@ escdf_grid_scalarfield_t* escdf_densities_get_grid_scalarfield(const escdf_densi
                                                                const unsigned int i_density);
 escdf_grid_scalarfield_t* escdf_densities_get_grid_scalarfield_from_type(const escdf_densities_t *densities,
                                                                          const escdf_density_type_t type);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
