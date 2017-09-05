@@ -200,14 +200,20 @@ escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name, hid_t mem_typ
 escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name, _bool_set_t *scalar)
 {
     escdf_errno_t err;
-    int value;
+    char value[4];
+    hid_t string;
 
-    if ((err = utils_hdf5_read_attr(loc_id, name, H5T_NATIVE_INT,
-                                    NULL, 0, &value)) != ESCDF_SUCCESS) {
+    string = H5Tcopy(H5T_C_S1);
+    H5Tset_size(string, 4);
+    H5Tset_strpad(string, H5T_STR_NULLTERM);
+
+    if ((err = utils_hdf5_read_attr(loc_id, name, string,
+                                    NULL, 0, value)) != ESCDF_SUCCESS) {
         return err;
     }
-    *scalar = _bool_set((bool)value);
+    *scalar = _bool_set((bool)(value[0] == 'y'));
 
+    H5Tclose(string);
     return ESCDF_SUCCESS;
 }
 
@@ -518,6 +524,24 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_t
     H5Aclose(attr_id);
     return err;
 }
+
+escdf_errno_t utils_hdf5_write_bool(hid_t loc_id, const char *name, const bool value)
+{
+    escdf_errno_t err;
+    hsize_t dims;
+    hid_t string;
+
+    string = H5Tcopy(H5T_C_S1);
+    H5Tset_size(string, 4);
+    H5Tset_strpad(string, H5T_STR_NULLTERM);
+    dims = 1;
+
+    err = utils_hdf5_write_attr(loc_id, name, string, &dims, 1, string, (value? "yes" : "no"));
+
+    H5Tclose(string);
+    return err;
+}
+
 
 escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
 {

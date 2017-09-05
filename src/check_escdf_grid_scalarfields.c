@@ -59,7 +59,6 @@ void grid_scalarfield_setup(void)
     hsize_t ng[3] = {2, 3, 9};
     hsize_t np = 3;
     hsize_t rc = 1;
-    hsize_t dr = 1;
 
     /* Dataset */
     hsize_t adims[3] = {2, 54, 1};
@@ -101,7 +100,7 @@ void grid_scalarfield_setup(void)
     ierr = utils_hdf5_write_attr(subgroup_id, "real_or_complex", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &rc);
 
     /* Use default ordering */
-    ierr = utils_hdf5_write_attr(subgroup_id, "use_default_ordering", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &dr);
+    ierr = utils_hdf5_write_bool(subgroup_id, "use_default_ordering", true);
 
     /* Values on grid */
     ierr = utils_hdf5_create_dataset(subgroup_id, "values_on_grid", H5T_NATIVE_DOUBLE, adims, 3, &array_id);

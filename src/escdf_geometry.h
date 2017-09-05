@@ -139,19 +139,6 @@ escdf_errno_t escdf_geometry_close(escdf_geometry_t * geometry);
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry);
 
 /**
- * Given a geometry data type, it writes all the metadata stored in it to the
- * corresponding ESCDF geometry group. The variables to be written are the ones
- * that have been set with a set function. If not all the variables that are
- * mandatory according to the ESCDF specifications are set, then nothing is
- * written to the group and the function returns an error.
- *
- * @param[in] geometry: instance of the geometry group.
- * @return error code.
- */
-escdf_errno_t escdf_geometry_write_metadata(const escdf_geometry_t *geometry);
-
-
-/**
  * Sets the value of number_of_physical_dimensions in the geometry data type.
  *
  * @param[in,out] geometry: instance of the geometry group.
