@@ -39,7 +39,7 @@
 #endif
 
 
-#define CHKFILE "check_grid_scalarfield_read_test_file.h5"
+#define CHKFILE "tmp_grid_scalarfield_test_file.h5"
 
 static hid_t file_id, root_id, group_id, subgroup_id;
 static hid_t array_id, dataset_id;
