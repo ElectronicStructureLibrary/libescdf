@@ -274,6 +274,9 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
  */
 escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_type_id, const hsize_t *dims, unsigned int ndims, hid_t mem_type_id, const void *buf);
 
+
+escdf_errno_t utils_hdf5_write_bool(hid_t loc_id, const char *name, const bool value);
+
 /**
  * Writes raw data from a buffer to a dataset. Optionally, data is written to an hyperslice of the dataset defined by
  * setting start, count, and stride.

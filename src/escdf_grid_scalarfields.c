@@ -241,10 +241,8 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
         return err;
     }
 
-    value = (int)scalarfield->use_default_ordering.value;
-    if ((err = utils_hdf5_write_attr
-         (gid, "use_default_ordering", H5T_STD_U32LE, NULL, 0, H5T_NATIVE_INT,
-          &value)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_write_bool
+         (gid, "use_default_ordering", scalarfield->use_default_ordering.value)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
     }
