@@ -23,6 +23,10 @@
 #ifndef LIBESCDF_ESCDF_COMMON_H
 #define LIBESCDF_ESCDF_COMMON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* IMPORTANT: this file must contain defines only, in order to be readable from Fortran. */
 #include <stdbool.h>
 
@@ -55,5 +59,9 @@
 #define ESCDF_ESTRIDE 16
 #define ESCDF_ERROR_ARGS -10000
 #define ESCDF_ERROR_DIM -1000
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -22,6 +22,10 @@
 #ifndef LIBESCDF_ESCDF_INFO_H
 #define LIBESCDF_ESCDF_INFO_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Provide the version number of the library.
  * @param[out] major major version number, -1 if not found
@@ -35,5 +39,10 @@ void escdf_info_version(int *major, int *minor, int *micro);
  * @param[out] info: package name and version.
  */
 void escdf_info_string(char *info);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

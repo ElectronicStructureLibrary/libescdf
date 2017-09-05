@@ -23,6 +23,10 @@
 #ifndef LIBESCDF_ERROR_H
 #define LIBESCDF_ERROR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @file escdf_error.h 
  * @brief Error handlers
@@ -262,5 +266,9 @@ const char *escdf_error_string(const escdf_errno_t error_id);
     if ( (escdf_error_get_last(__func__) == ESCDF_SUCCESS) && !(condition) ) { \
         escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
     }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

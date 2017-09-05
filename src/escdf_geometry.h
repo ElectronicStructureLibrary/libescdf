@@ -23,6 +23,10 @@
 #ifndef LIBESCDF_GEOMETRY_H
 #define LIBESCDF_GEOMETRY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <string.h>
 
@@ -248,5 +252,8 @@ escdf_errno_t escdf_geometry_read_magnetic_moment_directions(
         const unsigned int *map);
 
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

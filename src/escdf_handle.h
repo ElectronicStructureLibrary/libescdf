@@ -23,6 +23,10 @@
 #ifndef LIBESCDF_HANDLE_H
 #define LIBESCDF_HANDLE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <hdf5.h>
 
 #include "escdf_error.h"
@@ -111,6 +115,10 @@ escdf_handle_t * escdf_create_mpi(const char *filename, const char *path, MPI_Co
  * @return instance of the handle.
  */
 escdf_handle_t * escdf_open_mpi(const char *filename, const char *path, MPI_Comm comm);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

@@ -23,6 +23,10 @@
 #ifndef LIBESCDF_SCALARFIELDS_H
 #define LIBESCDF_SCALARFIELDS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "escdf_error.h"
 #include "escdf_handle.h"
 
@@ -170,5 +174,10 @@ escdf_errno_t escdf_grid_scalarfield_read_values_on_grid_sliced(const escdf_grid
                                                                 double *buf,
                                                                 const unsigned int *tbl,
                                                                 const hsize_t len);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
