@@ -48,7 +48,7 @@ struct escdf_geometry {
     _uint_set_t number_of_species;
     _uint_set_t number_of_sites;
     _uint_set_t number_of_symmetry_operations;
-    double *lattice_vector;
+    double *lattice_vectors;
     _uint_set_t spacegroup_3D_number;
     _bool_set_t symmorphic;
     _bool_set_t time_reversal_symmetry;
@@ -97,7 +97,7 @@ escdf_geometry_t * escdf_geometry_new()
     geometry->number_of_species.is_set = false;
     geometry->number_of_sites.is_set = false;
     geometry->number_of_symmetry_operations.is_set = false;
-    geometry->lattice_vector = NULL;
+    geometry->lattice_vectors = NULL;
     geometry->spacegroup_3D_number.is_set = false;
     geometry->symmorphic.is_set = false;
     geometry->time_reversal_symmetry.is_set = false;
@@ -130,7 +130,7 @@ void escdf_geometry_free(escdf_geometry_t *geometry)
     if (geometry != NULL) {
         free(geometry->system_name);
         free(geometry->dimension_types);
-        free(geometry->lattice_vector);
+        free(geometry->lattice_vectors);
         free(geometry->bulk_regions_for_semi_infinite_dimension);
 
         free(geometry);
@@ -226,15 +226,29 @@ escdf_errno_t escdf_geometry_close(escdf_geometry_t * geometry)
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
     escdf_errno_t err;
+    hsize_t dims_1D[1], dims_2D[2];
+    hid_t string_len_80;
+
     unsigned int number_of_physical_dimensions_range[2] = {3, 3};
     int dimension_types_range[2] = {0, 2};
     unsigned int number_of_species_range[2] = {1, 1000};
     unsigned int number_of_sites_range[2] = {1, 1000};
     unsigned int number_of_symmetry_operations_range[2] = {1, 1000};
-    hsize_t oneDims[1];
+    unsigned int spacegroup_3D_number_range[2] = {1, 230};
+    double lattice_vectors_range[2] = {-1000, 1000};
+    double bulk_regions_for_semi_infinite_dimension_range[2] = {0, 1000};
 
-    /* read attributes of the group: */
 
+    /* --system_name */
+    string_len_80 = H5Tcopy(H5T_C_S1);
+    H5Tset_size(string_len_80, 80);
+    H5Tset_strpad(string_len_80, H5T_STR_NULLTERM);
+    if ((err = utils_hdf5_read_attr(geometry->group_id, "system_name", string_len_80, dims_1D, 1,
+                                    &geometry->system_name)) == ESCDF_SUCCESS) {
+        return err;
+    }
+    H5Tclose(string_len_80);
+    
     /* --number_of_physical_dimensions */
     if ((err = utils_hdf5_read_uint(geometry->group_id, "number_of_physical_dimensions",
                                     &geometry->number_of_physical_dimensions,
@@ -243,11 +257,13 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     }
 
     /* --dimension_types */
-    oneDims[0] = geometry->number_of_physical_dimensions.value;
-    if ((err = utils_hdf5_read_int_array(geometry->group_id, "dimension_types",
-                                         &geometry->dimension_types,
-                                         oneDims, 1, dimension_types_range)) != ESCDF_SUCCESS) {
-        return err;
+    if (geometry->number_of_physical_dimensions.is_set) {
+        dims_1D[0] = geometry->number_of_physical_dimensions.value;
+        if ((err = utils_hdf5_read_int_array(geometry->group_id, "dimension_types",
+                                             &geometry->dimension_types,
+                                             dims_1D, 1, dimension_types_range)) != ESCDF_SUCCESS) {
+            return err;
+        }
     }
 
     /* --embedded_system */
@@ -277,7 +293,43 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
         return err;
     }
 
-    /* read datasets of the group: */
+    /* --lattice_vectors */
+    if (geometry->number_of_physical_dimensions.is_set) {
+        dims_2D[0] = geometry->number_of_physical_dimensions.value;
+        dims_2D[1] = geometry->number_of_physical_dimensions.value;
+        if ((err = utils_hdf5_read_dbl_array(geometry->group_id, "lattice_vectors",
+                                             &geometry->lattice_vectors, dims_2D, 2,
+                                             lattice_vectors_range)) != ESCDF_SUCCESS) {
+            return err;
+        }
+    }
+
+    /* --spacegroup_3D_number */
+    if ((err = utils_hdf5_read_uint(geometry->group_id, "spacegroup_3D_number",
+                                    &geometry->spacegroup_3D_number,
+                                    spacegroup_3D_number_range)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* --symmorphic */
+    if ((err = utils_hdf5_read_bool(geometry->group_id, "symmorphic",
+                                    &geometry->symmorphic)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* --time_reversal_symmetry */
+    if ((err = utils_hdf5_read_bool(geometry->group_id, "time_reversal_symmetry",
+                                    &geometry->time_reversal_symmetry)) != ESCDF_SUCCESS) {
+        return err;
+    }
+
+    /* --bulk_regions_for_semi_infinite_dimension */
+    dims_1D[0] = 2;
+    if ((err = utils_hdf5_read_dbl_array(geometry->group_id, "bulk_regions_for_semi_infinite_dimension",
+                                         &geometry->bulk_regions_for_semi_infinite_dimension, dims_1D, 1,
+                                         bulk_regions_for_semi_infinite_dimension_range)) != ESCDF_SUCCESS) {
+        return err;
+    }
 
     return ESCDF_SUCCESS;
 }
