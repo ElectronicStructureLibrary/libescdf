@@ -51,7 +51,7 @@ void geometry_setup_file(const char *file, const char *geom_path)
     char *system_name = "silicon";
     uint number_of_physical_dimensions = 3;
     int dimension_types[3] = {1, 1, 1};
-    char *embedded_system = "no";
+    bool embedded_system = false;
     uint number_of_species = 1;
     uint number_of_sites = 2;
     uint number_of_symmetry_operations = 48;
@@ -59,9 +59,9 @@ void geometry_setup_file(const char *file, const char *geom_path)
                                     {5.0964124, 0.0000000, 5.0964124},
                                     {0.0000000, 5.0964124, 5.0964124}};
     uint spacegroup_3D_number = 227;
-    char *symmorphic = "no";
-    char *time_reversal_symmetry = "no";
-    double bulk_regions_for_semi_infinite_setup[2] = {2.0, 3.0};
+    bool symmorphic = false;
+    bool time_reversal_symmetry = false;
+    double bulk_regions_for_semi_infinite_dimension[2] = {2.0, 3.0};
 
     /* set up the data to write */
     uint species_at_sites[2] = {1, 1};
@@ -75,7 +75,7 @@ void geometry_setup_file(const char *file, const char *geom_path)
     double reduced_symmetry_matrices[48][3][3];
     double reduced_symmetry_translations[48][3];
     uint number_of_species_at_site[2] = {1, 1};
-    double concentration_of_species_at_site[2] = {1,0, 1.0};
+    double concentration_of_species_at_site[2] = {1.0, 1.0};
     double local_rotations[2][3][3] = {{{1.0, 0.0, 0.0},
                                         {0.0, 1.0, 0.0},
                                         {0.0, 0.0, 1.0}},
@@ -107,7 +107,6 @@ void geometry_setup_file(const char *file, const char *geom_path)
     string_len_3 = H5Tcopy(H5T_C_S1);
     status = H5Tset_size(string_len_3, 3);
 
-
     /* Write metadata */
 
     /* --system_name */
@@ -124,7 +123,7 @@ void geometry_setup_file(const char *file, const char *geom_path)
 
     /* --embedded_system */
     dims_1D = 1;
-    status = utils_hdf5_write_attr(silicon_geom_id, "embedded_system", string_len_3, &dims_1D, 1, string_len_3, embedded_system);
+    status = utils_hdf5_write_bool(silicon_geom_id, "embedded_system", embedded_system);
 
     /* --number_of_species */
     dims_1D = 1;
@@ -141,33 +140,21 @@ void geometry_setup_file(const char *file, const char *geom_path)
     /* --lattice_vectors */
     dims_2D[0] = 3;
     dims_2D[1] = 3;
-    status = utils_hdf5_create_dataset(silicon_geom_id, "lattice_vectors", H5T_NATIVE_DOUBLE, dims_2D, 2, &dataset_id);
-    status = utils_hdf5_write_dataset(dataset_id, H5P_DEFAULT, lattice_vectors, H5T_NATIVE_DOUBLE, NULL, NULL, NULL);
-    status = H5Dclose(dataset_id);
+    status = utils_hdf5_write_attr(silicon_geom_id, "lattice_vectors", H5T_NATIVE_DOUBLE, dims_2D, 2, H5T_NATIVE_DOUBLE, &lattice_vectors);
 
     /* --spacegroup_3D_number */
     dims_1D = 1;
-    status = utils_hdf5_create_dataset(silicon_geom_id, "spacegroup_3D_number", H5T_NATIVE_UINT, &dims_1D, 1, &dataset_id);
-    status = utils_hdf5_write_dataset(dataset_id, H5P_DEFAULT, &spacegroup_3D_number, H5T_NATIVE_UINT, NULL, NULL, NULL);
-    status = H5Dclose(dataset_id);
+    status = utils_hdf5_write_attr(silicon_geom_id, "spacegroup_3D_number", H5T_NATIVE_UINT, &dims_1D, 1, H5T_NATIVE_UINT, &spacegroup_3D_number);
 
     /* --symmorphic */
-    dims_1D = 1;
-    status = utils_hdf5_create_dataset(silicon_geom_id, "symmorphic", string_len_3, &dims_1D, 1, &dataset_id);
-    status = utils_hdf5_write_dataset(dataset_id, H5P_DEFAULT, symmorphic, string_len_3, NULL, NULL, NULL);
-    status = H5Dclose(dataset_id);
+    status = utils_hdf5_write_bool(silicon_geom_id, "symmorphic", symmorphic);
 
     /* --time_reversal_symmetry */
-    dims_1D = 1;
-    status = utils_hdf5_create_dataset(silicon_geom_id, "time_reversal_symmetry", string_len_3, &dims_1D, 1, &dataset_id);
-    status = utils_hdf5_write_dataset(dataset_id, H5P_DEFAULT, time_reversal_symmetry, string_len_3, NULL, NULL, NULL);
-    status = H5Dclose(dataset_id);
+    status = utils_hdf5_write_bool(silicon_geom_id, "time_reversal_symmetry", time_reversal_symmetry);
 
-    /* --bulk_regions_for_semi_infinite_setup */
+    /* --bulk_regions_for_semi_infinite_dimension */
     dims_1D = 2;
-    status = utils_hdf5_create_dataset(silicon_geom_id, "bulk_regions_for_semi_infinite_setup", H5T_NATIVE_DOUBLE, &dims_1D, 1, &dataset_id);
-    status = utils_hdf5_write_dataset(dataset_id, H5P_DEFAULT, bulk_regions_for_semi_infinite_setup, H5T_NATIVE_DOUBLE, NULL, NULL, NULL);
-    status = H5Dclose(dataset_id);
+    status = utils_hdf5_write_attr(silicon_geom_id, "bulk_regions_for_semi_infinite_dimension", H5T_NATIVE_DOUBLE, &dims_1D, 1, H5T_NATIVE_DOUBLE, &bulk_regions_for_semi_infinite_dimension);
 
     /* Write data */
 
@@ -335,11 +322,24 @@ START_TEST(test_geometry_close_group)
 }
 END_TEST
 
+/******************************************************************************
+ * Metadata methods                                                           *
+ ******************************************************************************/
+
+START_TEST(test_geometry_read_metadata)
+{
+    escdf_geometry_open_group(geo, handle_r, NULL);
+    ck_assert(escdf_geometry_read_metadata(geo) == ESCDF_SUCCESS);
+    escdf_geometry_close_group(geo);
+}
+END_TEST
+
 
 Suite * make_geometry_suite(void)
 {
     Suite *s;
     TCase *tc_geometry_new, *tc_geometry_open_group, *tc_geometry_create_group, *tc_geometry_close_group;
+    TCase *tc_geometry_read_metadata;
 
     s = suite_create("Geometry");
 
@@ -365,6 +365,12 @@ Suite * make_geometry_suite(void)
     tcase_add_checked_fixture(tc_geometry_close_group, geometry_setup, geometry_teardown);
     tcase_add_test(tc_geometry_close_group, test_geometry_close_group);
     suite_add_tcase(s, tc_geometry_close_group);
+
+    /* Metadata methods */
+    tc_geometry_read_metadata = tcase_create("Read metadata");
+    tcase_add_checked_fixture(tc_geometry_read_metadata, geometry_setup, geometry_teardown);
+    tcase_add_test(tc_geometry_read_metadata, test_geometry_read_metadata);
+    suite_add_tcase(s, tc_geometry_read_metadata);
 
     return s;
 }
