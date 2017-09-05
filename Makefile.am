@@ -29,7 +29,7 @@ AM_DISTCHECK_CONFIGURE_FLAGS = \
   --without-mpi
 
 # Build targets are expected to be in subdirectories
-SUBDIRS = escdf_references src doc
+SUBDIRS = src doc
 
 # TODO: write script to generated the environment module
 # Files to install for the Environment Modules

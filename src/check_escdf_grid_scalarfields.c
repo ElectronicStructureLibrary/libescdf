@@ -28,14 +28,96 @@
 #include <string.h>
 #include <stdio.h>
 #include <check.h>
+#include <unistd.h>
+#include <hdf5.h>
 
 #include "escdf_grid_scalarfields.h"
+#include "utils_hdf5.h"
 
 #if defined HAVE_CONFIG_H
 #include "config.h"
-#else
-#define ESCDF_CHK_DATADIR "."
 #endif
+
+
+#define CHKFILE "tmp_grid_scalarfield_test_file.h5"
+
+static hid_t file_id, root_id, group_id, subgroup_id;
+static hid_t array_id, dataset_id;
+
+
+void grid_scalarfield_setup(void)
+{
+    /* Dimensions: d3_1 = 1D length 3, d3_2 = 2D, length (3,3) */
+    hsize_t d1_1[1] = {1};
+    hsize_t d3_1[1] = {3};
+    hsize_t d3_2[2] = {3, 3};
+
+    /* Attributes */
+    hsize_t dt[3] = {0, 1, 0};
+    double lv[3][3] = {{5.0, 0.0, 0.0}, {0.0, 10.0, 0.0}, {0.0, 0.0, 15.0}};
+    hsize_t nc = 2;
+    hsize_t ng[3] = {2, 3, 9};
+    hsize_t np = 3;
+    hsize_t rc = 1;
+    hsize_t dr = 1;
+
+    /* Dataset */
+    hsize_t adims[3] = {2, 54, 1};
+    double array[2][54][1];
+
+    /* Internal variables */
+    int ierr, i, j;
+
+
+    /* Fill-in dataset */
+    for (i=0; i<2; i++) {
+        for (j=0; j<54; j++) {
+            array[i][j][0] = (double)(i * 16 + j);
+        }
+    }
+
+    /* File structure */
+    file_id = H5Fcreate(CHKFILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
+    ierr = utils_hdf5_create_group(root_id, "densities", &group_id);
+    ierr = utils_hdf5_create_group(group_id, "pseudo_density", &subgroup_id);
+
+    /* Dimension types */
+    ierr = utils_hdf5_write_attr(subgroup_id, "dimension_types", H5T_NATIVE_HSIZE, d3_1, 1, H5T_NATIVE_HSIZE, dt);
+
+    /* Lattice vectors */
+    ierr = utils_hdf5_write_attr(subgroup_id, "lattice_vectors", H5T_NATIVE_DOUBLE, d3_2, 2, H5T_NATIVE_DOUBLE, lv);
+
+    /* Number of components */
+    ierr = utils_hdf5_write_attr(subgroup_id, "number_of_components", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &nc);
+
+    /* Number of grid points */
+    ierr = utils_hdf5_write_attr(subgroup_id, "number_of_grid_points", H5T_NATIVE_HSIZE, d3_1, 1, H5T_NATIVE_HSIZE, ng);
+
+    /* Number of physical dimensions */
+    ierr = utils_hdf5_write_attr(subgroup_id, "number_of_physical_dimensions", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &np);
+
+    /* Real or complex */
+    ierr = utils_hdf5_write_attr(subgroup_id, "real_or_complex", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &rc);
+
+    /* Use default ordering */
+    ierr = utils_hdf5_write_attr(subgroup_id, "use_default_ordering", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &dr);
+
+    /* Values on grid */
+    ierr = utils_hdf5_create_dataset(subgroup_id, "values_on_grid", H5T_NATIVE_DOUBLE, adims, 3, &array_id);
+    ierr = utils_hdf5_write_dataset(array_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, NULL, NULL, NULL);
+
+    /* Close everything, since the purpose is to read the file */
+    H5Gclose(subgroup_id);
+    H5Gclose(group_id);
+    H5Gclose(root_id);
+    H5Fclose(file_id);
+}
+
+void grid_scalarfield_teardown(void)
+{
+    unlink(CHKFILE);
+}
 
 START_TEST(test_read_metadata)
 {
@@ -43,7 +125,7 @@ START_TEST(test_read_metadata)
     escdf_errno_t err;
     escdf_grid_scalarfield_t *scalarfield;
     
-    file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
+    file_id = escdf_open(CHKFILE, NULL);
     ck_assert(file_id != NULL);
 
     scalarfield = escdf_grid_scalarfield_new("densities/pseudo_density");
@@ -149,7 +231,7 @@ START_TEST(test_getters)
     bool bval;
     
     /* Create a new file using default properties. */
-    file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
+    file_id = escdf_open(CHKFILE, NULL);
     ck_assert(file_id != NULL);
 
     scalarfield = escdf_grid_scalarfield_new("densities/pseudo_density");
@@ -364,7 +446,7 @@ START_TEST(test_read_values_on_grid)
     hsize_t count[3] = {2, 2, 1};
     unsigned int i, j;
     
-    file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
+    file_id = escdf_open(CHKFILE, NULL);
     ck_assert(file_id != NULL);
 
     scalarfield = escdf_grid_scalarfield_new("densities/pseudo_density");
@@ -374,26 +456,19 @@ START_TEST(test_read_values_on_grid)
     /* total reading. */
     err = escdf_grid_scalarfield_read_values_on_grid(scalarfield, file_id, dens, NULL, NULL, NULL);
     ck_assert(err == ESCDF_SUCCESS);
-    for (j = 0; j < 2; j++) {
-        for (i = 0; i < 54; i++) {
-            if (i < 9)
-                ck_assert(dens[i + j * 54] == i + j * 9);
-            else if (i >= 12 && i < 21)
-                ck_assert(dens[i + j * 54] == i - 12 + 1 + j * 9);
-            else if (i >= 24 && i < 33)
-                ck_assert(dens[i + j * 54] == i - 24 + 2 + j * 9);
-            else
-                ck_assert(dens[i + j * 54] == 0.);
+    for (i=0; i<2; i++) {
+        for (j=0; j<54; j++) {
+            ck_assert((dens[i*54+j] - (double)(i * 16 + j)) < 1.0e-15);
         }
     }
-    
+
     /* Slice reading. */
     err = escdf_grid_scalarfield_read_values_on_grid(scalarfield, file_id, dens, start, count, NULL);
     ck_assert(err == ESCDF_SUCCESS);
-    ck_assert(dens[0] == 2.);
-    ck_assert(dens[1] == 3.);
-    ck_assert(dens[2] == 11.);
-    ck_assert(dens[3] == 12.);
+    ck_assert(dens[0] == 2.0);
+    ck_assert(dens[1] == 3.0);
+    ck_assert(dens[2] == 18.0);
+    ck_assert(dens[3] == 19.0);
 
     escdf_grid_scalarfield_free(scalarfield);
 
@@ -614,6 +689,7 @@ Suite * make_grid_scalarfield_suite(void)
     tcase_add_test(tc_info, test_read_values_on_grid);
     tcase_add_test(tc_info, test_write_values_on_grid);
     tcase_add_test(tc_info, test_read_values_on_grid_sliced);
+    tcase_add_checked_fixture(tc_info, grid_scalarfield_setup, grid_scalarfield_teardown);
     suite_add_tcase(s, tc_info);
 
     return s;
