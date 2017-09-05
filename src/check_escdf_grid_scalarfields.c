@@ -105,7 +105,7 @@ void grid_scalarfield_setup(void)
 
     /* Values on grid */
     ierr = utils_hdf5_create_dataset(subgroup_id, "values_on_grid", H5T_NATIVE_DOUBLE, adims, 3, &array_id);
-    ierr = utils_hdf5_write_dataset(subgroup_id, array_id, array, H5T_NATIVE_DOUBLE, NULL, NULL, NULL);
+    ierr = utils_hdf5_write_dataset(array_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, NULL, NULL, NULL);
 
     /* Close everything, since the purpose is to read the file */
     H5Gclose(subgroup_id);
@@ -116,7 +116,7 @@ void grid_scalarfield_setup(void)
 
 void grid_scalarfield_teardown(void)
 {
-    //FIXME: unlink(CHKFILE);
+    unlink(CHKFILE);
 }
 
 START_TEST(test_read_metadata)
@@ -446,7 +446,7 @@ START_TEST(test_read_values_on_grid)
     hsize_t count[3] = {2, 2, 1};
     unsigned int i, j;
     
-    file_id = escdf_open(ESCDF_CHK_DATADIR "/grid_scalarfield_read.h5", NULL);
+    file_id = escdf_open(CHKFILE, NULL);
     ck_assert(file_id != NULL);
 
     scalarfield = escdf_grid_scalarfield_new("densities/pseudo_density");
@@ -456,26 +456,19 @@ START_TEST(test_read_values_on_grid)
     /* total reading. */
     err = escdf_grid_scalarfield_read_values_on_grid(scalarfield, file_id, dens, NULL, NULL, NULL);
     ck_assert(err == ESCDF_SUCCESS);
-    for (j = 0; j < 2; j++) {
-        for (i = 0; i < 54; i++) {
-            if (i < 9)
-                ck_assert(dens[i + j * 54] == i + j * 9);
-            else if (i >= 12 && i < 21)
-                ck_assert(dens[i + j * 54] == i - 12 + 1 + j * 9);
-            else if (i >= 24 && i < 33)
-                ck_assert(dens[i + j * 54] == i - 24 + 2 + j * 9);
-            else
-                ck_assert(dens[i + j * 54] == 0.);
+    for (i=0; i<2; i++) {
+        for (j=0; j<54; j++) {
+            ck_assert((dens[i*54+j] - (double)(i * 16 + j)) < 1.0e-15);
         }
     }
-    
+
     /* Slice reading. */
     err = escdf_grid_scalarfield_read_values_on_grid(scalarfield, file_id, dens, start, count, NULL);
     ck_assert(err == ESCDF_SUCCESS);
-    ck_assert(dens[0] == 2.);
-    ck_assert(dens[1] == 3.);
-    ck_assert(dens[2] == 11.);
-    ck_assert(dens[3] == 12.);
+    ck_assert(dens[0] == 2.0);
+    ck_assert(dens[1] == 3.0);
+    ck_assert(dens[2] == 18.0);
+    ck_assert(dens[3] == 19.0);
 
     escdf_grid_scalarfield_free(scalarfield);
 

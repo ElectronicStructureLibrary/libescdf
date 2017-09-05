@@ -485,10 +485,6 @@ AC_SUBST(LIBS_COVERAGE)
 # Prepare data for the test suite
 #
 
-# Make data location available to check
-AC_DEFINE_UNQUOTED([ESCDF_CHK_DATADIR], "${ac_abs_top_builddir}/escdf_references",
-  [Directory containing ESCDF files for the tests.])
-
 # Generate explicit dependencies for GCOV tests
 if test "${enable_gcov}" = "yes"; then
   echo "# Script-generated makefile targets for GCOV tests" \
@@ -551,7 +547,6 @@ AC_CONFIG_FILES([
   Makefile
   config/data/escdf.pc
   doc/Makefile
-  escdf_references/Makefile
   src/Makefile
   src/gcov_check_coverage
   src/gcov_clean
