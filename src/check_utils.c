@@ -1,4 +1,5 @@
-/* Copyright (C) 2016 Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+/* Copyright (C) 2016-2017 Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
  *
  * This file is part of ESCDF.
  *

@@ -1,5 +1,6 @@
-/* Copyright (C) 2016 Fabiano Corsetti <fabiano.corsetti@gmail.com>
- *                    Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+/* Copyright (C) 2016-2017 Fabiano Corsetti <fabiano.corsetti@gmail.com>
+ *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
  *
  * This file is part of ESCDF.
  *

@@ -1,4 +1,5 @@
-/* Copyright (C) 2016 Damien Caliste <dcaliste@free.fr>
+/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+ *                         Yann Pouillon <devops@materialsevolution.es>
  *
  * This file is part of ESCDF.
  *

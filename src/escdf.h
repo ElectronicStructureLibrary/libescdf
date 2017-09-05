@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Yann Pouillon <devops@materialsevolution.es>
+/* Copyright (C) 2015-2017 Yann Pouillon <devops@materialsevolution.es>
  *
  * This file is part of ESCDF.
  *
