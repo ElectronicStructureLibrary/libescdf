@@ -53,6 +53,15 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name);
 bool utils_hdf5_check_present_recursive(hid_t loc_id, const char *name);
 
 /**
+ * Checks if some location has a given attribute attached to it.
+ *
+ * @param[in] loc_id: location identifier to which the attribute is attached.
+ * @param[in] name: attribute name.
+ * @return true if attribute is present, false otherwise.
+ */
+bool utils_hdf5_check_present_attr(hid_t loc_id, const char *name);
+
+/**
  * Checks if the dimensions of a dataspace match some given values.
  *
  * @param[in] dtspace_id: object identifier of dataspace to be checked.
