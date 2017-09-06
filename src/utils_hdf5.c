@@ -260,6 +260,27 @@ escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name, _int_set_t *sc
     return ESCDF_SUCCESS;
 }
 
+escdf_errno_t utils_hdf5_read_string(hid_t loc_id, const char *name, char **string, hsize_t len)
+{
+    escdf_errno_t err;
+    hid_t str_id;
+
+    str_id = H5Tcopy(H5T_C_S1);
+    H5Tset_size(str_id, len);
+    H5Tset_strpad(str_id, H5T_STR_NULLTERM);
+
+    *string = malloc(sizeof(char) * len);
+
+    if ((err = utils_hdf5_read_attr(loc_id, name, str_id, NULL, 0, (void *)*string)) != ESCDF_SUCCESS) {
+        free(*string);
+        H5Tclose(str_id);
+        return err;
+    };
+
+    H5Tclose(str_id);
+    return ESCDF_SUCCESS;
+}
+
 escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name, unsigned int **array, const hsize_t *dims, unsigned int ndims, unsigned int range[2])
 {
     escdf_errno_t err;
@@ -534,24 +555,6 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_t
     return err;
 }
 
-escdf_errno_t utils_hdf5_write_bool(hid_t loc_id, const char *name, const bool value)
-{
-    escdf_errno_t err;
-    hsize_t dims;
-    hid_t string;
-
-    string = H5Tcopy(H5T_C_S1);
-    H5Tset_size(string, 4);
-    H5Tset_strpad(string, H5T_STR_NULLTERM);
-    dims = 1;
-
-    err = utils_hdf5_write_attr(loc_id, name, string, &dims, 1, string, (value? "yes" : "no"));
-
-    H5Tclose(string);
-    return err;
-}
-
-
 escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
 {
     escdf_errno_t err;
@@ -574,6 +577,37 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void
     H5Sclose(memspace_id);
 
     return ESCDF_SUCCESS;
+}
+
+escdf_errno_t utils_hdf5_write_bool(hid_t loc_id, const char *name, const bool value)
+{
+    escdf_errno_t err;
+    hsize_t dims;
+    hid_t string;
+
+    string = H5Tcopy(H5T_C_S1);
+    H5Tset_size(string, 4);
+    H5Tset_strpad(string, H5T_STR_NULLTERM);
+    dims = 1;
+
+    err = utils_hdf5_write_attr(loc_id, name, string, &dims, 1, string, (value? "yes" : "no"));
+
+    H5Tclose(string);
+    return err;
+}
+
+escdf_errno_t utils_hdf5_write_string(hid_t loc_id, const char *name, const char *string, hsize_t len)
+{
+    escdf_errno_t err;
+    hid_t str_id;
+
+    str_id = H5Tcopy(H5T_C_S1);
+    H5Tset_size(str_id, len);
+    H5Tset_strpad(str_id, H5T_STR_NULLTERM);
+    err = utils_hdf5_write_attr(loc_id, name, str_id, NULL, 0, str_id, string);
+
+    H5Tclose(str_id);
+    return err;
 }
 
 
