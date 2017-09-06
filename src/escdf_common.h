@@ -31,6 +31,7 @@ extern "C" {
 #include <stdbool.h>
 
 /* Strings */
+#define ESCDF_STRLEN_ERROR 1024
 #define ESCDF_STRLEN_GROUP 256
 
 /**
