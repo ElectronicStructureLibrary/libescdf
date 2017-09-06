@@ -334,6 +334,13 @@ START_TEST(test_geometry_read_metadata)
 }
 END_TEST
 
+START_TEST(test_geometry_read_metadata_empty)
+{
+    escdf_geometry_create_group(geo, handle_e, NULL);
+    ck_assert(escdf_geometry_read_metadata(geo) == ESCDF_SUCCESS);
+    escdf_geometry_close_group(geo);
+}
+END_TEST
 
 Suite * make_geometry_suite(void)
 {
@@ -370,6 +377,7 @@ Suite * make_geometry_suite(void)
     tc_geometry_read_metadata = tcase_create("Read metadata");
     tcase_add_checked_fixture(tc_geometry_read_metadata, geometry_setup, geometry_teardown);
     tcase_add_test(tc_geometry_read_metadata, test_geometry_read_metadata);
+    tcase_add_test(tc_geometry_read_metadata, test_geometry_read_metadata_empty);
     suite_add_tcase(s, tc_geometry_read_metadata);
 
     return s;
