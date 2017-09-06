@@ -102,6 +102,19 @@ START_TEST(test_utils_hdf5_check_present_recursive_false)
 }
 END_TEST
 
+/* check_present_attr */
+START_TEST(test_utils_hdf5_check_present_attr_true)
+{
+    ck_assert(utils_hdf5_check_present_attr(group_id, ATTRIBUTE_S));
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_check_present_attr_false)
+{
+    ck_assert(!utils_hdf5_check_present_attr(group_id, "not_present"));
+}
+END_TEST
+
 /* check_shape */
 START_TEST(test_utils_hdf5_check_shape_scalar_correct)
 {
@@ -451,7 +464,7 @@ END_TEST
 Suite * make_utils_hdf5_suite(void)
 {
     Suite *s;
-    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_present_recursive, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
+    TCase *tc_utils_hdf5_check_present, *tc_utils_hdf5_check_present_recursive, *tc_utils_hdf5_check_present_attr, *tc_utils_hdf5_check_shape, *tc_utils_hdf5_check_attr, *tc_utils_hdf5_check_dataset;
     TCase *tc_utils_hdf5_read_attr, *tc_utils_hdf5_read_dataset;
     TCase *tc_utils_hdf5_create_group, *tc_utils_hdf5_create_attribute, *tc_utils_hdf5_create_dataset;
     TCase *tc_utils_hdf5_write_attribute, *tc_utils_hdf5_write_dataset;
@@ -469,6 +482,12 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_test(tc_utils_hdf5_check_present_recursive, test_utils_hdf5_check_present_recursive_true);
     tcase_add_test(tc_utils_hdf5_check_present_recursive, test_utils_hdf5_check_present_recursive_false);
     suite_add_tcase(s, tc_utils_hdf5_check_present_recursive);
+
+    tc_utils_hdf5_check_present_attr = tcase_create("Check present attribute");
+    tcase_add_checked_fixture(tc_utils_hdf5_check_present_attr, utils_hdf5_setup, utils_hdf5_teardown);
+    tcase_add_test(tc_utils_hdf5_check_present_attr, test_utils_hdf5_check_present_attr_true);
+    tcase_add_test(tc_utils_hdf5_check_present_attr, test_utils_hdf5_check_present_attr_false);
+    suite_add_tcase(s, tc_utils_hdf5_check_present_attr);
 
     tc_utils_hdf5_check_shape = tcase_create("Check shape");
     tcase_add_checked_fixture(tc_utils_hdf5_check_shape, utils_hdf5_setup, utils_hdf5_teardown);

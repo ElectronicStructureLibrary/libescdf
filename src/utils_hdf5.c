@@ -46,7 +46,6 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
 
 bool utils_hdf5_check_present_recursive(hid_t loc_id, const char *path)
 {
-    htri_t bool_id;
     char lpath[ESCDF_STRLEN_GROUP];
     char *p;
 
@@ -61,6 +60,16 @@ bool utils_hdf5_check_present_recursive(hid_t loc_id, const char *path)
         }
     }
     return utils_hdf5_check_present(loc_id, lpath);
+}
+
+bool utils_hdf5_check_present_attr(hid_t loc_id, const char *name)
+{
+    htri_t bool_id;
+
+    if ((bool_id = H5Aexists(loc_id, name)) < 0 || !bool_id)
+        return false;
+
+    return true;
 }
 
 escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, const hsize_t *dims, unsigned int ndims)
