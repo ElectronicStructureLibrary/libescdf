@@ -139,45 +139,56 @@ escdf_errno_t escdf_geometry_close(escdf_geometry_t * geometry);
 escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry);
 
 /**
- * Sets the value of number_of_physical_dimensions in the geometry data type.
+ * Sets system_name in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] system_name: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_system_name(
+    escdf_geometry_t *geometry, const char *system_name);
+
+/**
+ * Get the value of system_name stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] system_name: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_system_name(
+    const escdf_geometry_t *geometry, char *system_name);
+
+/**
+ * Sets number_of_physical_dimensions in the geometry data type.
  *
  * @param[in,out] geometry: instance of the geometry group.
  * @param[in] number_of_physical_dimensions: the value of the variable to be set.
  * @return error code.
  */
 escdf_errno_t escdf_geometry_set_number_of_physical_dimensions(
-        escdf_geometry_t *geometry, const int number_of_physical_dimensions);
+    escdf_geometry_t *geometry, unsigned int number_of_physical_dimensions);
 
 /**
  * Get the value of number_of_physical_dimensions stored in the geometry data
  * type.
  *
  * @param[in] geometry: instance of the geometry group.
- * @return the value of the variable.
+ * @param[out] number_of_physical_dimensions: the value of the variable
+ * @return error code.
  */
-int escdf_geometry_get_number_of_physical_dimensions(
-        const escdf_geometry_t *geometry);
+escdf_errno_t escdf_geometry_get_number_of_physical_dimensions(
+    const escdf_geometry_t *geometry, unsigned int *number_of_physical_dimensions);
 
 /**
- * Returns if number_of_physical_dimensions has been set or not in the geometry
- * data type.
- *
- * @param[in] geometry: instance of the geometry group.
- * @return TRUE if the variable has been set, FALSE otherwise.
- */
-bool escdf_geometry_is_set_number_of_physical_dimensions(
-        const escdf_geometry_t *geometry);
-
-/**
- * Sets the value of dimension_types in the geometry data type.
+ * Sets dimension_types in the geometry data type.
  *
  * @param[in,out] geometry: instance of the geometry group.
  * @param[in] dimension_types: the value of the variable to be set.
- * @param[in] len: the size of dimension_types.
  * @return error code.
  */
 escdf_errno_t escdf_geometry_set_dimension_types(
-        escdf_geometry_t *geometry, const int *dimension_types, const size_t len);
+    escdf_geometry_t *geometry, const int *dimension_types);
 
 /**
  * Get the value of dimension_types stored in the geometry data
@@ -185,20 +196,201 @@ escdf_errno_t escdf_geometry_set_dimension_types(
  *
  * @param[in] geometry: instance of the geometry group.
  * @param[out] dimension_types: the value of the variable
- * @param[in] len: the size of dimension_types.
  * @return error code.
  */
 escdf_errno_t escdf_geometry_get_dimension_types(
-        const escdf_geometry_t *geometry, int *dimension_types, const size_t len);
+    const escdf_geometry_t *geometry, int *dimension_types);
+
 
 /**
- * Get a pointer to dimension_types stored in the geometry data type.
+ * Sets embedded_system in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] embedded_system: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_embedded_system(
+    escdf_geometry_t *geometry, bool embedded_system);
+
+/**
+ * Get the value of embedded_system stored in the geometry data
+ * type.
  *
  * @param[in] geometry: instance of the geometry group.
- * @return pointer to the variable.
+ * @param[out] embedded_system: the value of the variable
+ * @return error code.
  */
-const int * escdf_geometry_ptr_dimension_types(
-        const escdf_geometry_t *geometry);
+escdf_errno_t escdf_geometry_get_embedded_system(
+    const escdf_geometry_t *geometry, bool *embedded_system);
+
+/**
+ * Sets number_of_species in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] number_of_species: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_number_of_species(
+    escdf_geometry_t *geometry, unsigned int number_of_species);
+
+/**
+ * Get the value of number_of_species stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] number_of_species: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_number_of_species(
+    const escdf_geometry_t *geometry, unsigned int *number_of_species);
+
+/**
+ * Sets number_of_sites in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] number_of_sites: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_number_of_sites(
+    escdf_geometry_t *geometry, unsigned int number_of_sites);
+
+/**
+ * Get the value of number_of_sites stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] number_of_sites: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_number_of_sites(
+    const escdf_geometry_t *geometry, unsigned int *number_of_sites);
+
+/**
+ * Sets number_of_symmetry_operations in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] number_of_symmetry_operations: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_number_of_symmetry_operations(
+    escdf_geometry_t *geometry, unsigned int number_of_symmetry_operations);
+
+/**
+ * Get the value of number_of_symmetry_operations stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] number_of_symmetry_operations: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_number_of_symmetry_operations(
+    const escdf_geometry_t *geometry, unsigned int *number_of_symmetry_operations);
+
+/**
+ * Sets lattice_vectors in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] lattice_vectors: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_lattice_vectors(
+    escdf_geometry_t *geometry, const double *lattice_vectors);
+
+/**
+ * Get the value of lattice_vectors stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] lattice_vectors: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_lattice_vectors(
+    const escdf_geometry_t *geometry, double *lattice_vectors);
+
+/**
+ * Sets spacegroup_3D_number in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] spacegroup_3D_number: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_spacegroup_3D_number(
+    escdf_geometry_t *geometry, unsigned int spacegroup_3D_number);
+
+/**
+ * Get the value of spacegroup_3D_number stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] spacegroup_3D_number: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_spacegroup_3D_number(
+    const escdf_geometry_t *geometry, unsigned int *spacegroup_3D_number);
+
+/**
+ * Sets symmorphic in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] symmorphic: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_symmorphic(
+    escdf_geometry_t *geometry, bool symmorphic);
+
+/**
+ * Get the value of symmorphic stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] symmorphic: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_symmorphic(
+    const escdf_geometry_t *geometry, bool *symmorphic);
+
+/**
+ * Sets time_reversal_symmetry in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] time_reversal_symmetry: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_time_reversal_symmetry(
+    escdf_geometry_t *geometry, bool time_reversal_symmetry);
+
+/**
+ * Get the value of time_reversal_symmetry stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] time_reversal_symmetry: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_time_reversal_symmetry(
+    const escdf_geometry_t *geometry, bool *time_reversal_symmetry);
+
+/**
+ * Sets bulk_regions_for_semi_infinite_dimension in the geometry data type.
+ *
+ * @param[in,out] geometry: instance of the geometry group.
+ * @param[in] bulk_regions_for_semi_infinite_dimension: the value of the variable to be set.
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_set_bulk_regions_for_semi_infinite_dimension(
+    escdf_geometry_t *geometry, const double bulk_regions_for_semi_infinite_dimension[2]);
+
+/**
+ * Get the value of bulk_regions_for_semi_infinite_dimension stored in the geometry data
+ * type.
+ *
+ * @param[in] geometry: instance of the geometry group.
+ * @param[out] bulk_regions_for_semi_infinite_dimension: the value of the variable
+ * @return error code.
+ */
+escdf_errno_t escdf_geometry_get_bulk_regions_for_semi_infinite_dimension(
+    const escdf_geometry_t *geometry, double bulk_regions_for_semi_infinite_dimension[2]);
+
 
 
 /******************************************************************************
