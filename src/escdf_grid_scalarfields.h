@@ -40,7 +40,7 @@ extern "C" {
 struct _escdf_grid_scalarfield_t;
 typedef struct _escdf_grid_scalarfield_t escdf_grid_scalarfield_t;
 
-/* To be moved in a common cell definition with geometry. */
+/* To be moved in a common cell definition with system. */
 typedef enum {
     ESCDF_DIRECTION_FREE = 0,
     ESCDF_DIRECTION_PERIODIC,
@@ -93,9 +93,9 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
                                                     escdf_handle_t *file_id);
 
 /**
- * Sets the value of number_of_physical_dimensions in the geometry data type.
+ * Sets the value of number_of_physical_dimensions in the system data type.
  *
- * @param[in,out] geometry: instance of the geometry group.
+ * @param[in,out] system: instance of the system group.
  * @param[in] number_of_physical_dimensions: the value of the variable to be set.
  * @return error code.
  */
