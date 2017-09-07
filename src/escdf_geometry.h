@@ -32,7 +32,6 @@ extern "C" {
 
 #include "escdf_error.h"
 #include "escdf_handle.h"
-#include "utils.h"
 
 
 
