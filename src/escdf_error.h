@@ -74,9 +74,9 @@ escdf_errno_t escdf_error_add(const escdf_errno_t error_id, const char *filename
 
 /**
  * Fetch and clear the error chain.
- * @param[out] err_str: string pointer describing the chain of errors.
+ * @return string pointer describing the chain of errors
  */
-void escdf_error_fetchall(char **err_str);
+char *escdf_error_fetchall(void);
 
 /**
  * Flush and clear the error chain.
