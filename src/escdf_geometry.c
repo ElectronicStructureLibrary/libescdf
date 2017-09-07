@@ -241,7 +241,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     /* --system_name */
     if (utils_hdf5_check_present_attr(geometry->group_id, "system_name") &&
         (err = utils_hdf5_read_string(geometry->group_id, "system_name",
-                                      &geometry->system_name, 80)) == ESCDF_SUCCESS) {
+                                      &geometry->system_name, 80)) != ESCDF_SUCCESS) {
         return err;
     }
 
@@ -341,39 +341,324 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t escdf_geometry_set_number_of_physical_dimensions(
-        escdf_geometry_t *geometry, const int number_of_physical_dimensions)
-{
-    /* checks on the value */
-    FULFILL_OR_RETURN(number_of_physical_dimensions == 3, ESCDF_EVALUE);
 
-    /* set the value and status */
+escdf_errno_t escdf_geometry_set_system_name(
+    escdf_geometry_t *geometry, const char system_name[81])
+{
+    herr_t err;
+
+    if ((err = utils_hdf5_write_string(geometry->group_id, "system_name", system_name, 80)) != ESCDF_SUCCESS)
+        return err;
+
+    free(geometry->system_name);
+    geometry->system_name = (char *)malloc(80*sizeof(char));
+    FULFILL_OR_EXIT(geometry->system_name != NULL, ESCDF_ENOMEM);
+
+    strcpy(geometry->system_name, system_name);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_system_name(
+    const escdf_geometry_t *geometry, char *system_name)
+{
+    FULFILL_OR_RETURN(geometry->system_name != NULL, ESCDF_ESIZE_MISSING);
+    strcpy(system_name, geometry->system_name);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_number_of_physical_dimensions(
+    escdf_geometry_t *geometry, unsigned int number_of_physical_dimensions)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "number_of_physical_dimensions", H5T_NATIVE_UINT, NULL, 0,
+                                     H5T_NATIVE_UINT, &number_of_physical_dimensions)) != ESCDF_SUCCESS)
+        return err;
+
     geometry->number_of_physical_dimensions = _uint_set(number_of_physical_dimensions);
 
     return ESCDF_SUCCESS;
 }
 
-int escdf_geometry_get_number_of_physical_dimensions(
-        const escdf_geometry_t *geometry)
+escdf_errno_t escdf_geometry_get_number_of_physical_dimensions(
+    const escdf_geometry_t *geometry, unsigned int *number_of_physical_dimensions)
 {
-    /* check if the value is set */
-    FULFILL_OR_RETURN_VAL(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING, 0);
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
 
-    return geometry->number_of_physical_dimensions.value;
+    *number_of_physical_dimensions = geometry->number_of_physical_dimensions.value;
+
+    return ESCDF_SUCCESS;
 }
 
-bool escdf_geometry_is_set_number_of_physical_dimensions(
-        const escdf_geometry_t *geometry)
+escdf_errno_t escdf_geometry_set_dimension_types(
+    escdf_geometry_t *geometry, const int *dimension_types)
 {
-    return geometry->number_of_physical_dimensions.is_set;
+    herr_t err;
+    hsize_t dim;
+
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+    dim = geometry->number_of_physical_dimensions.value;
+
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "dimension_types", H5T_NATIVE_INT, &dim, 1,
+                                     H5T_NATIVE_INT, &dimension_types)) != ESCDF_SUCCESS)
+        return err;
+
+    free(geometry->dimension_types);
+    geometry->dimension_types = (int *)malloc(dim * sizeof(int));
+    FULFILL_OR_EXIT(geometry->dimension_types != NULL, ESCDF_ENOMEM);
+    memcpy(geometry->dimension_types, dimension_types, dim * sizeof(int));
+
+    return ESCDF_SUCCESS;
 }
 
+escdf_errno_t escdf_geometry_get_dimension_types(
+    const escdf_geometry_t *geometry, int *dimension_types)
+{
+    FULFILL_OR_RETURN(geometry->dimension_types != NULL, ESCDF_ESIZE_MISSING);
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+
+    memcpy(dimension_types, geometry->dimension_types,
+           sizeof(int) * geometry->number_of_physical_dimensions.value);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_embedded_system(
+    escdf_geometry_t *geometry, bool embedded_system)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_bool(geometry->group_id, "embedded_system",
+                                     embedded_system)) != ESCDF_SUCCESS)
+        return err;
+
+    geometry->embedded_system = _bool_set(embedded_system);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_embedded_system(
+    const escdf_geometry_t *geometry, bool *embedded_system)
+{
+    FULFILL_OR_RETURN(geometry->embedded_system.is_set, ESCDF_ESIZE_MISSING);
+
+    *embedded_system = geometry->embedded_system.value;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_number_of_species(
+    escdf_geometry_t *geometry, unsigned int number_of_species)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "number_of_species", H5T_NATIVE_UINT, NULL, 0,
+                                     H5T_NATIVE_UINT, &number_of_species)) != ESCDF_SUCCESS)
+        return err;
+
+    geometry->number_of_species = _uint_set(number_of_species);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_number_of_species(
+    const escdf_geometry_t *geometry, unsigned int *number_of_species)
+{
+    FULFILL_OR_RETURN(geometry->number_of_species.is_set, ESCDF_ESIZE_MISSING);
+
+    *number_of_species = geometry->number_of_species.value;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_number_of_sites(
+    escdf_geometry_t *geometry, unsigned int number_of_sites)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "number_of_sites", H5T_NATIVE_UINT, NULL, 0,
+                                     H5T_NATIVE_UINT, &number_of_sites)) != ESCDF_SUCCESS)
+        return err;
+
+    geometry->number_of_sites = _uint_set(number_of_sites);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_number_of_sites(
+    const escdf_geometry_t *geometry, unsigned int *number_of_sites)
+{
+    FULFILL_OR_RETURN(geometry->number_of_sites.is_set, ESCDF_ESIZE_MISSING);
+
+    *number_of_sites = geometry->number_of_sites.value;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_number_of_symmetry_operations(
+    escdf_geometry_t *geometry, unsigned int number_of_symmetry_operations)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "number_of_symmetry_operations", H5T_NATIVE_UINT, NULL, 0,
+                                     H5T_NATIVE_UINT, &number_of_symmetry_operations)) != ESCDF_SUCCESS)
+        return err;
+
+    geometry->number_of_symmetry_operations = _uint_set(number_of_symmetry_operations);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_number_of_symmetry_operations(
+    const escdf_geometry_t *geometry, unsigned int *number_of_symmetry_operations)
+{
+    FULFILL_OR_RETURN(geometry->number_of_symmetry_operations.is_set, ESCDF_ESIZE_MISSING);
+
+    *number_of_symmetry_operations = geometry->number_of_symmetry_operations.value;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_lattice_vectors(
+    escdf_geometry_t *geometry, const double *lattice_vectors)
+{
+    herr_t err;
+    hsize_t dim[2];
+
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+    dim[0] = geometry->number_of_physical_dimensions.value;
+    dim[1] = geometry->number_of_physical_dimensions.value;
+
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "lattice_vectors", H5T_NATIVE_DOUBLE, dim, 2,
+                                     H5T_NATIVE_DOUBLE, &lattice_vectors)) != ESCDF_SUCCESS)
+        return err;
+
+    free(geometry->lattice_vectors);
+    geometry->lattice_vectors = (double *)malloc(dim[0]*dim[1] * sizeof(double));
+    FULFILL_OR_EXIT(geometry->lattice_vectors != NULL, ESCDF_ENOMEM);
+    memcpy(geometry->lattice_vectors, lattice_vectors, dim[0] * dim[1] * sizeof(double));
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_lattice_vectors(
+    const escdf_geometry_t *geometry, double *lattice_vectors)
+{
+    FULFILL_OR_RETURN(geometry->lattice_vectors != NULL, ESCDF_ESIZE_MISSING);
+    FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
+
+    memcpy(lattice_vectors, geometry->lattice_vectors,
+           sizeof(double) *  geometry->number_of_physical_dimensions.value *
+               geometry->number_of_physical_dimensions.value);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_spacegroup_3D_number(
+    escdf_geometry_t *geometry, unsigned int spacegroup_3D_number)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "spacegroup_3D_number", H5T_NATIVE_UINT, NULL, 0,
+                                     H5T_NATIVE_UINT, &spacegroup_3D_number)) != ESCDF_SUCCESS)
+        return err;
+
+    geometry->spacegroup_3D_number = _uint_set(spacegroup_3D_number);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_spacegroup_3D_number(
+    const escdf_geometry_t *geometry, unsigned int *spacegroup_3D_number)
+{
+    FULFILL_OR_RETURN(geometry->spacegroup_3D_number.is_set, ESCDF_ESIZE_MISSING);
+
+    *spacegroup_3D_number = geometry->spacegroup_3D_number.value;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_symmorphic(
+    escdf_geometry_t *geometry, bool symmorphic)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_bool(geometry->group_id, "symmorphic", symmorphic)) != ESCDF_SUCCESS)
+        return err;
+
+    geometry->symmorphic = _bool_set(symmorphic);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_symmorphic(
+    const escdf_geometry_t *geometry, bool *symmorphic)
+{
+    FULFILL_OR_RETURN(geometry->symmorphic.is_set, ESCDF_ESIZE_MISSING);
+
+    *symmorphic = geometry->symmorphic.value;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_time_reversal_symmetry(
+    escdf_geometry_t *geometry, bool time_reversal_symmetry)
+{
+    herr_t err;
+    if ((err = utils_hdf5_write_bool(geometry->group_id, "time_reversal_symmetry",
+                                     time_reversal_symmetry)) != ESCDF_SUCCESS)
+        return err;
+
+    geometry->time_reversal_symmetry = _bool_set(time_reversal_symmetry);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_time_reversal_symmetry(
+    const escdf_geometry_t *geometry, bool *time_reversal_symmetry)
+{
+    FULFILL_OR_RETURN(geometry->time_reversal_symmetry.is_set, ESCDF_ESIZE_MISSING);
+
+    *time_reversal_symmetry = geometry->time_reversal_symmetry.value;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_set_bulk_regions_for_semi_infinite_dimension(
+    escdf_geometry_t *geometry, const double bulk_regions_for_semi_infinite_dimension[2])
+{
+    herr_t err;
+    hsize_t dim = 2;
+
+    if ((err = utils_hdf5_write_attr(geometry->group_id, "bulk_regions_for_semi_infinite_dimension",
+                                     H5T_NATIVE_DOUBLE, &dim, 1, H5T_NATIVE_DOUBLE,
+                                     &bulk_regions_for_semi_infinite_dimension)) != ESCDF_SUCCESS)
+        return err;
+
+    free(geometry->bulk_regions_for_semi_infinite_dimension);
+    geometry->bulk_regions_for_semi_infinite_dimension = (double *)malloc(2 * sizeof(double));
+    FULFILL_OR_EXIT(geometry->bulk_regions_for_semi_infinite_dimension!= NULL, ESCDF_ENOMEM);
+    memcpy(geometry->bulk_regions_for_semi_infinite_dimension,
+           bulk_regions_for_semi_infinite_dimension, 2 * sizeof(double));
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t escdf_geometry_get_bulk_regions_for_semi_infinite_dimension(
+    const escdf_geometry_t *geometry, double bulk_regions_for_semi_infinite_dimension[2])
+{
+    FULFILL_OR_RETURN(geometry->bulk_regions_for_semi_infinite_dimension != NULL, ESCDF_ESIZE_MISSING);
+
+    memcpy(bulk_regions_for_semi_infinite_dimension, geometry->bulk_regions_for_semi_infinite_dimension,
+           2 * sizeof(double));
+
+    return ESCDF_SUCCESS;
+}
+
+
+
+
+/*
 escdf_errno_t escdf_geometry_set_dimension_types(
         escdf_geometry_t *geometry, const int *dimension_types, const size_t len)
 {
     unsigned int i, c;
 
-    /* checks on the value */
     FULFILL_OR_RETURN(geometry->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
     FULFILL_OR_RETURN(len == geometry->number_of_physical_dimensions.value, ESCDF_ESIZE);
     c = 0;
@@ -383,7 +668,6 @@ escdf_errno_t escdf_geometry_set_dimension_types(
     }
     FULFILL_OR_RETURN(c <= 1, ESCDF_ERANGE);
 
-    /* allocate the array and set the value */
     free(geometry->dimension_types);
     geometry->dimension_types = malloc(sizeof(int) * len);
     memcpy(geometry->dimension_types, dimension_types, sizeof(int) * len);
@@ -402,14 +686,6 @@ escdf_errno_t escdf_geometry_get_dimension_types(
     return ESCDF_SUCCESS;
 }
 
-const int * escdf_geometry_ptr_dimension_types(
-        const escdf_geometry_t *geometry)
-{
-    FULFILL_OR_RETURN_VAL(geometry, ESCDF_EOBJECT, NULL);
-
-    return geometry->dimension_types;
-}
-
 escdf_errno_t escdf_geometry_set_embedded_system(escdf_geometry_t *geometry,
                                                  const bool embedded_system)
 {
@@ -425,16 +701,9 @@ bool escdf_geometry_get_embedded_system(const escdf_geometry_t *geometry)
     return geometry->embedded_system.value;
 }
 
-bool escdf_geometry_is_set_embedded_system(
-        const escdf_geometry_t *geometry)
-{
-    return geometry->embedded_system.is_set;
-}
-
 escdf_errno_t escdf_geometry_set_number_of_species(
         escdf_geometry_t *geometry, const int number_of_species)
 {
-    /* set the value and status */
     geometry->number_of_species = _uint_set(number_of_species);
 
     return ESCDF_SUCCESS;
@@ -443,22 +712,14 @@ escdf_errno_t escdf_geometry_set_number_of_species(
 int escdf_geometry_get_number_of_species(
         const escdf_geometry_t *geometry)
 {
-    /* check if the value is set */
     FULFILL_OR_RETURN_VAL(geometry->number_of_species.is_set, ESCDF_ESIZE_MISSING, 0);
 
     return geometry->number_of_species.value;
 }
 
-bool escdf_geometry_is_set_number_of_species(
-        const escdf_geometry_t *geometry)
-{
-    return geometry->number_of_species.is_set;
-}
-
 escdf_errno_t escdf_geometry_set_number_of_sites(
         escdf_geometry_t *geometry, const int number_of_sites)
 {
-    /* set the value and status */
     geometry->number_of_sites = _uint_set(number_of_sites);
 
     return ESCDF_SUCCESS;
@@ -467,22 +728,14 @@ escdf_errno_t escdf_geometry_set_number_of_sites(
 int escdf_geometry_get_number_of_sites(
         const escdf_geometry_t *geometry)
 {
-    /* check if the value is set */
     FULFILL_OR_RETURN_VAL(geometry->number_of_sites.is_set, ESCDF_ESIZE_MISSING, 0);
 
     return geometry->number_of_sites.value;
 }
 
-bool escdf_geometry_is_set_number_of_sites(
-        const escdf_geometry_t *geometry)
-{
-    return geometry->number_of_sites.is_set;
-}
-
 escdf_errno_t escdf_geometry_set_number_of_symmetry_operations(
         escdf_geometry_t *geometry, const int number_of_symmetry_operations)
 {
-    /* set the value and status */
     geometry->number_of_symmetry_operations = _uint_set(number_of_symmetry_operations);
 
     return ESCDF_SUCCESS;
@@ -491,14 +744,9 @@ escdf_errno_t escdf_geometry_set_number_of_symmetry_operations(
 int escdf_geometry_get_number_of_symmetry_operations(
         const escdf_geometry_t *geometry)
 {
-    /* check if the value is set */
     FULFILL_OR_RETURN_VAL(geometry->number_of_symmetry_operations.is_set, ESCDF_ESIZE_MISSING, 0);
 
     return geometry->number_of_symmetry_operations.value;
 }
 
-bool escdf_geometry_is_set_number_of_symmetry_operations(
-        const escdf_geometry_t *geometry)
-{
-    return geometry->number_of_symmetry_operations.is_set;
-}
+*/
