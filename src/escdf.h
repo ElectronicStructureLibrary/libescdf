@@ -17,3 +17,20 @@
  * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301  USA.
  */
+
+#ifndef LIBESCDF_ESCDF_H
+#define LIBESCDF_ESCDF_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "escdf_common.h"
+#include "escdf_handle.h"
+#include "escdf_geometry.h"
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
