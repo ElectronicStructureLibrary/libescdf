@@ -227,7 +227,6 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
     escdf_errno_t err;
     hsize_t dims_1D[1], dims_2D[2];
-    hid_t string_len_80;
 
     unsigned int number_of_physical_dimensions_range[2] = {3, 3};
     int dimension_types_range[2] = {0, 2};
@@ -240,18 +239,14 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 
 
     /* --system_name */
-    string_len_80 = H5Tcopy(H5T_C_S1);
-    H5Tset_size(string_len_80, 80);
-    H5Tset_strpad(string_len_80, H5T_STR_NULLTERM);
-    if (utils_hdf5_check_present(geometry->group_id, "system_name") &&
-        (err = utils_hdf5_read_attr(geometry->group_id, "system_name", string_len_80, dims_1D, 1,
-                                    &geometry->system_name)) == ESCDF_SUCCESS) {
+    if (utils_hdf5_check_present_attr(geometry->group_id, "system_name") &&
+        (err = utils_hdf5_read_string(geometry->group_id, "system_name",
+                                      &geometry->system_name, 80)) == ESCDF_SUCCESS) {
         return err;
     }
-    H5Tclose(string_len_80);
-    
+
     /* --number_of_physical_dimensions */
-    if (utils_hdf5_check_present(geometry->group_id, "number_of_physical_dimensions") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "number_of_physical_dimensions") &&
         (err = utils_hdf5_read_uint(geometry->group_id, "number_of_physical_dimensions",
                                     &geometry->number_of_physical_dimensions,
                                     number_of_physical_dimensions_range)) != ESCDF_SUCCESS) {
@@ -261,7 +256,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     /* --dimension_types */
     if (geometry->number_of_physical_dimensions.is_set) {
         dims_1D[0] = geometry->number_of_physical_dimensions.value;
-        if (utils_hdf5_check_present(geometry->group_id, "dimension_types") &&
+        if (utils_hdf5_check_present_attr(geometry->group_id, "dimension_types") &&
             (err = utils_hdf5_read_int_array(geometry->group_id, "dimension_types",
                                              &geometry->dimension_types,
                                              dims_1D, 1, dimension_types_range)) != ESCDF_SUCCESS) {
@@ -270,14 +265,14 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     }
 
     /* --embedded_system */
-    if (utils_hdf5_check_present(geometry->group_id, "embedded_system") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "embedded_system") &&
         (err = utils_hdf5_read_bool(geometry->group_id, "embedded_system",
                                     &geometry->embedded_system)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --number_of_species */
-    if (utils_hdf5_check_present(geometry->group_id, "number_of_species") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "number_of_species") &&
         (err = utils_hdf5_read_uint(geometry->group_id, "number_of_species",
                                     &geometry->number_of_species,
                                     number_of_species_range)) != ESCDF_SUCCESS) {
@@ -285,7 +280,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     }
 
     /* --number_of_sites */
-    if (utils_hdf5_check_present(geometry->group_id, "number_of_sites") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "number_of_sites") &&
         (err = utils_hdf5_read_uint(geometry->group_id, "number_of_sites",
                                     &geometry->number_of_sites,
                                     number_of_sites_range)) != ESCDF_SUCCESS) {
@@ -293,7 +288,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     }
 
     /* --number_of_symmetry_operations */
-    if (utils_hdf5_check_present(geometry->group_id, "number_of_symmetry_operations") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "number_of_symmetry_operations") &&
         (err = utils_hdf5_read_uint(geometry->group_id, "number_of_symmetry_operations",
                                     &geometry->number_of_symmetry_operations,
                                     number_of_symmetry_operations_range)) != ESCDF_SUCCESS) {
@@ -304,7 +299,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     if (geometry->number_of_physical_dimensions.is_set) {
         dims_2D[0] = geometry->number_of_physical_dimensions.value;
         dims_2D[1] = geometry->number_of_physical_dimensions.value;
-        if (utils_hdf5_check_present(geometry->group_id, "lattice_vectors") &&
+        if (utils_hdf5_check_present_attr(geometry->group_id, "lattice_vectors") &&
             (err = utils_hdf5_read_dbl_array(geometry->group_id, "lattice_vectors",
                                              &geometry->lattice_vectors, dims_2D, 2,
                                              lattice_vectors_range)) != ESCDF_SUCCESS) {
@@ -313,7 +308,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     }
 
     /* --spacegroup_3D_number */
-    if (utils_hdf5_check_present(geometry->group_id, "spacegroup_3D_number") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "spacegroup_3D_number") &&
         (err = utils_hdf5_read_uint(geometry->group_id, "spacegroup_3D_number",
                                     &geometry->spacegroup_3D_number,
                                     spacegroup_3D_number_range)) != ESCDF_SUCCESS) {
@@ -321,14 +316,14 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
     }
 
     /* --symmorphic */
-    if (utils_hdf5_check_present(geometry->group_id, "symmorphic") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "symmorphic") &&
         (err = utils_hdf5_read_bool(geometry->group_id, "symmorphic",
                                     &geometry->symmorphic)) != ESCDF_SUCCESS) {
         return err;
     }
 
     /* --time_reversal_symmetry */
-    if (utils_hdf5_check_present(geometry->group_id, "time_reversal_symmetry") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "time_reversal_symmetry") &&
         (err = utils_hdf5_read_bool(geometry->group_id, "time_reversal_symmetry",
                                     &geometry->time_reversal_symmetry)) != ESCDF_SUCCESS) {
         return err;
@@ -336,7 +331,7 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 
     /* --bulk_regions_for_semi_infinite_dimension */
     dims_1D[0] = 2;
-    if (utils_hdf5_check_present(geometry->group_id, "bulk_regions_for_semi_infinite_dimension") &&
+    if (utils_hdf5_check_present_attr(geometry->group_id, "bulk_regions_for_semi_infinite_dimension") &&
         (err = utils_hdf5_read_dbl_array(geometry->group_id, "bulk_regions_for_semi_infinite_dimension",
                                          &geometry->bulk_regions_for_semi_infinite_dimension, dims_1D, 1,
                                          bulk_regions_for_semi_infinite_dimension_range)) != ESCDF_SUCCESS) {
