@@ -114,20 +114,23 @@ escdf_errno_t escdf_error_add(const escdf_errno_t error_id, const char *filename
     return error_id;
 }
 
-void escdf_error_fetchall(char **err_str) 
+char *escdf_error_fetchall()
 {
     char buf[8];
-    char *tmp_str;
+    char *err_str, *tmp_str;
     int err_len;
     escdf_error_t *cursor = ESCDF_error_chain;
 
-    *err_str = NULL;
+    err_str = NULL;
 
     if ( cursor != NULL ) {
-        *err_str  = (char *) malloc (20*sizeof(char));
-        assert(*err_str != NULL);
-        sprintf(*err_str, "%s\n", "libescdf: ERROR:");
+        err_str  = (char *) malloc (20*sizeof(char));
     }
+    if ( err_str == NULL) {
+        return NULL;
+    }
+
+    sprintf(err_str, "%s\n", "libescdf: ERROR:");
 
     while ( cursor != NULL ) {
         assert(cursor->filename != NULL);
@@ -144,19 +147,21 @@ void escdf_error_fetchall(char **err_str)
         assert(tmp_str != NULL);
         sprintf(tmp_str, "  * in %s(%s):%d:\n      %s\n", cursor->filename,
                 cursor->routine, cursor->line, escdf_error_string(cursor->id));
-        *err_str = realloc(*err_str, strlen(*err_str)+err_len+1);
-        if ( *err_str == NULL ) {
-        fprintf(stderr, "libescdf: FATAL:\n      could not build error message"
-                ".\n");
-        exit(1);
+        err_str = realloc(err_str, strlen(err_str)+err_len+1);
+        if ( err_str == NULL ) {
+            fprintf(stderr,
+                "libescdf: FATAL:\n      could not build error message.\n");
+            return NULL;
         }
-        strcat(*err_str, tmp_str);
+        strcat(err_str, tmp_str);
         free(tmp_str);
 
         cursor = cursor->next;
     }
 
     escdf_error_free();
+
+    return err_str;
 }
 
 void escdf_error_flush(FILE *fd)
@@ -165,7 +170,7 @@ void escdf_error_flush(FILE *fd)
 
     assert(fd != NULL);
 
-    escdf_error_fetchall(&err_str);
+    err_str = escdf_error_fetchall();
     if ( err_str != NULL ) {
         fprintf(fd, "%s", err_str);
         fflush(fd);
@@ -244,17 +249,17 @@ const char *escdf_error_string(const escdf_errno_t error_id)
 {
     switch (error_id) {
     case ESCDF_SUCCESS:
-        return "success (ESCDF_SUCCESS)" ;
+        return "success (ESCDF_SUCCESS)";
     case ESCDF_ERROR:
-        return "error (ESCDF_ERROR)" ;
+        return "error (ESCDF_ERROR)";
     case ESCDF_EFILE_CORRUPT:
         return "file corrupted (ESCDF_EFILE_CORRUPT)";
     case ESCDF_EFILE_FORMAT:
         return "unknown file format (ESCDF_EFILE_FORMAT)";
     case ESCDF_EIO:
-        return "input/output error (ESCDF_EIO)" ;
+        return "input/output error (ESCDF_EIO)";
     case ESCDF_ENOFILE:
-        return "file does not exist (ESCDF_ENOFILE)" ;
+        return "file does not exist (ESCDF_ENOFILE)";
     case ESCDF_ENOMEM:
         return "malloc failed (ESCDF_ENOMEM)";
     case ESCDF_ENOSUPPORT:
