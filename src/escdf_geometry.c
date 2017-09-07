@@ -227,7 +227,6 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 {
     escdf_errno_t err;
     hsize_t dims_1D[1], dims_2D[2];
-    hid_t string_len_80;
 
     unsigned int number_of_physical_dimensions_range[2] = {3, 3};
     int dimension_types_range[2] = {0, 2};
@@ -240,16 +239,12 @@ escdf_errno_t escdf_geometry_read_metadata(escdf_geometry_t *geometry)
 
 
     /* --system_name */
-    string_len_80 = H5Tcopy(H5T_C_S1);
-    H5Tset_size(string_len_80, 80);
-    H5Tset_strpad(string_len_80, H5T_STR_NULLTERM);
     if (utils_hdf5_check_present_attr(geometry->group_id, "system_name") &&
-        (err = utils_hdf5_read_attr(geometry->group_id, "system_name", string_len_80, dims_1D, 1,
-                                    &geometry->system_name)) == ESCDF_SUCCESS) {
+        (err = utils_hdf5_read_string(geometry->group_id, "system_name",
+                                      &geometry->system_name, 80)) == ESCDF_SUCCESS) {
         return err;
     }
-    H5Tclose(string_len_80);
-    
+
     /* --number_of_physical_dimensions */
     if (utils_hdf5_check_present_attr(geometry->group_id, "number_of_physical_dimensions") &&
         (err = utils_hdf5_read_uint(geometry->group_id, "number_of_physical_dimensions",
