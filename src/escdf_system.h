@@ -62,29 +62,29 @@ escdf_system_t * escdf_system_new();
 void escdf_system_free(escdf_system_t *system);
 
 /**
- * Open the group associated with the system. If a path is given,
- * the group path will be 'system/path', otherwise, if path is NULL, it
+ * Open the group associated with the system. If a name is given,
+ * the group path will be 'system/name', otherwise, if name is NULL, it
  * is 'system'. If the group does not exist, an error is returned.
  *
  * @param[in,out] system: the system.
  * @param[in] handle: the file handle.
- * @param[in] path: path to the system group.
+ * @param[in] name: name to the system group.
  * @return Error code.
  */
-escdf_errno_t escdf_system_open_group(escdf_system_t *system, escdf_handle_t *handle, const char *path);
+escdf_errno_t escdf_system_open_group(escdf_system_t *system, const escdf_handle_t *handle, const char *name);
 
 /**
- * Create a group to be associated with the system. If a path is given,
- * the group path will be 'system/path', otherwise, if path is NULL, it
+ * Create a group to be associated with the system. If a name is given,
+ * the group path will be 'system/name', otherwise, if name is NULL, it
  * is 'system'. If the group already exist, all previous contents of the group are
  * deleted.
  *
  * @param[in,out] system: the system.
  * @param[in] handle: the file handle.
- * @param[in] path: path to the system group.
+ * @param[in] name: name to the system group.
  * @return Error code.
  */
-escdf_errno_t escdf_system_create_group(escdf_system_t *system, escdf_handle_t *handle, const char *path);
+escdf_errno_t escdf_system_create_group(escdf_system_t *system, const escdf_handle_t *handle, const char *name);
 
 /**
  * Closes the group associated with the system.
@@ -100,9 +100,10 @@ escdf_errno_t escdf_system_close_group(escdf_system_t *system);
  ******************************************************************************/
 
 /**
- * This function takes care of creating an instance of escdf_system_t by
- * allocating the memory. It also initializes all its contents to the default
- * values.
+ * This function takes care of the following tasks:
+ * - call escdf_system_new to create an instance of the structure.
+ * - call escdf_system_open_group. Note that this function will return an error if the group does not exist.
+ * - call escdf_system_read_metadata to read all the metadata from the file and store it in memory.
  *
  * @param[in] handle: the file/group handle defining the root where to open
  * the "/system" group.
@@ -110,11 +111,26 @@ escdf_errno_t escdf_system_close_group(escdf_system_t *system);
  * "/system" group, otherwise "/system/name" is used.
  * @return instance of the system data type.
  */
-escdf_system_t * escdf_system_open(const escdf_handle_t *handle,
-                                   const char *name);
+escdf_system_t * escdf_system_open(const escdf_handle_t *handle, const char *name);
 
 /**
- * Free all memory associated with the system group and close the group.
+ * This function performs the following tasks:
+ * - call escdf_system_new to create an instance of the structure.
+ * - call escdf_system_create_group.
+ *
+ * @param[in] handle: the file/group handle defining the root where to open
+ * the "/system" group.
+ * @param[in] name: If NULL, assume that the system is stored in the
+ * "/system" group, otherwise "/system/name" is used.
+ * @return instance of the system data type.
+ *
+ */
+escdf_system_t * escdf_system_create(const escdf_handle_t *handle, const char *name);
+
+/**
+ * This function performs the following tasks:
+ * - call escdf_system_close_group to close the group.
+ * - call escdf_system_free to free all memory.
  *
  * @param[in,out] system: the system.
  * @return error code.
@@ -127,12 +143,10 @@ escdf_errno_t escdf_system_close(escdf_system_t *system);
  ******************************************************************************/
 
 /**
- * Given a path to a ESCDF system group, this routines opens the group, reads
- * all the metadata stored in the group, and stores the information in the
- * system data type.
+ * This routine reads ll the metadata stored in the group, and stores
+ * the information in the system data type.
  *
  * @param[out] system: pointer to instance of the system group.
- * @param[in] path: the path to the ESCDF system group.
  * @return error code.
  */
 escdf_errno_t escdf_system_read_metadata(escdf_system_t *system);

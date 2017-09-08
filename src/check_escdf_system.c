@@ -243,38 +243,17 @@ void system_setup_file(const char *file, const char *sys_path)
     status = H5Fclose(file_id);
 }
 
-void system_setup_sys(void)
-{
-    escdf_system_free(sys_a);
-    escdf_system_free(sys_r);
-    escdf_system_free(sys_e);
-    sys_a = escdf_system_new();
-    sys_r = escdf_system_new();
-    sys_e = escdf_system_new();
-}
 
-void system_teardown_sys(void)
-{
-    escdf_system_free(sys_a);
-    escdf_system_free(sys_r);
-    escdf_system_free(sys_e);
-    sys_a = NULL;
-    sys_r = NULL;
-    sys_e = NULL;
-}
-
-void system_setup(void)
+void system_setup_handles(void)
 {
     system_setup_file(FILE_R, NULL);
     system_setup_file(FILE_A, GROUP);
     handle_r = escdf_open(FILE_R, NULL);
     handle_a = escdf_open(FILE_A, NULL);
     handle_e = escdf_create(FILE_E, NULL);
-    system_setup_sys();
 }
 
-void system_teardown(void) {
-    system_teardown_sys();
+void system_teardown_handles(void) {
     escdf_close(handle_r);
     escdf_close(handle_a);
     escdf_close(handle_e);
@@ -283,7 +262,29 @@ void system_teardown(void) {
     unlink(FILE_E);
 }
 
-void system_group_setup(void)
+void system_setup(void)
+{
+    system_setup_handles();
+    escdf_system_free(sys_a);
+    escdf_system_free(sys_r);
+    escdf_system_free(sys_e);
+    sys_a = escdf_system_new();
+    sys_r = escdf_system_new();
+    sys_e = escdf_system_new();
+}
+
+void system_teardown(void)
+{
+    escdf_system_free(sys_a);
+    escdf_system_free(sys_r);
+    escdf_system_free(sys_e);
+    sys_a = NULL;
+    sys_r = NULL;
+    sys_e = NULL;
+    system_teardown_handles();
+}
+
+void system_setup_group(void)
 {
     system_setup();
     escdf_system_open_group(sys_r, handle_r, NULL);
@@ -291,7 +292,7 @@ void system_group_setup(void)
     escdf_system_create_group(sys_e, handle_e, NULL);
 }
 
-void system_group_teardown(void)
+void system_teardown_group(void)
 {
     escdf_system_close_group(sys_r);
     escdf_system_close_group(sys_a);
@@ -338,6 +339,42 @@ START_TEST(test_system_close_group)
 {
     escdf_system_open_group(sys_r, handle_r, NULL);
     ck_assert(escdf_system_close_group(sys_r) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
+/******************************************************************************
+ * High-level creators and destructors                                         *
+ ******************************************************************************/
+
+START_TEST(test_system_open)
+{
+    ck_assert( (sys_r = escdf_system_open(handle_r, NULL)) != NULL);
+}
+END_TEST
+
+START_TEST(test_system_open_path)
+{
+    ck_assert( (sys_r = escdf_system_open(handle_a, GROUP)) != NULL);
+}
+END_TEST
+
+START_TEST(test_system_create)
+{
+    ck_assert( (sys_r = escdf_system_create(handle_e, NULL)) != NULL);
+}
+END_TEST
+
+START_TEST(test_system_create_path)
+{
+    ck_assert( (sys_r = escdf_system_create(handle_e, GROUP)) != NULL);
+}
+END_TEST
+
+START_TEST(test_system_close)
+{
+    ck_assert( escdf_system_close(sys_r) == ESCDF_SUCCESS);
+    sys_r = NULL;
 }
 END_TEST
 
@@ -729,6 +766,7 @@ Suite * make_system_suite(void)
 {
     Suite *s;
     TCase *tc_system_new, *tc_system_open_group, *tc_system_create_group, *tc_system_close_group;
+    TCase *tc_system_open, *tc_system_create, *tc_system_close;
     TCase *tc_system_read_metadata, *tc_system_system_name, *tc_system_number_of_physical_dimensions,
         *tc_system_dimension_types, *tc_system_embedded_system, *tc_system_number_of_species,
         *tc_system_number_of_sites, *tc_system_number_of_symmetry_operations, *tc_system_lattice_vectors,
@@ -739,7 +777,7 @@ Suite * make_system_suite(void)
 
     /* Low-level creators and destructors */
     tc_system_new = tcase_create("New");
-    tcase_add_checked_fixture(tc_system_new, NULL, system_teardown_sys);
+    tcase_add_checked_fixture(tc_system_new, system_setup_handles, system_teardown);
     tcase_add_test(tc_system_new, test_system_new);
     suite_add_tcase(s, tc_system_new);
 
@@ -760,92 +798,111 @@ Suite * make_system_suite(void)
     tcase_add_test(tc_system_close_group, test_system_close_group);
     suite_add_tcase(s, tc_system_close_group);
 
+    /* High-level creators and destructors */
+    tc_system_open = tcase_create("Open system");
+    tcase_add_checked_fixture(tc_system_open, system_setup_handles, system_teardown);
+    tcase_add_test(tc_system_open, test_system_open);
+    tcase_add_test(tc_system_open, test_system_open_path);
+    suite_add_tcase(s, tc_system_open);
+
+    tc_system_create = tcase_create("Create system");
+    tcase_add_checked_fixture(tc_system_create, system_setup_handles, system_teardown);
+    tcase_add_test(tc_system_create, test_system_create);
+    tcase_add_test(tc_system_create, test_system_create_path);
+    suite_add_tcase(s, tc_system_create);
+
+    tc_system_close = tcase_create("Close system");
+    tcase_add_checked_fixture(tc_system_close, system_setup, system_teardown);
+    tcase_add_test(tc_system_close, test_system_close);
+    suite_add_tcase(s, tc_system_close);
+
     /* Metadata methods */
     tc_system_read_metadata = tcase_create("Read metadata");
-    tcase_add_checked_fixture(tc_system_read_metadata, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_read_metadata, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_read_metadata, test_system_read_metadata);
     tcase_add_test(tc_system_read_metadata, test_system_read_metadata_empty);
     suite_add_tcase(s, tc_system_read_metadata);
 
     tc_system_system_name = tcase_create("System name");
-    tcase_add_checked_fixture(tc_system_system_name, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_system_name, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_system_name, test_system_get_system_name);
     tcase_add_test(tc_system_system_name, test_system_get_system_name_undef);
     tcase_add_test(tc_system_system_name, test_system_set_system_name);
     suite_add_tcase(s, tc_system_system_name);
 
     tc_system_number_of_physical_dimensions = tcase_create("Number of physical dimensions");
-    tcase_add_checked_fixture(tc_system_number_of_physical_dimensions, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_number_of_physical_dimensions, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_number_of_physical_dimensions, test_system_get_number_of_physical_dimensions);
     tcase_add_test(tc_system_number_of_physical_dimensions, test_system_get_number_of_physical_dimensions_undef);
     tcase_add_test(tc_system_number_of_physical_dimensions, test_system_set_number_of_physical_dimensions);
     suite_add_tcase(s, tc_system_number_of_physical_dimensions);
 
     tc_system_dimension_types = tcase_create("Dimension types");
-    tcase_add_checked_fixture(tc_system_dimension_types, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_dimension_types, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_dimension_types, test_system_get_dimension_types);
     tcase_add_test(tc_system_dimension_types, test_system_get_dimension_types_undef);
     tcase_add_test(tc_system_dimension_types, test_system_set_dimension_types);
     suite_add_tcase(s, tc_system_dimension_types);
 
     tc_system_embedded_system = tcase_create("Embedded system");
-    tcase_add_checked_fixture(tc_system_embedded_system, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_embedded_system, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_embedded_system, test_system_get_embedded_system);
     tcase_add_test(tc_system_embedded_system, test_system_get_embedded_system_undef);
     tcase_add_test(tc_system_embedded_system, test_system_set_embedded_system);
     suite_add_tcase(s, tc_system_embedded_system);
 
     tc_system_number_of_species = tcase_create("Number of species");
-    tcase_add_checked_fixture(tc_system_number_of_species, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_number_of_species, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_number_of_species, test_system_get_number_of_species);
     tcase_add_test(tc_system_number_of_species, test_system_get_number_of_species_undef);
     tcase_add_test(tc_system_number_of_species, test_system_set_number_of_species);
     suite_add_tcase(s, tc_system_number_of_species);
 
     tc_system_number_of_sites = tcase_create("Number of sites");
-    tcase_add_checked_fixture(tc_system_number_of_sites, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_number_of_sites, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_number_of_sites, test_system_get_number_of_sites);
     tcase_add_test(tc_system_number_of_sites, test_system_get_number_of_sites_undef);
     tcase_add_test(tc_system_number_of_sites, test_system_set_number_of_sites);
     suite_add_tcase(s, tc_system_number_of_sites);
 
     tc_system_number_of_symmetry_operations = tcase_create("Number of symmetry operations");
-    tcase_add_checked_fixture(tc_system_number_of_symmetry_operations, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_number_of_symmetry_operations, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_number_of_symmetry_operations, test_system_get_number_of_symmetry_operations);
     tcase_add_test(tc_system_number_of_symmetry_operations, test_system_get_number_of_symmetry_operations_undef);
     tcase_add_test(tc_system_number_of_symmetry_operations, test_system_set_number_of_symmetry_operations);
     suite_add_tcase(s, tc_system_number_of_symmetry_operations);
 
     tc_system_lattice_vectors = tcase_create("Lattice vectors");
-    tcase_add_checked_fixture(tc_system_lattice_vectors, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_lattice_vectors, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_lattice_vectors, test_system_get_lattice_vectors);
     tcase_add_test(tc_system_lattice_vectors, test_system_get_lattice_vectors_undef);
     tcase_add_test(tc_system_lattice_vectors, test_system_set_lattice_vectors);
     suite_add_tcase(s, tc_system_lattice_vectors);
 
     tc_system_spacegroup_3D_number = tcase_create("Spacegroup 3D number");
-    tcase_add_checked_fixture(tc_system_spacegroup_3D_number, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_spacegroup_3D_number, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_spacegroup_3D_number, test_system_get_spacegroup_3D_number);
     tcase_add_test(tc_system_spacegroup_3D_number, test_system_get_spacegroup_3D_number_undef);
     tcase_add_test(tc_system_spacegroup_3D_number, test_system_set_spacegroup_3D_number);
     suite_add_tcase(s, tc_system_spacegroup_3D_number);
 
     tc_system_symmorphic = tcase_create("Symmorphic");
-    tcase_add_checked_fixture(tc_system_symmorphic, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_symmorphic, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_symmorphic, test_system_get_symmorphic);
     tcase_add_test(tc_system_symmorphic, test_system_get_symmorphic_undef);
     tcase_add_test(tc_system_symmorphic, test_system_set_symmorphic);
     suite_add_tcase(s, tc_system_symmorphic);
 
     tc_system_time_reversal_symmetry = tcase_create("Time reversal symmetry");
-    tcase_add_checked_fixture(tc_system_time_reversal_symmetry, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_time_reversal_symmetry, system_setup_group, system_teardown_group);
     tcase_add_test(tc_system_time_reversal_symmetry, test_system_get_time_reversal_symmetry);
     tcase_add_test(tc_system_time_reversal_symmetry, test_system_get_time_reversal_symmetry_undef);
     tcase_add_test(tc_system_time_reversal_symmetry, test_system_set_time_reversal_symmetry);
     suite_add_tcase(s, tc_system_time_reversal_symmetry);
 
     tc_system_bulk_regions_for_semi_infinite_dimension = tcase_create("Bulk regions for semi infinite dimensions");
-    tcase_add_checked_fixture(tc_system_bulk_regions_for_semi_infinite_dimension, system_group_setup, system_group_teardown);
+    tcase_add_checked_fixture(tc_system_bulk_regions_for_semi_infinite_dimension, system_setup_group,
+                              system_teardown_group);
     tcase_add_test(tc_system_bulk_regions_for_semi_infinite_dimension, test_system_get_bulk_regions_for_semi_infinite_dimension);
     tcase_add_test(tc_system_bulk_regions_for_semi_infinite_dimension, test_system_get_bulk_regions_for_semi_infinite_dimension_undef);
     tcase_add_test(tc_system_bulk_regions_for_semi_infinite_dimension, test_system_set_bulk_regions_for_semi_infinite_dimension);

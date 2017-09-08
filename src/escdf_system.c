@@ -89,6 +89,8 @@ escdf_system_t * escdf_system_new()
     if (system == NULL)
         return NULL;
 
+    system->group_id = -1;
+
     /* no metadata set at the moment */
     system->system_name = NULL;
     system->number_of_physical_dimensions.is_set = false;
@@ -137,15 +139,15 @@ void escdf_system_free(escdf_system_t *system)
     }
 }
 
-escdf_errno_t escdf_system_open_group(escdf_system_t *system, escdf_handle_t *handle, const char *path)
+escdf_errno_t escdf_system_open_group(escdf_system_t *system, const escdf_handle_t *handle, const char *name)
 {
     char group_name[ESCDF_STRLEN_GROUP];
 
 
-    if (path == NULL) {
+    if (name == NULL) {
         sprintf(group_name, "%s", "system");
     } else {
-        sprintf(group_name, "%s/%s", "system", path);
+        sprintf(group_name, "%s/%s", "system", name);
     }
 
     system->group_id = H5Gopen(handle->group_id, group_name, H5P_DEFAULT);
@@ -155,14 +157,14 @@ escdf_errno_t escdf_system_open_group(escdf_system_t *system, escdf_handle_t *ha
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t escdf_system_create_group(escdf_system_t *system, escdf_handle_t *handle, const char *path)
+escdf_errno_t escdf_system_create_group(escdf_system_t *system, const escdf_handle_t *handle, const char *name)
 {
     char group_name[ESCDF_STRLEN_GROUP];
 
-    if (path == NULL) {
+    if (name == NULL) {
         sprintf(group_name, "%s", "system");
     } else {
-        sprintf(group_name, "%s/%s", "system", path);
+        sprintf(group_name, "%s/%s", "system", name);
     }
     utils_hdf5_create_group(handle->file_id, group_name, &(system->group_id));
 
@@ -176,37 +178,51 @@ escdf_errno_t escdf_system_close_group(escdf_system_t *system)
     herr_t herr_status;
 
     /* close the group */
-    herr_status = H5Gclose(system->group_id);
-    FULFILL_OR_RETURN(herr_status >= 0, herr_status);
+    if (system->group_id >= 0) {
+        herr_status = H5Gclose(system->group_id);
+        FULFILL_OR_RETURN(herr_status >= 0, herr_status);
+    }
 
     return ESCDF_SUCCESS;
 }
 
+
 /******************************************************************************
- * Global functions                                                           *
+ * High-level creators and destructors                                        *
  ******************************************************************************/
 
-escdf_system_t * escdf_system_open(const escdf_handle_t *handle,
-                                   const char *name)
+escdf_system_t * escdf_system_open(const escdf_handle_t *handle, const char *name)
 {
     escdf_system_t *system;
 
-    system = (escdf_system_t *) malloc(sizeof(escdf_system_t));
-    //FULFILL_OR_RETURN(system != NULL, ESCDF_ENOMEM)
+    if ((system = escdf_system_new()) == NULL)
+        return NULL;
 
-    /* check if "system" group exists; if not, create it */
-    if (!utils_hdf5_check_present(handle->group_id, "system")) {
-        system->group_id = H5Gcreate(handle->group_id, "system", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    } else {
-        system->group_id = H5Gopen(handle->group_id, "system", H5P_DEFAULT);
+    if (escdf_system_open_group(system, handle, name) != ESCDF_SUCCESS)
+        goto cleanup;
+
+    if (escdf_system_read_metadata(system) != ESCDF_SUCCESS) {
+        escdf_system_close_group(system);
+        goto cleanup;
     }
 
-    /* check if specific system group exists and open it; if not, create it */
-    if (!utils_hdf5_check_present(system->group_id, name)) {
-        system->group_id = H5Gcreate(system->group_id, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    }
-    else {
-        system->group_id = H5Gopen(system->group_id, name, H5P_DEFAULT);
+    return system;
+
+    cleanup:
+    escdf_system_free(system);
+    return NULL;
+}
+
+escdf_system_t * escdf_system_create(const escdf_handle_t *handle, const char *name)
+{
+    escdf_system_t *system;
+
+    if ((system = escdf_system_new()) == NULL)
+        return NULL;
+
+    if (escdf_system_create_group(system, handle, name) != ESCDF_SUCCESS) {
+        escdf_system_free(system);
+        return NULL;
     }
 
     return system;
@@ -214,14 +230,22 @@ escdf_system_t * escdf_system_open(const escdf_handle_t *handle,
 
 escdf_errno_t escdf_system_close(escdf_system_t *system)
 {
-    herr_t herr_status;
+    escdf_errno_t err;
 
-    /* close the group */
-    herr_status = H5Gclose(system->group_id);
-    FULFILL_OR_RETURN(herr_status >= 0, herr_status);
+    if (system != NULL) {
+        if ((err = escdf_system_close_group(system)) != ESCDF_SUCCESS)
+            return err;
+
+        escdf_system_free(system);
+    }
 
     return ESCDF_SUCCESS;
 }
+
+
+/******************************************************************************
+ * Metadata functions                                                         *
+ ******************************************************************************/
 
 escdf_errno_t escdf_system_read_metadata(escdf_system_t *system)
 {
@@ -650,103 +674,3 @@ escdf_errno_t escdf_system_get_bulk_regions_for_semi_infinite_dimension(
     return ESCDF_SUCCESS;
 }
 
-
-
-
-/*
-escdf_errno_t escdf_system_set_dimension_types(
-        escdf_system_t *system, const int *dimension_types, const size_t len)
-{
-    unsigned int i, c;
-
-    FULFILL_OR_RETURN(system->number_of_physical_dimensions.is_set, ESCDF_ESIZE_MISSING);
-    FULFILL_OR_RETURN(len == system->number_of_physical_dimensions.value, ESCDF_ESIZE);
-    c = 0;
-    for (i = 0; i < len; i++) {
-        FULFILL_OR_RETURN(dimension_types[i] >= 0 && dimension_types[i] < 3, ESCDF_ERANGE);
-        if (dimension_types[i] == 2) c++;
-    }
-    FULFILL_OR_RETURN(c <= 1, ESCDF_ERANGE);
-
-    free(system->dimension_types);
-    system->dimension_types = malloc(sizeof(int) * len);
-    memcpy(system->dimension_types, dimension_types, sizeof(int) * len);
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_errno_t escdf_system_get_dimension_types(
-        const escdf_system_t *system, int *dimension_types, const size_t len)
-{
-    FULFILL_OR_RETURN(system->dimension_types, ESCDF_EUNINIT);
-    FULFILL_OR_RETURN(len == system->number_of_physical_dimensions.value, ESCDF_ESIZE);
-
-    memcpy(dimension_types, system->dimension_types, sizeof(int) * len);
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_errno_t escdf_system_set_embedded_system(escdf_system_t *system,
-                                                 const bool embedded_system)
-{
-    system->embedded_system = _bool_set(embedded_system);
-
-    return ESCDF_SUCCESS;
-}
-
-bool escdf_system_get_embedded_system(const escdf_system_t *system)
-{
-    FULFILL_OR_RETURN_VAL(system->embedded_system.is_set, ESCDF_EUNINIT, true);
-    
-    return system->embedded_system.value;
-}
-
-escdf_errno_t escdf_system_set_number_of_species(
-        escdf_system_t *system, const int number_of_species)
-{
-    system->number_of_species = _uint_set(number_of_species);
-
-    return ESCDF_SUCCESS;
-}
-
-int escdf_system_get_number_of_species(
-        const escdf_system_t *system)
-{
-    FULFILL_OR_RETURN_VAL(system->number_of_species.is_set, ESCDF_ESIZE_MISSING, 0);
-
-    return system->number_of_species.value;
-}
-
-escdf_errno_t escdf_system_set_number_of_sites(
-        escdf_system_t *system, const int number_of_sites)
-{
-    system->number_of_sites = _uint_set(number_of_sites);
-
-    return ESCDF_SUCCESS;
-}
-
-int escdf_system_get_number_of_sites(
-        const escdf_system_t *system)
-{
-    FULFILL_OR_RETURN_VAL(system->number_of_sites.is_set, ESCDF_ESIZE_MISSING, 0);
-
-    return system->number_of_sites.value;
-}
-
-escdf_errno_t escdf_system_set_number_of_symmetry_operations(
-        escdf_system_t *system, const int number_of_symmetry_operations)
-{
-    system->number_of_symmetry_operations = _uint_set(number_of_symmetry_operations);
-
-    return ESCDF_SUCCESS;
-}
-
-int escdf_system_get_number_of_symmetry_operations(
-        const escdf_system_t *system)
-{
-    FULFILL_OR_RETURN_VAL(system->number_of_symmetry_operations.is_set, ESCDF_ESIZE_MISSING, 0);
-
-    return system->number_of_symmetry_operations.value;
-}
-
-*/
