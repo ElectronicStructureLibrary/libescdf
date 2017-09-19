@@ -20,11 +20,18 @@
 
 #include <assert.h>
 
-#include "attributes.h"
+#include "escdf_attributes.h"
 #include "utils_hdf5.h"
 
+struct escdf_attribute {
+    const escdf_attribute_specs_t *specs;
+    bool is_set;
+    hsize_t *dims;
+    void *buf;
+};
 
-size_t _attribute_specs_sizeof(const _attribute_specs_t *specs)
+
+size_t escdf_attribute_specs_sizeof(const escdf_attribute_specs_t *specs)
 {
     assert(specs != NULL);
 
@@ -44,7 +51,7 @@ size_t _attribute_specs_sizeof(const _attribute_specs_t *specs)
     }
 }
 
-hid_t _attribute_specs_hdf5_disk_type(const _attribute_specs_t *specs)
+hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs)
 {
     assert(specs != NULL);
 
@@ -64,7 +71,7 @@ hid_t _attribute_specs_hdf5_disk_type(const _attribute_specs_t *specs)
     }
 }
 
-hid_t _attribute_specs_hdf5_mem_type(const _attribute_specs_t *specs)
+hid_t escdf_attribute_specs_hdf5_mem_type(const escdf_attribute_specs_t *specs)
 {
     assert(specs != NULL);
 
@@ -84,7 +91,7 @@ hid_t _attribute_specs_hdf5_mem_type(const _attribute_specs_t *specs)
     }
 }
 
-bool _attribute_specs_is_present(const _attribute_specs_t *specs, hid_t loc_id)
+bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_t loc_id)
 {
     assert(specs != NULL);
 
@@ -93,9 +100,9 @@ bool _attribute_specs_is_present(const _attribute_specs_t *specs, hid_t loc_id)
 
 
 
-_attribute_t * _attribute_new(const _attribute_specs_t *specs, _attribute_t **attr_dims)
+escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, escdf_attribute_t **attr_dims)
 {
-    _attribute_t *attr = NULL;
+    escdf_attribute_t *attr = NULL;
     unsigned int ii, *dim;
     size_t len;
 
@@ -111,7 +118,7 @@ _attribute_t * _attribute_new(const _attribute_specs_t *specs, _attribute_t **at
     }
 
     /* Allocate memory and set default values */
-    attr = malloc(sizeof(_attribute_t));
+    attr = (escdf_attribute_t *) malloc(sizeof(escdf_attribute_t));
     if (attr == NULL)
         return attr;
     attr->specs = specs;
@@ -121,7 +128,7 @@ _attribute_t * _attribute_new(const _attribute_specs_t *specs, _attribute_t **at
 
     /* Get the size of the attribute and allocate buffer memory */
     if (attr->specs->ndims > 0) {
-        attr->dims = malloc(attr->specs->ndims * sizeof(hsize_t));
+        attr->dims = (hsize_t *) malloc(attr->specs->ndims * sizeof(hsize_t));
         if (attr->dims == NULL) {
             free(attr);
             return NULL;
@@ -133,7 +140,7 @@ _attribute_t * _attribute_new(const _attribute_specs_t *specs, _attribute_t **at
         len *= *dim;
         attr->dims[ii] = *dim;
     }
-    attr->buf = malloc(len * _attribute_specs_sizeof(attr->specs));
+    attr->buf = malloc(len * escdf_attribute_specs_sizeof(attr->specs));
     if (attr->buf == NULL) {
         free(attr->dims);
         free(attr);
@@ -143,7 +150,7 @@ _attribute_t * _attribute_new(const _attribute_specs_t *specs, _attribute_t **at
     return attr;
 }
 
-void _attribute_free(_attribute_t *attr)
+void escdf_attribute_free(escdf_attribute_t *attr)
 {
     if (attr != NULL) {
         free(attr->dims);
@@ -153,36 +160,36 @@ void _attribute_free(_attribute_t *attr)
 }
 
 
-escdf_errno_t _attribute_set(_attribute_t *attr, void *buf)
+escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, void *buf)
 {
     assert(attr != NULL);
 
-    memcpy(attr->buf, buf, _attribute_sizeof(attr));
+    memcpy(attr->buf, buf, escdf_attribute_sizeof(attr));
     attr->is_set = true;
 
     return ESCDF_SUCCESS;
 }
 
 
-escdf_errno_t _attribute_get(_attribute_t *attr, void *buf)
+escdf_errno_t escdf_attribute_get(escdf_attribute_t *attr, void *buf)
 {
     assert(attr != NULL);
     assert(attr->is_set);
 
-    memcpy(buf, attr->buf, _attribute_sizeof(attr));
+    memcpy(buf, attr->buf, escdf_attribute_sizeof(attr));
 
     return ESCDF_SUCCESS;
 }
 
 
-escdf_errno_t _attribute_read(_attribute_t *attr, hid_t loc_id)
+escdf_errno_t escdf_attribute_read(escdf_attribute_t *attr, hid_t loc_id)
 {
     escdf_errno_t err;
     _bool_set_t tmpb;
     char *tmpc;
 
     assert(attr != NULL);
-    assert(_attribute_specs_is_present(attr->specs, loc_id));
+    assert(escdf_attribute_specs_is_present(attr->specs, loc_id));
 
     switch (attr->specs->datatype) {
         case ESCDF_DT_BOOL:
@@ -194,7 +201,7 @@ escdf_errno_t _attribute_read(_attribute_t *attr, hid_t loc_id)
             err = utils_hdf5_read_string(loc_id, attr->specs->name, &tmpc, attr->dims[0]);
             break;
         default:
-            err = utils_hdf5_read_attr(loc_id, attr->specs->name, _attribute_specs_hdf5_mem_type(attr->specs), attr->dims,
+            err = utils_hdf5_read_attr(loc_id, attr->specs->name, escdf_attribute_specs_hdf5_mem_type(attr->specs), attr->dims,
                                        attr->specs->ndims, attr->buf);
     }
     attr->is_set = err == ESCDF_SUCCESS;
@@ -203,7 +210,7 @@ escdf_errno_t _attribute_read(_attribute_t *attr, hid_t loc_id)
 }
 
 
-escdf_errno_t _attribute_write(_attribute_t *attr, hid_t loc_id)
+escdf_errno_t escdf_attribute_write(escdf_attribute_t *attr, hid_t loc_id)
 {
     escdf_errno_t err;
 
@@ -218,15 +225,15 @@ escdf_errno_t _attribute_write(_attribute_t *attr, hid_t loc_id)
             err = utils_hdf5_write_string(loc_id, attr->specs->name, (char *)attr->buf, attr->dims[0]);
             break;
         default:
-            err = utils_hdf5_write_attr(loc_id, attr->specs->name, _attribute_specs_hdf5_disk_type(attr->specs),
-                                        attr->dims, attr->specs->ndims, _attribute_specs_hdf5_mem_type(attr->specs),
+            err = utils_hdf5_write_attr(loc_id, attr->specs->name, escdf_attribute_specs_hdf5_disk_type(attr->specs),
+                                        attr->dims, attr->specs->ndims, escdf_attribute_specs_hdf5_mem_type(attr->specs),
                                         attr->buf);
     }
 
     return err;
 }
 
-size_t _attribute_sizeof(const _attribute_t *attr)
+size_t escdf_attribute_sizeof(const escdf_attribute_t *attr)
 {
     unsigned int ii;
     size_t len;
@@ -237,5 +244,5 @@ size_t _attribute_sizeof(const _attribute_t *attr)
     for (ii = 0; ii < attr->specs->ndims; ii++)
         len *= attr->dims[ii];
 
-    return len * _attribute_specs_sizeof(attr->specs);
+    return len * escdf_attribute_specs_sizeof(attr->specs);
 }

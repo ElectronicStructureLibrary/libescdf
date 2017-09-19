@@ -34,29 +34,31 @@
 
 # C source - keep this in alphabetical order
 escdf_core_srcs = \
-  attributes.c \
   escdf.c \
+  escdf_attributes.c \
   escdf_error.c \
-  escdf_system.c \
   escdf_grid_scalarfields.c \
+  escdf_group.c \
   escdf_handle.c \
   escdf_info.c \
+  escdf_system.c \
   utils.c \
   utils_hdf5.c
 
 # Exported C headers - keep this in alphabetical order
 escdf_core_hdrs = \
   escdf.h \
+  escdf_attributes.h \
   escdf_common.h \
   escdf_error.h \
-  escdf_system.h \
   escdf_grid_scalarfields.h \
+  escdf_group.h \
   escdf_handle.h \
-  escdf_info.h
+  escdf_info.h \
+  escdf_system.h
 
 # Internal C headers - keep this in alphabetical order
 escdf_hidden_hdrs = \
-  attributes.h \
   utils.h \
   utils_hdf5.h
 
@@ -102,14 +104,15 @@ nodist_check_SCRIPTS = \
   $(escdf_memprof_tests)
 
 check_escdf_SOURCES = \
-  check_attributes.c \
   check_escdf.h \
   check_escdf.c \
+  check_escdf_attributes.c \
   check_escdf_error.c \
   check_escdf_grid_scalarfields.c \
-  check_escdf_system.c \
+  check_escdf_group.c \
   check_escdf_handle.c \
   check_escdf_info.c \
+  check_escdf_system.c \
   check_utils.c \
   check_utils_hdf5.c
 

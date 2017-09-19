@@ -31,47 +31,41 @@ extern "C" {
 #include "escdf_handle.h"
 
 
-struct _attribute_specs {
+struct escdf_attribute_specs {
     int id;
     char * name;
     int datatype;
     unsigned int ndims;
 
-    const struct _attribute_specs **dims_specs;
+    const struct escdf_attribute_specs **dims_specs;
 };
 
-typedef struct _attribute_specs _attribute_specs_t;
+typedef struct escdf_attribute_specs escdf_attribute_specs_t;
 
-size_t _attribute_specs_sizeof(const _attribute_specs_t *specs);
+size_t escdf_attribute_specs_sizeof(const escdf_attribute_specs_t *specs);
 
-hid_t _attribute_specs_hdf5_mem_type(const _attribute_specs_t *specs);
+hid_t escdf_attribute_specs_hdf5_mem_type(const escdf_attribute_specs_t *specs);
 
-hid_t _attribute_specs_hdf5_disk_type(const _attribute_specs_t *specs);
+hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs);
 
-bool _attribute_specs_is_present(const _attribute_specs_t *specs, hid_t loc_id);
+bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_t loc_id);
 
 
+typedef struct escdf_attribute escdf_attribute_t;
 
-typedef struct {
-    const _attribute_specs_t *specs;
-    bool is_set;
-    hsize_t *dims;
-    void *buf;
-} _attribute_t;
+escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, escdf_attribute_t **attr_dims);
 
-_attribute_t * _attribute_new(const _attribute_specs_t *specs, _attribute_t **attr_dims);
+void escdf_attribute_free(escdf_attribute_t *attr);
 
-void _attribute_free(_attribute_t *attr);
+size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
 
-size_t _attribute_sizeof(const _attribute_t *attr);
+escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, void *buf);
 
-escdf_errno_t _attribute_set(_attribute_t *attr, void *buf);
+escdf_errno_t escdf_attribute_get(escdf_attribute_t *attr, void *buf);
 
-escdf_errno_t _attribute_get(_attribute_t *attr, void *buf);
+escdf_errno_t escdf_attribute_read(escdf_attribute_t *attr, hid_t loc_id);
 
-escdf_errno_t _attribute_read(_attribute_t *attr, hid_t loc_id);
-
-escdf_errno_t _attribute_write(_attribute_t *attr, hid_t loc_id);
+escdf_errno_t escdf_attribute_write(escdf_attribute_t *attr, hid_t loc_id);
 
 
 #ifdef __cplusplus
