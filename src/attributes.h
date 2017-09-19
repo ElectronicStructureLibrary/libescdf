@@ -31,47 +31,47 @@ extern "C" {
 #include "escdf_handle.h"
 
 
-struct _attribute {
+struct _attribute_specs {
     int id;
     char * name;
     int datatype;
     unsigned int ndims;
 
-    const struct _attribute **dims_attr;
+    const struct _attribute_specs **dims_specs;
 };
 
-typedef struct _attribute _attribute_t;
+typedef struct _attribute_specs _attribute_specs_t;
 
-size_t _attribute_sizeof(const _attribute_t *attr);
+size_t _attribute_specs_sizeof(const _attribute_specs_t *specs);
 
-hid_t _attribute_hdf5_mem_type(const _attribute_t *attr);
+hid_t _attribute_specs_hdf5_mem_type(const _attribute_specs_t *specs);
 
-hid_t _attribute_hdf5_disk_type(const _attribute_t *attr);
+hid_t _attribute_specs_hdf5_disk_type(const _attribute_specs_t *specs);
 
-bool _attribute_is_present(const _attribute_t *attr, hid_t loc_id);
+bool _attribute_specs_is_present(const _attribute_specs_t *specs, hid_t loc_id);
 
 
 
 typedef struct {
-    const _attribute_t *attr;
+    const _attribute_specs_t *specs;
     bool is_set;
     hsize_t *dims;
     void *buf;
-} _attribute_data_t;
+} _attribute_t;
 
-_attribute_data_t * _attribute_data_new(const _attribute_t *attr, _attribute_data_t **data_dims);
+_attribute_t * _attribute_new(const _attribute_specs_t *specs, _attribute_t **attr_dims);
 
-void _attribute_data_free(_attribute_data_t *data);
+void _attribute_free(_attribute_t *attr);
 
-size_t _attribute_data_sizeof(const _attribute_data_t *data);
+size_t _attribute_sizeof(const _attribute_t *attr);
 
-escdf_errno_t _attribute_data_set(_attribute_data_t *data, void *buf);
+escdf_errno_t _attribute_set(_attribute_t *attr, void *buf);
 
-escdf_errno_t _attribute_data_get(_attribute_data_t *data, void *buf);
+escdf_errno_t _attribute_get(_attribute_t *attr, void *buf);
 
-escdf_errno_t _attribute_data_read(_attribute_data_t *data, hid_t loc_id);
+escdf_errno_t _attribute_read(_attribute_t *attr, hid_t loc_id);
 
-escdf_errno_t _attribute_data_write(_attribute_data_t *data, hid_t loc_id);
+escdf_errno_t _attribute_write(_attribute_t *attr, hid_t loc_id);
 
 
 #ifdef __cplusplus
