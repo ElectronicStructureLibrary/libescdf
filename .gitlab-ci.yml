@@ -1,0 +1,20 @@
+image: ubuntu:latest
+
+before_script:
+  - apt-get -yqq update
+
+pages:
+  stage: deploy
+  script:
+    - apt-get -yqq install wget
+                           unzip
+    - wget https://github.com/jasonlong/cayman-theme/archive/master.zip
+    - unzip master.zip
+    - mv cayman-theme-master public
+    - cp doc/homepage/cayman.css public/css
+    - cp doc/homepage/index.html public/index.html
+  artifacts:
+      paths:
+        - public
+  only:
+    - master
