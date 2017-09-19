@@ -34,6 +34,7 @@
 
 # C source - keep this in alphabetical order
 escdf_core_srcs = \
+  attributes.c \
   escdf.c \
   escdf_error.c \
   escdf_system.c \
@@ -55,6 +56,7 @@ escdf_core_hdrs = \
 
 # Internal C headers - keep this in alphabetical order
 escdf_hidden_hdrs = \
+  attributes.h \
   utils.h \
   utils_hdf5.h
 
@@ -100,6 +102,7 @@ nodist_check_SCRIPTS = \
   $(escdf_memprof_tests)
 
 check_escdf_SOURCES = \
+  check_attributes.c \
   check_escdf.h \
   check_escdf.c \
   check_escdf_error.c \

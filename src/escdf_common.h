@@ -34,6 +34,18 @@ extern "C" {
 #define ESCDF_STRLEN_ERROR 1024
 #define ESCDF_STRLEN_GROUP 256
 
+
+/**
+ * Data types
+ */
+#define ESCDF_DT_NONE 0
+#define ESCDF_DT_BOOL 1
+#define ESCDF_DT_UINT 2
+#define ESCDF_DT_INT 3
+#define ESCDF_DT_DOUBLE 4
+#define ESCDF_DT_STRING 5
+
+
 /**
  * Error codes
  *
