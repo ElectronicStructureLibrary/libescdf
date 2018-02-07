@@ -1,0 +1,174 @@
+/* Copyright (C) 2016-2017 Fabiano Corsetti <fabiano.corsetti@gmail.com>
+ *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
+ *
+ * This file is part of ESCDF.
+ *
+ * ESCDF is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, version 2.1 of the License, or (at your option) any
+ * later version.
+ *
+ * ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301  USA.
+ */
+
+#ifndef ESCDF_ESCDF_GROUP_H
+#define ESCDF_ESCDF_GROUP_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "escdf_handle.h"
+#include "escdf_attributes.h"
+
+
+/******************************************************************************
+ * Data structures                                                            *
+ ******************************************************************************/
+
+struct escdf_group_specs {
+    int group_id;
+    char * root;
+
+    unsigned int nattributes;
+    const escdf_attribute_specs_t **attr_specs;
+};
+
+typedef struct escdf_group_specs escdf_group_specs_t;
+
+typedef struct escdf_group escdf_group_t;
+
+typedef int escdf_group_id;
+
+escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
+
+/******************************************************************************
+ * Low-level creators and destructors                                         *
+ ******************************************************************************/
+
+/**
+ * This function takes care of creating an instance of escdf_group_t by
+ * allocating the corresponding memory. It also initializes all its contents to
+ * the default values.
+ *
+ * @return instance of the group.
+ */
+escdf_group_t * escdf_group_new(escdf_group_id group_id);
+
+/**
+ * Free all memory associated with the group.
+ *
+ * @param[in,out] group: the group.
+ */
+void escdf_group_free(escdf_group_t *group);
+
+/**
+ * Opens a location where to access the group data. If a name is given, the
+ * location path will be 'group_root/name', where 'group_root' is defined in
+ * the group specifications. If name is NULL, the location path is simply
+ * 'group_root'. If the location does not exist, an error is returned.
+ *
+ * @param[in,out] group: the group.
+ * @param[in] handle: the file handle.
+ * @param[in] name: path to the location to open.
+ * @return Error code.
+ */
+escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle_t *handle, const char *name);
+
+/**
+ * Creates a new location to store the group data. If a name is given, the
+ * location path will be 'group_root/name', where 'group_root' is defined in
+ * the group specifications. If name is NULL, the location path is simply
+ * 'group_root'. If the location already exist, all previous contents of are
+ * deleted.
+ *
+ * @param[in,out] group: the group.
+ * @param[in] handle: the file handle.
+ * @param[in] name: path to the location to create.
+ * @return Error code.
+ */
+escdf_errno_t escdf_group_create_location(escdf_group_t *group, const escdf_handle_t *handle, const char *name);
+
+/**
+ * Closes the location associated with the group.
+ *
+ * @param[in,out] group: the group.
+ * @return Error code.
+ */
+escdf_errno_t escdf_group_close_location(escdf_group_t *group);
+
+
+/******************************************************************************
+ * High-level creators and destructors                                        *
+ ******************************************************************************/
+
+/**
+ * This function takes care of the following tasks:
+ * - call escdf_group_new to create an instance of the structure.
+ * - call escdf_group_open_location. Note that this function will return an
+ *   error if the location does not exist.
+ * - call escdf_group_read_metadata to read all the metadata from the file and store it in memory.
+ *
+ * @param[in] handle: the file/group handle defining the root where to open
+ * the "/group" group.
+ * @param[in] name: If NULL, assume that the group is stored in the
+ * "/group" group, otherwise "/group/name" is used.
+ * @return instance of the group data type.
+ */
+escdf_group_t * escdf_group_open(escdf_group_id group_id, const escdf_handle_t *handle, const char *name);
+
+/**
+ * This function performs the following tasks:
+ * - call escdf_group_new to create an instance of the structure.
+ * - call escdf_group_create_group.
+ *
+ * @param[in] handle: the file/group handle defining the root where to open
+ * the "/group" group.
+ * @param[in] name: If NULL, assume that the group is stored in the
+ * "/group" group, otherwise "/group/name" is used.
+ * @return instance of the group data type.
+ *
+ */
+escdf_group_t * escdf_group_create(escdf_group_id group_id, const escdf_handle_t *handle, const char *name);
+
+/**
+ * This function performs the following tasks:
+ * - call escdf_group_close_group to close the group.
+ * - call escdf_group_free to free all memory.
+ *
+ * @param[in,out] group: the group.
+ * @return error code.
+ */
+escdf_errno_t escdf_group_close(escdf_group_t *group);
+
+
+/******************************************************************************
+ * Group attributes                                                           *
+ ******************************************************************************/
+
+/**
+ * This routine reads all the metadata stored in the group, and stores
+ * the information in the group data type.
+ *
+ * @param[out] group: pointer to instance of the group group.
+ * @return error code.
+ */
+escdf_errno_t escdf_group_read_attributes(escdf_group_t *group);
+
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
