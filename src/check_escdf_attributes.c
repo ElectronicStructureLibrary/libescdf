@@ -46,64 +46,65 @@
 
 
 const escdf_attribute_specs_t specs_none = {
-        NONE, "none", ESCDF_DT_NONE, 0, NULL
+  NONE, "none", ESCDF_DT_NONE, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t specs_scalar_bool = {
-        SCALAR_BOOL, "scalar_bool", ESCDF_DT_BOOL, 0, NULL
+  SCALAR_BOOL, "scalar_bool", ESCDF_DT_BOOL, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t specs_scalar_uint = {
-        SCALAR_UINT, "scalar_uint", ESCDF_DT_UINT, 0, NULL
+  SCALAR_UINT, "scalar_uint", ESCDF_DT_UINT, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t specs_scalar_int = {
-        SCALAR_INT, "scalar_int", ESCDF_DT_INT, 0, NULL
+  SCALAR_INT, "scalar_int", ESCDF_DT_INT, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t specs_scalar_double = {
-        SCALAR_DOUBLE, "scalar_double", ESCDF_DT_DOUBLE, 0, NULL
+  SCALAR_DOUBLE, "scalar_double", ESCDF_DT_DOUBLE, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t specs_scalar_string = {
-        SCALAR_STRING, "scalar_string", ESCDF_DT_STRING, 0, NULL
+  SCALAR_STRING, "scalar_string", ESCDF_DT_STRING, 30, 0, NULL
 };
 
 
 const escdf_attribute_specs_t specs_dim1 = {
-        DIM1, "dim1", ESCDF_DT_UINT, 0, NULL
+  DIM1, "dim1", ESCDF_DT_UINT, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t specs_dim2 = {
-        DIM2, "dim2", ESCDF_DT_UINT, 0, NULL
+  DIM2, "dim2", ESCDF_DT_UINT, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t *array_dims[] = {&specs_dim1, &specs_dim2};
 
 const escdf_attribute_specs_t specs_array_bool = {
-        ARRAY_BOOL, "array_bool", ESCDF_DT_BOOL, 2, array_dims
+  ARRAY_BOOL, "array_bool", ESCDF_DT_BOOL, 0, 2, array_dims
 };
 
 const escdf_attribute_specs_t specs_array_uint = {
-        ARRAY_UINT, "array_uint", ESCDF_DT_UINT, 2, array_dims
+  ARRAY_UINT, "array_uint", ESCDF_DT_UINT, 0, 2, array_dims
 };
 
 const escdf_attribute_specs_t specs_array_int = {
-        ARRAY_INT, "array_int", ESCDF_DT_INT, 2, array_dims
+  ARRAY_INT, "array_int", ESCDF_DT_INT, 0, 2, array_dims
 };
 
 const escdf_attribute_specs_t specs_array_double = {
-        ARRAY_DOUBLE, "array_double", ESCDF_DT_DOUBLE, 2, array_dims
+  ARRAY_DOUBLE, "array_double", ESCDF_DT_DOUBLE, 0, 2, array_dims
 };
 
 const escdf_attribute_specs_t specs_array_string = {
-        ARRAY_STRING, "array_string", ESCDF_DT_STRING, 2, array_dims
+  ARRAY_STRING, "array_string", ESCDF_DT_STRING, 30, 2, array_dims
 };
 
 static bool scalar_bool = true;
 static unsigned int scalar_uint = 1;
 static int scalar_int = 2;
 static double scalar_double = 3.0;
+static char* scalar_string = "test-string";
 static hsize_t dims[] = {2, 3};
 static unsigned int array_uint[2][3] = {{1, 2, 3},
                                         {4, 5, 6}};
@@ -134,6 +135,7 @@ void file_setup(void)
     utils_hdf5_write_attr(root_id, specs_scalar_uint.name, H5T_NATIVE_UINT, NULL, 0, H5T_NATIVE_UINT, &scalar_uint);
     utils_hdf5_write_attr(root_id, specs_scalar_int.name, H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_DOUBLE, &scalar_int);
     utils_hdf5_write_attr(root_id, specs_scalar_double.name, H5T_NATIVE_DOUBLE, NULL, 0, H5T_NATIVE_DOUBLE, &scalar_double);
+    utils_hdf5_write_attr(root_id, specs_scalar_string.name, H5T_C_S1, NULL, 0, H5T_C_S1, scalar_string);
 
     utils_hdf5_write_attr(root_id, specs_dim1.name, H5T_NATIVE_HSIZE, NULL, 0, H5T_NATIVE_UINT, &dims[0]);
     utils_hdf5_write_attr(root_id, specs_dim2.name, H5T_NATIVE_HSIZE, NULL, 0, H5T_NATIVE_UINT, &dims[1]);
@@ -230,7 +232,7 @@ END_TEST
 
 START_TEST(test_attribute_specs_sizeof_string)
 {
-    ck_assert(escdf_attribute_specs_sizeof(&specs_scalar_string) == sizeof(char));
+    ck_assert(escdf_attribute_specs_sizeof(&specs_scalar_string) == 30 * sizeof(char));
 }
 END_TEST
 
@@ -363,6 +365,52 @@ START_TEST(test_attribute_write_scalar_bool)
 END_TEST
 
 
+START_TEST(test_attribute_new_scalar_string)
+{
+    ck_assert( (attr = escdf_attribute_new(&specs_scalar_string, NULL)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_scalar_string)
+{
+    attr = escdf_attribute_new(&specs_scalar_string, NULL);
+    ck_assert(escdf_attribute_set(attr, &scalar_string) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_scalar_string)
+{
+    bool value = !scalar_bool;
+
+    attr = escdf_attribute_new(&specs_scalar_bool, NULL);
+    escdf_attribute_set(attr, &scalar_bool);
+    ck_assert(escdf_attribute_get(attr, &value) == ESCDF_SUCCESS);
+    ck_assert(value == scalar_bool);
+}
+END_TEST
+
+START_TEST(test_attribute_read_scalar_string)
+{
+  char  value[80];
+
+    attr = escdf_attribute_new(&specs_scalar_string, NULL);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, value);
+    ck_assert( cmpstr(scalar_string, value ) == 0);
+}
+END_TEST
+
+START_TEST(test_attribute_write_scalar_string)
+{
+    attr = escdf_attribute_new(&specs_scalar_string, NULL);
+    escdf_attribute_set(attr, &scalar_string);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
+
+
 
 START_TEST(test_attribute_new_array_uint)
 {
@@ -419,6 +467,62 @@ START_TEST(test_attribute_write_array_uint)
 }
 END_TEST
 
+START_TEST(test_attribute_new_array_double)
+{
+    ck_assert((attr = escdf_attribute_new(&specs_array_double, attr_dims)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_array_double)
+{
+    attr = escdf_attribute_new(&specs_array_double, attr_dims);
+    ck_assert(escdf_attribute_set(attr, array_double) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_array_double)
+{
+    double value[2][3] = {{10.0, 11.0, 12.0},
+                          {13.0, 14.0, 15.0}};
+
+    attr = escdf_attribute_new(&specs_array_double, attr_dims);
+    escdf_attribute_set(attr, array_double);
+    ck_assert(escdf_attribute_get(attr, value) == ESCDF_SUCCESS);
+    ck_assert(value[0][0] == array_double[0][0]);
+    ck_assert(value[0][1] == array_double[0][1]);
+    ck_assert(value[0][2] == array_double[0][2]);
+    ck_assert(value[1][0] == array_double[1][0]);
+    ck_assert(value[1][1] == array_double[1][1]);
+    ck_assert(value[1][2] == array_double[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_read_array_double)
+{
+    double value[2][3] = {{10.0, 11.0, 12.0},
+                          {13.0, 14.0, 15.0}};
+
+    attr = escdf_attribute_new(&specs_array_double, attr_dims);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, value);
+    ck_assert(value[0][0] == array_double[0][0]);
+    ck_assert(value[0][1] == array_double[0][1]);
+    ck_assert(value[0][2] == array_double[0][2]);
+    ck_assert(value[1][0] == array_double[1][0]);
+    ck_assert(value[1][1] == array_double[1][1]);
+    ck_assert(value[1][2] == array_double[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_write_array_double)
+{
+    attr = escdf_attribute_new(&specs_array_double, attr_dims);
+    escdf_attribute_set(attr, array_double);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
 
 
 Suite * make_attributes_suite(void)
@@ -426,7 +530,9 @@ Suite * make_attributes_suite(void)
     Suite *s;
     TCase *tc_attribute_specs_sizeof, *tc_attribute_specs_hdf5_disk_type, *tc_attribute_specs_hdf5_mem_type, *tc_attribute_specs_is_present;
     TCase *tc_attribute_scalar_bool;
+    TCase *tc_attribute_scalar_string;
     TCase *tc_attribute_array_uint;
+    TCase *tc_attribute_array_double;
 
     s = suite_create("Attributes");
 
@@ -475,6 +581,10 @@ Suite * make_attributes_suite(void)
     tcase_add_test(tc_attribute_scalar_bool, test_attribute_write_scalar_bool);
     suite_add_tcase(s, tc_attribute_scalar_bool);
 
+    tc_attribute_scalar_string = tcase_create("Attribute scalar string");
+    tcase_add_checked_fixture(tc_attribute_scalar_string, scalar_setup, scalar_teardown);
+    suite_add_tcase(s, tc_attribute_scalar_string);
+
     tc_attribute_array_uint = tcase_create("Attribute array uint");
     tcase_add_checked_fixture(tc_attribute_array_uint, array_setup, array_teardown);
     tcase_add_test(tc_attribute_array_uint, test_attribute_new_array_uint);
@@ -483,6 +593,15 @@ Suite * make_attributes_suite(void)
     tcase_add_test(tc_attribute_array_uint, test_attribute_read_array_uint);
     tcase_add_test(tc_attribute_array_uint, test_attribute_write_array_uint);
     suite_add_tcase(s, tc_attribute_array_uint);
+
+    tc_attribute_array_double = tcase_create("Attribute array double");
+    tcase_add_checked_fixture(tc_attribute_array_double, array_setup, array_teardown);
+    tcase_add_test(tc_attribute_array_double, test_attribute_new_array_double);
+    tcase_add_test(tc_attribute_array_double, test_attribute_set_array_double);
+    tcase_add_test(tc_attribute_array_double, test_attribute_get_array_double);
+    tcase_add_test(tc_attribute_array_double, test_attribute_read_array_double);
+    tcase_add_test(tc_attribute_array_double, test_attribute_write_array_double);
+    suite_add_tcase(s, tc_attribute_array_double);
 
     return s;
 }

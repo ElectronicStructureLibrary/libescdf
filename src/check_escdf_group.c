@@ -20,8 +20,15 @@
 
 #include <check.h>
 #include <zconf.h>
+#include <assert.h>
 
 #include "escdf_group.h"
+
+#include "escdf_attributes_ID.h"
+#include "escdf_attributes_specs.h"
+#include "escdf_groups_ID.h"
+#include "escdf_groups_specs.h"
+
 
 #define FILE_EMPTY "check_group_test_file_empty.h5"
 #define FILE_ROOT  "check_group_test_file_root.h5"
@@ -34,7 +41,7 @@
 
 
 const escdf_attribute_specs_t attribute_dummy_int = {
-    DUMMY_INT, "dummy_integer", ESCDF_DT_INT, 0, NULL
+  DUMMY_INT, "dummy_integer", ESCDF_DT_INT, 0, 0, NULL
 };
 
 const escdf_attribute_specs_t *group_attributes[] = {
@@ -47,6 +54,11 @@ const escdf_group_specs_t group_specs = {
 
 static escdf_handle_t *handle_e = NULL, *handle_r = NULL, *handle_p = NULL;
 static escdf_group_t *group = NULL;
+static escdf_group_t *group_system = NULL;
+static escdf_group_t *group_density = NULL;
+
+static double alat[3][3] = {{1.0, 0.0, 0.0},{0.0, 1.0, 0.0},{0.0, 0.0, 1.0}};
+static char*  name="system_name";
 
 /******************************************************************************
  * Setup and teardown                                                         *
@@ -106,6 +118,41 @@ void group_teardown(void)
     escdf_group_free(group);
     group = NULL;
     group_handle_teardown();
+}
+
+void setters_setup(void)
+{
+    group_file_setup(FILE_ROOT, NULL);
+    group_file_setup(FILE_PATH, GROUP_NAME);
+    handle_r = escdf_open(FILE_ROOT, NULL);
+    handle_p = escdf_open(FILE_PATH, NULL);
+    handle_e = escdf_create(FILE_EMPTY, NULL);
+
+    escdf_register_all_group_specs();
+    escdf_group_free(group_system);
+    escdf_group_free(group_density);
+
+    ck_assert( handle_r != NULL );
+
+    group_system  = escdf_group_create(system_specs.group_id, handle_r, "system");
+    group_density = escdf_group_create(density_specs.group_id, handle_r, "density");
+    ck_assert( group_system != NULL );
+    ck_assert( group_density != NULL );
+}
+
+void setters_teardown(void)
+{
+  escdf_group_free(group_system);
+  escdf_group_free(group_density);
+  group = NULL;
+
+    escdf_close(handle_r);
+    escdf_close(handle_p);
+    escdf_close(handle_e);
+    //unlink(FILE_ROOT);
+    //unlink(FILE_PATH);
+    //unlink(FILE_EMPTY);
+
 }
 
 /******************************************************************************
@@ -181,11 +228,52 @@ START_TEST(test_group_close)
 END_TEST
 
 
+START_TEST(test_group_attribute_system)
+{
+  escdf_errno_t error;
+  char  name[80];
+  char  value_string[80];
+
+  unsigned int dim = 3, i, j;
+  double values[3][3] = {{99.0, 99.0, 99.0},{99.0, 99.0, 99.0},{99.0, 99.0, 99.0}};
+
+  strcpy(name, "test-string");
+
+  printf("start set test:  \n");
+
+  ck_assert( group_system != NULL );
+  ck_assert( group_density != NULL );
+
+  ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
+  dim = 0;
+  ck_assert( escdf_group_attribute_get(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
+  ck_assert( dim == 3 );
+
+  ck_assert( escdf_group_attribute_set(group_system, "lattice_vectors", (void*) alat) == ESCDF_SUCCESS );
+  ck_assert( escdf_group_attribute_get(group_system, "lattice_vectors", (void*) values) == ESCDF_SUCCESS ); 
+
+  for(i = 0; i<dim; i++) {
+    for (j = 0; j<dim; j++) {
+      ck_assert( alat[i][j] == values[i][j] );
+    }
+  }
+
+  ck_assert( escdf_group_attribute_set(group_system, "system_name", (void*) name) == ESCDF_SUCCESS);
+  ck_assert( escdf_group_attribute_get(group_system, "system_name", (void*) value_string) == ESCDF_SUCCESS);
+  ck_assert( strcmp( name, value_string ) == 0 );
+
+  strcpy(value_string, "    ");
+
+
+}
+END_TEST 
+
+
 
 Suite * make_group_suite(void)
 {
     Suite *s;
-    TCase *tc_group_new, *tc_group_location, *tc_group_high_level;
+    TCase *tc_group_new, *tc_group_location, *tc_group_high_level, *tc_group_setters;
 
     s = suite_create("Groups");
 
@@ -211,6 +299,11 @@ Suite * make_group_suite(void)
     tcase_add_test(tc_group_high_level, test_group_create_name);
     tcase_add_test(tc_group_high_level, test_group_close);
     suite_add_tcase(s, tc_group_high_level);
+
+    tc_group_setters = tcase_create("Group attribute setters/getters");
+    tcase_add_checked_fixture(tc_group_setters, setters_setup, setters_teardown);
+    tcase_add_test(tc_group_setters, test_group_attribute_system);
+    suite_add_tcase(s, tc_group_setters);
 
     return s;
 }

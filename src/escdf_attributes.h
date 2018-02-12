@@ -35,6 +35,8 @@ struct escdf_attribute_specs {
     int id;
     char * name;
     int datatype;
+
+    unsigned int stringlength;
     unsigned int ndims;
 
     const struct escdf_attribute_specs **dims_specs;
@@ -67,6 +69,9 @@ escdf_errno_t escdf_attribute_read(escdf_attribute_t *attr, hid_t loc_id);
 
 escdf_errno_t escdf_attribute_write(escdf_attribute_t *attr, hid_t loc_id);
 
+escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr);
+
+bool escdf_attribute_is_set(const escdf_attribute_t *attr);
 
 #ifdef __cplusplus
 }

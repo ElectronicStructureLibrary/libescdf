@@ -21,6 +21,8 @@
  */
 
 #include <assert.h>
+#include <stdlib.h>
+#include <check.h>
 
 #include "escdf_group.h"
 #include "utils_hdf5.h"
@@ -31,6 +33,7 @@
 static unsigned int n_known_specs = 0;
 static escdf_group_specs_t const * known_group_specs[MAX_KNOWN_SPECS];
 
+escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr);
 
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     FULFILL_OR_RETURN(specs != NULL, ESCDF_EVALUE)
@@ -249,13 +252,130 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group)
         }
 
         group->attr[iattr] = escdf_attribute_new(group->specs->attr_specs[iattr], &dims);
-
-
-
     }
-
 
     return ESCDF_SUCCESS;
 }
 
 
+
+
+escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attribute_name, void* buf)
+{
+  unsigned int iattr, i;
+  bool attr_found = false;
+  escdf_errno_t error;
+  
+  FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
+  FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
+  FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
+  FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
+
+  for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
+    if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
+  }
+  FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
+
+  if (group->attr[iattr] == NULL) {
+    SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
+  }
+
+  SUCCEED_OR_RETURN(escdf_attribute_set(group->attr[iattr], buf));
+  
+  /* If the attribute has successfully been set in memory, we can write to disk */
+
+  SUCCEED_OR_RETURN(escdf_attribute_write(group->attr[iattr], group->loc_id));
+  
+  return ESCDF_SUCCESS;
+}
+
+
+
+escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, const char* attribute_name, void *buf)
+{
+  unsigned int iattr, i;
+  bool attr_found;
+  escdf_errno_t error;
+
+  FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
+  FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
+  FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
+  FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
+
+  for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
+    if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
+  }
+  FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
+
+  if (group->attr[iattr] == NULL) {
+    SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
+  }
+
+  /* check whether the attribute already as a value in memory */
+
+  if (!escdf_attribute_is_set(group->attr[iattr])) {
+    SUCCEED_OR_RETURN(escdf_attribute_read(group->attr[iattr], group->loc_id));
+  }
+
+  SUCCEED_OR_RETURN(escdf_attribute_get(group->attr[iattr], buf));
+  
+  return ESCDF_SUCCESS;
+  
+}
+
+escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr)
+{ 
+
+  unsigned int i, ii, idim, ndims, dim_ID;
+  bool attr_found;
+
+  escdf_attribute_t **dims = NULL;
+  escdf_errno_t error;
+
+    /* need to create the attribute */ 
+
+    /* determine the dimensions from linked dimension attributes */
+    
+    FULFILL_OR_EXIT(group->specs != NULL, ESCDF_EVALUE);
+
+    ndims = group->specs->attr_specs[iattr]->ndims;
+
+    if( ndims > 0 ) {
+      
+      dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
+      
+      FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
+      
+      for(i = 0; i<ndims; i++) {
+	
+	FULFILL_OR_RETURN( group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE );
+	FULFILL_OR_RETURN( group->specs->attr_specs[iattr]->dims_specs[i] != NULL, ESCDF_EVALUE );
+	
+
+	idim = group->specs->attr_specs[iattr]->dims_specs[i]->id;
+		  
+	for (attr_found=false, ii = 0; ii < group->specs->nattributes; ii++) {
+	  if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; attr_found=true;}
+	}
+        FULFILL_OR_RETURN( attr_found == true, ESCDF_ERROR );
+
+	if(group->attr[dim_ID] == NULL) {
+	  SUCCEED_OR_RETURN(ESCDF_ERROR_DIM);
+	}
+	else {
+	  FULFILL_OR_RETURN( group->attr[dim_ID] !=  NULL, ESCDF_EVALUE );
+	  dims[i] = group->attr[dim_ID];
+	}
+      }
+      
+    }
+    else { 
+      dims = NULL;
+    }
+
+    group->attr[iattr] = escdf_attribute_new(group->specs->attr_specs[iattr], dims);
+
+    if(dims != NULL) free(dims);
+
+    return ESCDF_SUCCESS;
+}

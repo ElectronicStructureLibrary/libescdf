@@ -532,8 +532,15 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_t
 {
     escdf_errno_t err;
 
+    htri_t bool_id;
     hid_t attr_id;
     herr_t err_id;
+
+    if ( !((bool_id = H5Aexists(loc_id, name)) < 0 || !bool_id) ) {
+      if ((err = H5Adelete (loc_id, name)) != ESCDF_SUCCESS) {
+	return err;
+      }
+    }
 
     if ((err = utils_hdf5_create_attr(loc_id, name, disk_type_id,
                                       dims, ndims, &attr_id)) != ESCDF_SUCCESS) {

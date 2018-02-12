@@ -1,0 +1,41 @@
+{ 
+  "Version"    : "0.0.1",
+  "Attributes" :
+  [
+  { "Name" : "system_name", "Data_type"  : "ESCDF_DT_STRING", "Dimensions" : 0, "Stringlength" : 80 },
+  { "Name" : "number_of_physical_dimensions", "Data_type" : "ESCDF_DT_UINT", "Dimensions":  0, "Range" : [0,3] },
+  { "Name" : "dimension_type", "Data_type" : "ESCDF_DT_INT", "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ] },
+  { "Name" : "embedded_system", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" : 0 },
+  { "Name" : "number_of_species", "Data_type" : "ESCDF_DT_UINT", "Dimensions" :  0 },
+  { "Name" : "number_of_sites", "Data_type" : "ESCDF_DT_UINT", "Dimensions" : 0 },
+  { "Name" : "number_of_symmetry_operations", "Data_type" : "ESCDF_DT_UINT", "Dimensions" :   0 },
+  { "Name" : "lattice_vectors", "Data_type" : "ESCDF_DT_DOUBLE", "Dimensions" :  2, 
+    "Dims_definitions": [ "number_of_physical_dimensions", "number_of_physical_dimensions" ]
+  },
+  { "Name" : "spacegroup_3D_number", "Data_type" : "ESCDF_DT_UINT", "Dimensions" : 0 },
+  { "Name" : "symmorphic", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" : 0 },
+  { "Name" : "time_reversal_symmetry", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" :  0 }
+  ],
+  "Groups" :
+  [
+   { "Name" : "system" , 
+     "Attributes" : [
+       "system_name", 
+       "number_of_physical_dimensions", 
+       "dimension_type",
+       "embedded_system",
+       "number_of_species", 
+       "number_of_sites",
+       "number_of_symmetry_operations",
+       "lattice_vectors",
+       "spacegroup_3D_number",
+       "symmorphic",
+       "time_reversal_symmetry"
+     ] 
+   },
+   { "Name" : "density" , 
+     "Attributes" :  ["system_name", "bogus"]
+   },
+   { "Name" : "potential", "Attributes" : ["potential_type"] }
+ ] 
+}

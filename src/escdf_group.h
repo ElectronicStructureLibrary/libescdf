@@ -164,6 +164,61 @@ escdf_errno_t escdf_group_close(escdf_group_t *group);
  */
 escdf_errno_t escdf_group_read_attributes(escdf_group_t *group);
 
+/**
+ * This routine queries whether a named attribute is present in the group.
+ *
+ * @param[in] group: pointer to the instance of the group group.
+ * @param[in] name: name of the attribute to be queried
+ * @return yes/no.
+ */
+bool escdf_group_query_attribute(const escdf_group_t *group, const char *name);
+
+
+
+/***********************************************************
+ * Low level routines for accessing attributes in a group  *
+ ***********************************************************/
+
+
+/**
+ * This routine returns the pointer to a group attribute.
+ *
+ * @param[in] group: pointer to the group.
+ * @param[in] attribute_name: name of the attribute.
+ * @return pointer to the attribute
+ */
+escdf_attribute_t *escdf_group_get_arribute_pointer(escdf_group_t *group, const char *name); 
+
+
+
+/************************************************************
+ * High level routines for accessing attributes in a group  *
+ ************************************************************/
+
+
+/**
+ * This routine sets the value of an attribute by IDs.
+ * This routine stores the value in the data structure, and writes it to disk.
+ *
+ * If the attribute does not exist, it the routine will create it.
+ *
+ * @param[in] group: pointer to the group in which to look for the attribute
+ * @param[in] attribute_name: attribute name
+ * @param[in] buf: data to be written
+ * @return: error number
+ */
+escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attribute_name, void* buf);
+
+/**
+ * This routine sets the value of an attribute by name.
+ *
+ * @param[in] group: pointer to the group in which to look for the attribute
+ * @param[in] attribute_nam: attribute name
+ * @param[in] buf: data to be written
+ * @return: error number
+ */
+escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attribute_name, void* buf);
+
 
 
 
