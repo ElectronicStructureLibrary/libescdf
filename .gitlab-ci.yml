@@ -34,6 +34,11 @@ test:debian-serial:
   stage: build
   script:
     - sh utils/build-serial-debian.sh
+  artifacts:
+    when: on_failure
+    paths:
+      - src/test-suite.log
+    expire_in: 1 week
 
 test:debian-serial-test:
   image: drfaustroll/esl:debian-latest
