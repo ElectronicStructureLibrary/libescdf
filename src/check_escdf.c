@@ -38,8 +38,8 @@ int main(void)
     srunner_add_suite(sr, make_handle_suite());
     srunner_add_suite(sr, make_attributes_suite());
     srunner_add_suite(sr, make_group_suite());
-    //  srunner_add_suite(sr, make_system_suite());
-    //  srunner_add_suite(sr, make_grid_scalarfield_suite());
+    /*  srunner_add_suite(sr, make_system_suite()); */
+    /*  srunner_add_suite(sr, make_grid_scalarfield_suite()); */
 
     srunner_run_all(sr, CK_VERBOSE);
     number_failed = srunner_ntests_failed(sr);

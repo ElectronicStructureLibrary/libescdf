@@ -2,11 +2,6 @@ import json
 from pprint import pprint
 from collections import Counter
 
-# Load input attributes definition file and transfer to dictionary.
-
-attributes_file = open('attributes_def.json','r')
-attributes_all_data = json.load(attributes_file)
-attributes_file.close()
 
 def def_name(name):
     return name.upper()
@@ -23,34 +18,68 @@ def dims_name(name):
 def attributes_name(name):
     return name.lower() + '_attributes'
 
+def datasets_name(name):
+    return name.lower() + '_datasets'
+
+
+def write_ID_file(x, type):
+
+    if type in x:
+
+        ID_file = open('escdf_'+type.lower()+'_ID.h','w')
+
+        ID_file.write('#ifndef ESCDF_'+type.upper()+'_ID_H\n')
+        ID_file.write('#define ESCDF_'+type.upper()+'_ID_H\n\n')
+
+        all = x[type]
+
+        counter = 0
+        for a in all:
+            ID_file.write('#define ' + def_name(a['Name']) + ' ' + str(counter) + '\n')
+            counter += 1
+
+        ID_file.write('\n#endif\n')
+        ID_file.close()
+
+# Load input attributes definition file and transfer to dictionary.
+
+definitions_file = open('attributes_def.json','r')
+definitions      = json.load(definitions_file)
+definitions_file.close()
 
 
 
 # Extract data structures for "Attributes" and "Groups"
 
-print('Attribute file version: ' + attributes_all_data['Version'] + '\n')
+print('Attribute file version: ' + definitions['Version'] + '\n')
 
-if 'Attributes' in attributes_all_data:
-    attributes = attributes_all_data['Attributes']
+if 'Attributes' in definitions:
+    attributes  =  definitions['Attributes']
 else:
     attributes = dict()
 
-if 'Groups' in attributes_all_data:
-    groups     = attributes_all_data['Groups']
+if 'Groups'    in definitions:
+    groups     =  definitions['Groups']
 else:
     groups     = dict()
 
+if 'Datasets' in definitions:
+    datasets   = definitions['Datasets']
+else:
+    datasets   = dict()
+
+
 
 print('Found ' + str(len(attributes)) + ' attribute specs definitions. \n')
+print('Found ' + str(len(datasets)) + ' dataset specs definitions. \n')
 print('Found ' + str(len(groups)) + ' group specs definitions. \n')
 
 
+write_ID_file(definitions,'Attributes')
+write_ID_file(definitions,'Datasets')
+write_ID_file(definitions,'Groups')
+
 # Create header files and write general code lines:
-
-attrib_ID_file = open('escdf_attributes_ID.h','w')
-
-attrib_ID_file.write('#ifndef ESCDF_ATTRIBUTES_ID_H\n')
-attrib_ID_file.write('#define ESCDF_ATTRIBUTES_ID_H\n\n')
 
 attrib_specs_file = open('escdf_attributes_specs.h','w')
 
@@ -59,10 +88,11 @@ attrib_specs_file.write('#define ESCDF_ATTRIBUTES_SPECS_H\n\n')
 attrib_specs_file.write('#include \"escdf_attributes_ID.h\" \n\n')
 
 
-group_ID_file = open('escdf_groups_ID.h','w')
+dataset_specs_file = open('escdf_datasets_specs.h','w')
 
-group_ID_file.write('#ifndef ESCDF_GROUPS_ID_H\n')
-group_ID_file.write('#define ESCDF_GROUPS_ID_H\n\n')
+dataset_specs_file.write('#ifndef ESCDF_DATASETS_SPECS_H\n')
+dataset_specs_file.write('#define ESCDF_DATASETS_SPECS_H\n\n')
+dataset_specs_file.write('#include \"escdf_datasets_ID.h\" \n\n')
 
 
 group_specs_file = open('escdf_groups_specs.h','w')
@@ -71,6 +101,7 @@ group_specs_file.write('#ifndef ESCDF_GROUPS_SPECS_H\n')
 group_specs_file.write('#define ESCDF_GROUPS_SPECS_H\n\n')
 group_specs_file.write('#include \"escdf_groups_ID.h\" \n')
 group_specs_file.write('#include \"escdf_attributes_specs.h\" \n\n')
+group_specs_file.write('#include \"escdf_datasets_specs.h\" \n\n')
 
 
 # Initialise some data structures
@@ -82,7 +113,7 @@ group_specs_file.write('#include \"escdf_attributes_specs.h\" \n\n')
 #   use that to check whether an attribute, assigned to a group, does actually exist.
 
 attribute_list = []       
-
+dataset_list   = []
 
 # Count how often a given attribute is used
 #
@@ -93,20 +124,13 @@ use_counter = Counter()
 
 # Create attribute_specs definitions 
 
-counter = 0
-
 for a in attributes:
-
-#    ID_name = a['Name'].upper()
 
     attribute_name = a['Name']
 
     ID_name = def_name(attribute_name)
-    attrib_ID_file.write('#define ' + ID_name + ' ' + str(counter) + '\n')
 
     attribute_list.append(attribute_name)
-    
-
     use_counter[attribute_name] = 0
 
     if 'Stringlength' in a:
@@ -129,17 +153,13 @@ for a in attributes:
     attrib_specs_file.write('   { '+ ID_name + ', ' + name_string( attribute_name )+ ', ' + a['Data_type'] + ', ' +str(stringlength) + ', ' 
                             + str(a['Dimensions']) +', ' + dims_pointer + ' }; \n\n')
    
-    counter += 1
-
 
 # Create group specs definitions:
 
-counter = 0
  
 for g in groups:
 
     ID_name = def_name(g['Name'])
-    group_ID_file.write('#define ' + ID_name + ' ' + str(counter) + '\n')
 
     attrib_list = ''
 
@@ -155,8 +175,6 @@ for g in groups:
         group_specs_file.write('const escdf_attribute_specs_t *'+attributes_name(g['Name'])+'[] = { ')
         group_specs_file.write(attrib_list.rstrip(',') + '\n')
         group_specs_file.write('};\n\n')
-
-    counter += 1
 
 
 for g in groups:
@@ -197,22 +215,17 @@ group_specs_file.write('}; \n')
 
 
 
-attrib_ID_file.write("\n#endif \n")
-attrib_ID_file.close()
-
 attrib_specs_file.write("\n#endif \n")
 attrib_specs_file.close()
 
-group_ID_file.write("\n#endif \n")
-group_ID_file.close()
+dataset_specs_file.write("\n#endif \n")
+dataset_specs_file.close()
 
 group_specs_file.write("\n#endif \n")
 group_specs_file.close()
 
 print('\n')
-print(attrib_ID_file.name    + ' written.')
 print(attrib_specs_file.name + ' written.')
-print(group_ID_file.name     + ' written.')
 print(group_specs_file.name  + ' written.')
 print('\n')
 

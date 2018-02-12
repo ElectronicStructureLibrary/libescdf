@@ -194,6 +194,19 @@ const char *escdf_error_string(const escdf_errno_t error_id);
     if (!(condition)) {		    \
         return escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
     }
+
+/**
+ * Macro to return from a routine when a condition is unsatisfied with additional deallocating
+ * @param[in] condition: condition to check
+ * @param[in] error_id: error code to set before returning
+ */
+#define FULFILL_OR_RETURN_CLEAN(condition, error_id, ptr) \
+    if (!(condition)) {		    \
+        if(ptr != NULL) free(ptr); \
+        return escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+    }
+
+
 /**
  * Macro to return a specific value from a routine when a condition is unsatisfied
  * @param[in] condition: condition to check

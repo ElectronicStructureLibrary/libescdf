@@ -52,8 +52,12 @@ hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs)
 
 bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_t loc_id);
 
-
 typedef struct escdf_attribute escdf_attribute_t;
+
+bool escdf_attribute_is_present(const escdf_attribute_t *attr, hid_t loc_id);
+
+
+
 
 escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, escdf_attribute_t **attr_dims);
 

@@ -1,5 +1,20 @@
 { 
   "Version"    : "0.0.1",
+  "Author"     : "Martin Lueders",
+  "Comment"    : [ 
+  	       "How to use this definitions file:",
+  	       "", 
+	       "This file contains the definitions of all Attributes, Datasets and Groups",
+	       "The 'Attributes' object contains a list of specifiations, with the fields:",
+	       "  'Name'      : string,  obligatory  : attribute name (case sensitive)",
+	       "  'Data_type' : string,  obligatory  : name of the ESCDF datatype as defined in 'escdf_common.h'",
+	       "  'Dimensions': integer, obligatory  : number of dimentions of the attribute",
+	       "  'Dims_definitions': list of strings, obligatory IF Dimensions  : names of the attributes, defining the dimensions",
+	       "  'Stringlength' : integer : length of the string for datatype ESCDF_DT_STRING; this determines how big the buffer is",
+	       "  'Range' : list of two numbers : [min, max], the data type has to be consisnent with 'Data_type'",
+	       "  'Dependencies' : dependencies on other attributes or datasets besides dimensions",
+	       "  'Description' : Documentation for the attribute"
+	       ],
   "Attributes" :
   [
   { "Name" : "system_name", "Data_type"  : "ESCDF_DT_STRING", "Dimensions" : 0, "Stringlength" : 80 },
@@ -16,6 +31,14 @@
   { "Name" : "symmorphic", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" : 0 },
   { "Name" : "time_reversal_symmetry", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" :  0 }
   ],
+  "Datasets" :
+  [
+  { "Name" : "cartesian_site_positions", 
+    "Data_type" : "ESCDF_DT_DOUBLE", 
+    "Dimensions" : 2, 
+    "Dims_definitions" : [ "number_of_physical_dimensions", "number_of_sites" ]
+  }
+  ],
   "Groups" :
   [
    { "Name" : "system" , 
@@ -31,7 +54,8 @@
        "spacegroup_3D_number",
        "symmorphic",
        "time_reversal_symmetry"
-     ] 
+     ],
+     "Datasets" : ["cartesian_site_positions"]
    },
    { "Name" : "density" , 
      "Attributes" :  ["system_name", "bogus"]

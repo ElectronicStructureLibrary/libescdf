@@ -98,6 +98,14 @@ bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_
     return utils_hdf5_check_present_attr(loc_id, specs->name);
 }
 
+bool escdf_attribute_is_present(const escdf_attribute_t *attr, hid_t loc_id)
+{
+    assert(attr != NULL);
+    assert(attr->specs != NULL);
+
+    return utils_hdf5_check_present_attr(loc_id, attr->specs->name);
+}
+
 
 
 escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, escdf_attribute_t **attr_dims)

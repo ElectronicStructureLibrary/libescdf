@@ -80,6 +80,7 @@ void group_file_setup(const char *file, const char *path)
     }
 
 
+
     H5Gclose(group_path_id);
     H5Gclose(group_root_id);
     H5Gclose(file_root_id);
