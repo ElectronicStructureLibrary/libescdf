@@ -1,20 +1,43 @@
-image: ubuntu:latest
-
-before_script:
-  - apt-get -yqq update
-
-pages:
-  stage: deploy
+test:opensuse-serial:
+  image: drfaustroll/esl:opensuse-tumbleweed
   script:
-    - apt-get -yqq install wget
-                           unzip
-    - wget https://github.com/jasonlong/cayman-theme/archive/master.zip
-    - unzip master.zip
-    - mv cayman-theme-master public
-    - cp doc/homepage/cayman.css public/css
-    - cp doc/homepage/index.html public/index.html
-  artifacts:
-      paths:
-        - public
-  only:
-    - master
+    - source /etc/profile.d/lmod.sh
+    - module load gnu/7  
+   # Prepare source tree
+    - ./wipeout.sh
+    - ./autogen.sh
+    - CC=gcc CFLAGS="-O3" ./configure --without-mpi
+    - make -j4
+    - make check 
+
+test:opensuse-mpi:
+  image: drfaustroll/esl:opensuse-tumbleweed
+  script:
+    - source /etc/profile.d/lmod.sh
+    - module load gnu/7 openmpi/3.0.0 phdf5/1.10.1
+   # Prepare source tree
+    - ./wipeout.sh
+    - ./autogen.sh
+    # this is a barbarism... shall be replaced with the line under, once hdf5 packages is fixed in opensuse
+    - CC=mpicc HDF5_INCLUDES="-I$HDF5_DIR/include" HDF5_LIBS="-L$HDF5_DIR/lib64 -lhdf5" ./configure
+  # - CC=mpicc CFLAGS="-O3" ./configure 
+    - make -j4
+    - make check 
+
+test:debian-serial:
+  image: drfaustroll/esl:debian-latest
+  script:
+    - ./wipeout.sh
+    - ./autogen.sh
+    - CC=gcc CFLAGS="-O3" ./configure --without-mpi
+    - make -j4
+    - make check 
+
+test:debian-mpi:
+  image: drfaustroll/esl:debian-latest
+  script:
+    - ./wipeout.sh
+    - ./autogen.sh
+    - CC=mpicc HDF5_INCLUDES="-I/usr/include/hdf5/openmpi" HDF5_LIBS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi -lhdf5" CFLAGS="-O3" ./configure 
+    - make -j4
+    - make check 
