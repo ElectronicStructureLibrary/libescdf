@@ -35,11 +35,7 @@ debian-serial:
   stage: build
   script:
     - sh utils/build-serial-debian.sh
-  artifacts:
-    when: on_failure
-    paths:
-      - src/test-suite.log
-    expire_in: 1 week
+
 
 debian-serial-test:
   image: drfaustroll/esl:debian-latest
@@ -60,6 +56,11 @@ debian-mpi-test:
   script:
     - sh utils/build-mpi-debian.sh
     - make check 
+  artifacts:
+    when: on_failure
+    paths:
+      - src/test-suite.log
+    expire_in: 1 week
 
 pages:
   image: drfaustroll/esl:debian-latest
