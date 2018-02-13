@@ -2,7 +2,7 @@
 
 
 source /etc/profile.d/lmod.sh
-module load gnu/7  
+module load gnu/7  hdf5/1.10.1
    # Prepare source tree
 ./wipeout.sh
 ./autogen.sh
