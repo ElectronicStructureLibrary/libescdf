@@ -1,0 +1,77 @@
+stages:
+  - build
+  - deploy
+  - test
+
+
+opensuse-serial:
+  image: drfaustroll/esl:opensuse-tumbleweed
+  stage: build
+  script:
+    - sh utils/build-serial-opensuse.sh
+
+opensuse-serial-test:
+  image: drfaustroll/esl:opensuse-tumbleweed
+  stage: test
+  script:
+    - sh utils/build-serial-opensuse.sh 
+    - make check
+
+opensuse-mpi:
+  image: drfaustroll/esl:opensuse-tumbleweed
+  stage: build
+  script:
+    - sh utils/build-mpi-opensuse.sh
+
+opensuse-mpi-test:
+  image: drfaustroll/esl:opensuse-tumbleweed
+  stage: test
+  script:
+    - sh utils/build-mpi-opensuse.sh
+    - make check
+
+debian-serial:
+  image: drfaustroll/esl:debian-latest
+  stage: build
+  script:
+    - sh utils/build-serial-debian.sh
+
+
+debian-serial-test:
+  image: drfaustroll/esl:debian-latest
+  stage: test
+  script:
+    - sh utils/build-serial-debian.sh
+    - make check
+
+debian-mpi:
+  image: drfaustroll/esl:debian-latest
+  stage: build
+  script:
+    - sh utils/build-mpi-debian.sh
+
+debian-mpi-test:
+  image: drfaustroll/esl:debian-latest
+  stage: test
+  script:
+    - sh utils/build-mpi-debian.sh
+    - make check 
+  artifacts:
+    when: on_failure
+    paths:
+      - src/test-suite.log
+    expire_in: 1 week
+
+pages:
+  image: drfaustroll/esl:debian-latest
+  stage: deploy
+  script:
+    - wget https://github.com/jasonlong/cayman-theme/archive/master.tar.gz
+    - tar -xvf master.tar.gz
+    - mv cayman-theme-master public
+    - cp doc/homepage/cayman.css public/css
+    - cp doc/homepage/index.html public/index.html
+  artifacts:
+      paths:
+        - public
+
