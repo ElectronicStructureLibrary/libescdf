@@ -1,0 +1,32 @@
+========================================
+   LibESCDF 0.1.0: src/test-suite.log
+========================================
+
+# TOTAL: 4
+# PASS:  1
+# SKIP:  3
+# XFAIL: 0
+# FAIL:  0
+# XPASS: 0
+# ERROR: 0
+
+.. contents:: :depth: 2
+
+SKIP: gcov_clean
+================
+
+Code coverage disabled - skipping test
+SKIP gcov_clean (exit status: 77)
+
+SKIP: gcov_report
+=================
+
+Code coverage disabled - skipping test
+SKIP gcov_report (exit status: 77)
+
+SKIP: test_memory
+=================
+
+Memory profiling disabled - skipping test
+SKIP test_memory (exit status: 77)
+

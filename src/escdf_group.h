@@ -43,7 +43,6 @@ struct escdf_group_specs {
     unsigned int nattributes;
     const escdf_attribute_specs_t **attr_specs;
 
-
     unsigned int ndatasets;
     const escdf_dataset_specs_t **data_specs;
 };

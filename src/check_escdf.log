@@ -1,0 +1,161 @@
+Running suite(s): Info
+ Error
+ Utils
+ HDF5 utilities
+HDF5-DIAG: Error detected in HDF5 (1.8.14) thread 0:
+  #000: ../../src/H5S.c line 1739 in H5Sget_simple_extent_type(): not a dataspace
+    major: Invalid arguments to routine
+    minor: Inappropriate type
+HDF5-DIAG: Error detected in HDF5 (1.8.14) thread 0:
+  #000: ../../src/H5A.c line 259 in H5Acreate2(): unable to create attribute
+    major: Attribute
+    minor: Unable to initialize object
+  #001: ../../src/H5Aint.c line 167 in H5A_create(): attribute already exists
+    major: Attribute
+    minor: Object already exists
+HDF5-DIAG: Error detected in HDF5 (1.8.14) thread 0:
+  #000: ../../src/H5D.c line 194 in H5Dcreate2(): unable to create dataset
+    major: Dataset
+    minor: Unable to initialize object
+  #001: ../../src/H5Dint.c line 453 in H5D__create_named(): unable to create and link to dataset
+    major: Dataset
+    minor: Unable to initialize object
+  #002: ../../src/H5L.c line 1638 in H5L_link_object(): unable to create new link to object
+    major: Links
+    minor: Unable to initialize object
+  #003: ../../src/H5L.c line 1882 in H5L_create_real(): can't insert link
+    major: Symbol table
+    minor: Unable to insert object
+  #004: ../../src/H5Gtraverse.c line 861 in H5G_traverse(): internal path traversal failed
+    major: Symbol table
+    minor: Object not found
+  #005: ../../src/H5Gtraverse.c line 641 in H5G_traverse_real(): traversal operator failed
+    major: Symbol table
+    minor: Callback failed
+  #006: ../../src/H5L.c line 1674 in H5L_link_cb(): name already exists
+    major: Symbol table
+    minor: Object already exists
+ Handle
+ Attributes
+ Groups
+WARNING: Attribute 0 not found in file. 
+WARNING: Attribute 0 not found in file. 
+start set test:  
+100%: Checks: 116, Failures: 0, Errors: 0
+check_escdf_info.c:53:P:Version:test_info_version:0: Passed
+check_escdf_info.c:67:P:Version:test_info_string:0: Passed
+check_escdf_error.c:50:P:Fetch all:test_error_fetchall:0: Passed
+check_escdf_error.c:65:P:Empty chain:test_error_empty:0: Passed
+check_escdf_error.c:83:P:Single error chain:test_error_single:0: Passed
+check_escdf_error.c:106:P:Double error chain:test_error_double:0: Passed
+check_escdf_error.c:138:P:Triple error chain:test_error_triple:0: Passed
+check_escdf_error.c:152:P:Get last:test_error_get_last:0: Passed
+check_utils.c:30:P:Setters:test_set_bool:0: Passed
+check_utils.c:38:P:Setters:test_set_uint:0: Passed
+check_utils.c:46:P:Setters:test_set_int:0: Passed
+check_utils.c:54:P:Setters:test_set_double:0: Passed
+check_utils_hdf5.c:131:P:Check present:test_utils_hdf5_check_present_true:0: Passed
+check_utils_hdf5.c:137:P:Check present:test_utils_hdf5_check_present_false:0: Passed
+check_utils_hdf5.c:144:P:Check present recursive:test_utils_hdf5_check_present_recursive_true:0: Passed
+check_utils_hdf5.c:150:P:Check present recursive:test_utils_hdf5_check_present_recursive_false:0: Passed
+check_utils_hdf5.c:157:P:Check present attribute:test_utils_hdf5_check_present_attr_true:0: Passed
+check_utils_hdf5.c:163:P:Check present attribute:test_utils_hdf5_check_present_attr_false:0: Passed
+check_utils_hdf5.c:170:P:Check shape:test_utils_hdf5_check_shape_scalar_correct:0: Passed
+check_utils_hdf5.c:177:P:Check shape:test_utils_hdf5_check_shape_array_correct:0: Passed
+check_utils_hdf5.c:184:P:Check shape:test_utils_hdf5_check_shape_scalar_wrong_args:0: Passed
+check_utils_hdf5.c:191:P:Check shape:test_utils_hdf5_check_shape_array_wrong_args:0: Passed
+check_utils_hdf5.c:198:P:Check shape:test_utils_hdf5_check_shape_no_class:0: Passed
+check_utils_hdf5.c:204:P:Check shape:test_utils_hdf5_check_shape_wrong_class:0: Passed
+check_utils_hdf5.c:211:P:Check attribute:test_utils_hdf5_check_attr_scalar:0: Passed
+check_utils_hdf5.c:218:P:Check attribute:test_utils_hdf5_check_attr_array:0: Passed
+check_utils_hdf5.c:225:P:Check attribute:test_utils_hdf5_check_attr_array_wrong:0: Passed
+check_utils_hdf5.c:233:P:Check attribute:test_utils_hdf5_check_attr_ptr:0: Passed
+check_utils_hdf5.c:242:P:Check dataset:test_utils_hdf5_check_dataset:0: Passed
+check_utils_hdf5.c:249:P:Check dataset:test_utils_hdf5_check_dataset_wrong:0: Passed
+check_utils_hdf5.c:258:P:Check dataset:test_utils_hdf5_check_dataset_ptr:0: Passed
+check_utils_hdf5.c:268:P:Read attribute:test_utils_hdf5_read_attr_scalar:0: Passed
+check_utils_hdf5.c:320:P:Read attribute:test_utils_hdf5_read_attr_array:0: Passed
+check_utils_hdf5.c:277:P:Read attribute:test_utils_hdf5_read_bool:0: Passed
+check_utils_hdf5.c:287:P:Read attribute:test_utils_hdf5_read_uint:0: Passed
+check_utils_hdf5.c:297:P:Read attribute:test_utils_hdf5_read_int:0: Passed
+check_utils_hdf5.c:305:P:Read attribute:test_utils_hdf5_read_string:0: Passed
+check_utils_hdf5.c:335:P:Read attribute:test_utils_hdf5_read_uint_array:0: Passed
+check_utils_hdf5.c:350:P:Read attribute:test_utils_hdf5_read_int_array:0: Passed
+check_utils_hdf5.c:365:P:Read attribute:test_utils_hdf5_read_dbl_array:0: Passed
+check_utils_hdf5.c:383:P:Read dataset:test_utils_hdf5_read_dataset:0: Passed
+check_utils_hdf5.c:399:P:Read dataset:test_utils_hdf5_read_dataset_sliced:0: Passed
+check_utils_hdf5.c:424:P:Read dataset:test_utils_hdf5_read_dataset_at:0: Passed
+check_utils_hdf5.c:438:P:Read dataset:test_utils_hdf5_read_dataset_at_empty:0: Passed
+check_utils_hdf5.c:446:P:Create group:test_utils_hdf5_create_group:0: Passed
+check_utils_hdf5.c:454:P:Create group:test_utils_hdf5_create_group_ptr:0: Passed
+check_utils_hdf5.c:460:P:Create group:test_utils_hdf5_create_group_overwrite:0: Passed
+check_utils_hdf5.c:466:P:Create group:test_utils_hdf5_create_group_existing_path:0: Passed
+check_utils_hdf5.c:472:P:Create group:test_utils_hdf5_create_group_non_existing_path:0: Passed
+check_utils_hdf5.c:479:P:Create attribute:test_utils_hdf5_create_attribute_scalar:0: Passed
+check_utils_hdf5.c:486:P:Create attribute:test_utils_hdf5_create_attribute_array:0: Passed
+check_utils_hdf5.c:494:P:Create attribute:test_utils_hdf5_create_attribute_ptr:0: Passed
+check_utils_hdf5.c:501:P:Create attribute:test_utils_hdf5_create_attribute_existing:0: Passed
+check_utils_hdf5.c:509:P:Create dataset:test_utils_hdf5_create_dataset:0: Passed
+check_utils_hdf5.c:518:P:Create dataset:test_utils_hdf5_create_dataset_ptr:0: Passed
+check_utils_hdf5.c:526:P:Create dataset:test_utils_hdf5_create_dataset_existing:0: Passed
+check_utils_hdf5.c:536:P:Write attribute:test_utils_hdf5_write_attribute_scalar:0: Passed
+check_utils_hdf5.c:554:P:Write attribute:test_utils_hdf5_write_attribute_array:0: Passed
+check_utils_hdf5.c:564:P:Write attribute:test_utils_hdf5_write_bool:0: Passed
+check_utils_hdf5.c:573:P:Write attribute:test_utils_hdf5_write_string:0: Passed
+check_utils_hdf5.c:595:P:Write dataset:test_utils_hdf5_write_dataset:0: Passed
+check_utils_hdf5.c:612:P:Write dataset:test_utils_hdf5_write_dataset_slice:0: Passed
+check_escdf_handle.c:67:P:Open file:test_handle_open:0: Passed
+check_escdf_handle.c:73:P:Open file:test_handle_open_path:0: Passed
+check_escdf_handle.c:79:P:Create file:test_handle_create:0: Passed
+check_escdf_handle.c:85:P:Create file:test_handle_create_path:0: Passed
+check_escdf_handle.c:79:P:Overwrite file:test_handle_create:0: Passed
+check_escdf_handle.c:85:P:Overwrite file:test_handle_create_path:0: Passed
+check_escdf_handle.c:91:P:Close file:test_handle_close:0: Passed
+check_escdf_attributes.c:205:P:Attribute size of:test_attribute_specs_sizeof_none:0: Passed
+check_escdf_attributes.c:211:P:Attribute size of:test_attribute_specs_sizeof_bool:0: Passed
+check_escdf_attributes.c:217:P:Attribute size of:test_attribute_specs_sizeof_uint:0: Passed
+check_escdf_attributes.c:223:P:Attribute size of:test_attribute_specs_sizeof_int:0: Passed
+check_escdf_attributes.c:229:P:Attribute size of:test_attribute_specs_sizeof_double:0: Passed
+check_escdf_attributes.c:235:P:Attribute size of:test_attribute_specs_sizeof_string:0: Passed
+check_escdf_attributes.c:241:P:Attribute HDF5 disk type:test_attribute_specs_hdf5_disk_type_none:0: Passed
+check_escdf_attributes.c:247:P:Attribute HDF5 disk type:test_attribute_specs_hdf5_disk_type_bool:0: Passed
+check_escdf_attributes.c:253:P:Attribute HDF5 disk type:test_attribute_specs_hdf5_disk_type_uint:0: Passed
+check_escdf_attributes.c:259:P:Attribute HDF5 disk type:test_attribute_specs_hdf5_disk_type_int:0: Passed
+check_escdf_attributes.c:265:P:Attribute HDF5 disk type:test_attribute_specs_hdf5_disk_type_double:0: Passed
+check_escdf_attributes.c:271:P:Attribute HDF5 disk type:test_attribute_specs_hdf5_disk_type_string:0: Passed
+check_escdf_attributes.c:277:P:Attribute HDF5 mem type:test_attribute_specs_hdf5_mem_type_none:0: Passed
+check_escdf_attributes.c:283:P:Attribute HDF5 mem type:test_attribute_specs_hdf5_mem_type_bool:0: Passed
+check_escdf_attributes.c:289:P:Attribute HDF5 mem type:test_attribute_specs_hdf5_mem_type_uint:0: Passed
+check_escdf_attributes.c:295:P:Attribute HDF5 mem type:test_attribute_specs_hdf5_mem_type_int:0: Passed
+check_escdf_attributes.c:301:P:Attribute HDF5 mem type:test_attribute_specs_hdf5_mem_type_double:0: Passed
+check_escdf_attributes.c:307:P:Attribute HDF5 mem type:test_attribute_specs_hdf5_mem_type_string:0: Passed
+check_escdf_attributes.c:313:P:Attribute is present:test_attribute_specs_is_present_true:0: Passed
+check_escdf_attributes.c:319:P:Attribute is present:test_attribute_specs_is_present_false:0: Passed
+check_escdf_attributes.c:326:P:Attribute scalar bool:test_attribute_new_scalar_bool:0: Passed
+check_escdf_attributes.c:333:P:Attribute scalar bool:test_attribute_set_scalar_bool:0: Passed
+check_escdf_attributes.c:344:P:Attribute scalar bool:test_attribute_get_scalar_bool:0: Passed
+check_escdf_attributes.c:355:P:Attribute scalar bool:test_attribute_read_scalar_bool:0: Passed
+check_escdf_attributes.c:363:P:Attribute scalar bool:test_attribute_write_scalar_bool:0: Passed
+check_escdf_attributes.c:417:P:Attribute array uint:test_attribute_new_array_uint:0: Passed
+check_escdf_attributes.c:424:P:Attribute array uint:test_attribute_set_array_uint:0: Passed
+check_escdf_attributes.c:441:P:Attribute array uint:test_attribute_get_array_uint:0: Passed
+check_escdf_attributes.c:458:P:Attribute array uint:test_attribute_read_array_uint:0: Passed
+check_escdf_attributes.c:466:P:Attribute array uint:test_attribute_write_array_uint:0: Passed
+check_escdf_attributes.c:472:P:Attribute array double:test_attribute_new_array_double:0: Passed
+check_escdf_attributes.c:479:P:Attribute array double:test_attribute_set_array_double:0: Passed
+check_escdf_attributes.c:496:P:Attribute array double:test_attribute_get_array_double:0: Passed
+check_escdf_attributes.c:513:P:Attribute array double:test_attribute_read_array_double:0: Passed
+check_escdf_attributes.c:522:P:Attribute array double:test_attribute_write_array_double:0: Passed
+check_escdf_group.c:165:P:New:test_group_new:0: Passed
+check_escdf_group.c:171:P:Location:test_group_open_location:0: Passed
+check_escdf_group.c:177:P:Location:test_group_open_location_name:0: Passed
+check_escdf_group.c:183:P:Location:test_group_create_location:0: Passed
+check_escdf_group.c:189:P:Location:test_group_create_location_name:0: Passed
+check_escdf_group.c:196:P:Location:test_group_close_location:0: Passed
+check_escdf_group.c:202:P:Group high-level creators/destructors:test_group_open:0: Passed
+check_escdf_group.c:208:P:Group high-level creators/destructors:test_group_open_name:0: Passed
+check_escdf_group.c:214:P:Group high-level creators/destructors:test_group_create:0: Passed
+check_escdf_group.c:220:P:Group high-level creators/destructors:test_group_create_name:0: Passed
+check_escdf_group.c:226:P:Group high-level creators/destructors:test_group_close:0: Passed
+check_escdf_group.c:264:P:Group attribute setters/getters:test_group_attribute_system:0: Passed
+PASS check_escdf (exit status: 0)

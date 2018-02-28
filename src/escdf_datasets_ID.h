@@ -1,0 +1,6 @@
+#ifndef ESCDF_DATASETS_ID_H
+#define ESCDF_DATASETS_ID_H
+
+#define CARTESIAN_SITE_POSITIONS 0
+
+#endif

@@ -3,6 +3,8 @@ from pprint import pprint
 from collections import Counter
 
 
+# Set up string modifiers:
+
 def def_name(name):
     return name.upper()
 
@@ -21,6 +23,8 @@ def attributes_name(name):
 def datasets_name(name):
     return name.lower() + '_datasets'
 
+
+# set up function to write the ID file
 
 def write_ID_file(x, type):
 

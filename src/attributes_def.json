@@ -2,35 +2,104 @@
   "Version"    : "0.0.1",
   "Author"     : "Martin Lueders",
   "Comment"    : [ 
-  	       "How to use this definitions file:",
-  	       "", 
-	       "This file contains the definitions of all Attributes, Datasets and Groups",
-	       "The 'Attributes' object contains a list of specifiations, with the fields:",
-	       "  'Name'      : string,  obligatory  : attribute name (case sensitive)",
-	       "  'Data_type' : string,  obligatory  : name of the ESCDF datatype as defined in 'escdf_common.h'",
-	       "  'Dimensions': integer, obligatory  : number of dimentions of the attribute",
-	       "  'Dims_definitions': list of strings, obligatory IF Dimensions  : names of the attributes, defining the dimensions",
-	       "  'Stringlength' : integer : length of the string for datatype ESCDF_DT_STRING; this determines how big the buffer is",
-	       "  'Range' : list of two numbers : [min, max], the data type has to be consisnent with 'Data_type'",
-	       "  'Dependencies' : dependencies on other attributes or datasets besides dimensions",
-	       "  'Description' : Documentation for the attribute"
+           "How to use this definitions file:",
+           "",
+           "This file contains the definitions of all Attributes, Datasets and Groups",
+           "The 'Attributes' object contains a list of specifiations, with the fields:",
+           "  'Name'      : string,  obligatory  : attribute name (case sensitive)",
+           "  'Data_type' : string,  obligatory  : name of the ESCDF datatype as defined in 'escdf_common.h'",
+           "  'Dimensions': integer, obligatory  : number of dimentions of the attribute",
+           "  'Dims_definitions': list of strings, obligatory IF Dimensions  : names of the attributes, defining the dimensions",
+           "  'Stringlength' : integer : length of the string for datatype ESCDF_DT_STRING; this determines how big the buffer is",
+           "  'Range' : list of two numbers : [min, max], the data type has to be consisnent with 'Data_type'",
+           "  'Dependencies' : dependencies on other attributes or datasets besides dimensions",
+           "  'Description' : string_array : Documentation for the attribute"
 	       ],
+
   "Attributes" :
   [
-  { "Name" : "system_name", "Data_type"  : "ESCDF_DT_STRING", "Dimensions" : 0, "Stringlength" : 80 },
-  { "Name" : "number_of_physical_dimensions", "Data_type" : "ESCDF_DT_UINT", "Dimensions":  0, "Range" : [0,3] },
-  { "Name" : "dimension_type", "Data_type" : "ESCDF_DT_INT", "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ] },
-  { "Name" : "embedded_system", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" : 0 },
-  { "Name" : "number_of_species", "Data_type" : "ESCDF_DT_UINT", "Dimensions" :  0 },
-  { "Name" : "number_of_sites", "Data_type" : "ESCDF_DT_UINT", "Dimensions" : 0 },
-  { "Name" : "number_of_symmetry_operations", "Data_type" : "ESCDF_DT_UINT", "Dimensions" :   0 },
-  { "Name" : "lattice_vectors", "Data_type" : "ESCDF_DT_DOUBLE", "Dimensions" :  2, 
-    "Dims_definitions": [ "number_of_physical_dimensions", "number_of_physical_dimensions" ]
+  { 
+    "Name" : "system_name", 
+    "Data_type"  : "ESCDF_DT_STRING", 
+    "Dimensions" : 0, 
+    "Stringlength" : 80,
+    "Description" : ["Specifies the name of the system. This information is stored for debugging or visualization purposes."] 
   },
-  { "Name" : "spacegroup_3D_number", "Data_type" : "ESCDF_DT_UINT", "Dimensions" : 0 },
-  { "Name" : "symmorphic", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" : 0 },
-  { "Name" : "time_reversal_symmetry", "Data_type" : "ESCDF_DT_BOOL", "Dimensions" :  0 }
+  { 
+    "Name" : "number_of_physical_dimensions", 
+    "Data_type" : "ESCDF_DT_UINT", 
+    "Dimensions":  0, "Range" : [3,3],
+    "Description" : ["The number of physical dimensions in space. Note that this is not the same as the number of periodic directions,", 
+                     "which might be less than or equal to this number."] 
+  },
+  { 
+    "Name" : "dimension_type", 
+    "Data_type" : "ESCDF_DT_INT", 
+    "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ],
+    "Range" : [0,2],
+    "Description" : [ "This is a list defining the periodicity of the system in each of the directions given by the lattice_vectors. Valid options are: ",
+                      "  - 0: The direction is non-periodic. ",
+                      "  - 1: The direction is periodic. ",
+                      "  - 2: The direction is semi-infinite. Only one direction can take this value; ",
+                      "       if it is present, then additional variables are required (see variables relating to a semi-infinite setup)." ]
+  },
+  { 
+    "Name" : "embedded_system", 
+    "Data_type" : "ESCDF_DT_BOOL", 
+    "Dimensions" : 0,
+    "Description" : ["Is the system embedded into a host geometry? If yes, then additional variables are required, ",
+                     "and the host geometry should be described in a separate group (see variables relating to an embedded system)."] 
+  },
+  { 
+    "Name" : "number_of_species", 
+    "Data_type" : "ESCDF_DT_UINT", 
+    "Dimensions" :  0, 
+    "Description" : [""] 
+  },
+  { 
+    "Name" : "number_of_sites", 
+    "Data_type" : "ESCDF_DT_UINT", 
+    "Dimensions" : 0,
+    "Description" : [""] 
+  },
+  { 
+    "Name" : "number_of_symmetry_operations", 
+    "Data_type" : "ESCDF_DT_UINT", 
+    "Dimensions" :   0,
+    "Description" : [""] 
+  },
+  { 
+    "Name" : "lattice_vectors", 
+    "Data_type" : "ESCDF_DT_DOUBLE", 
+    "Dimensions" :  2, 
+    "Dims_definitions": [ "number_of_physical_dimensions", "number_of_physical_dimensions" ],
+    "Description" : ["Holds the real-space lattice vectors (in Cartesian coordinates) of the simulation cell.",
+                    "The last (fastest) index runs over the x,y,z Cartesian coordinates, and the first index runs over the 3 lattice vectors."] 
+
+  },
+  { 
+    "Name" : "spacegroup_3D_number", 
+    "Data_type" : "ESCDF_DT_UINT", 
+    "Dimensions" : 0 ,
+    "Description" : [""] 
+
+  },
+  { 
+    "Name" : "symmorphic", 
+    "Data_type" : "ESCDF_DT_BOOL", 
+    "Dimensions" : 0 ,
+    "Description" : [""] 
+
+  },
+  { 
+    "Name" : "time_reversal_symmetry", 
+    "Data_type" : "ESCDF_DT_BOOL", 
+    "Dimensions" :  0 ,
+    "Description" : [""] 
+
+  }
   ],
+
   "Datasets" :
   [
   { "Name" : "cartesian_site_positions", 
