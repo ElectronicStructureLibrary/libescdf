@@ -108,8 +108,8 @@ static char scalar_string[30] = "test-string";
 static hsize_t dims[] = {2, 3};
 static unsigned int array_uint[2][3] = {{1, 2, 3},
                                         {4, 5, 6}};
-static unsigned int array_int[2][3] = {{1, 2, 3},
-                                       {4, 5, 6}};
+static int array_int[2][3] = {{ 1,  2, -3},
+                              {-4, -5,  6}};
 static double array_double[2][3] = {{0.00, 0.00, 0.00},
                                     {0.25, 0.25, 0.25}};
 
@@ -596,6 +596,63 @@ START_TEST(test_attribute_write_array_uint)
 }
 END_TEST
 
+
+START_TEST(test_attribute_new_array_int)
+{
+    ck_assert((attr = escdf_attribute_new(&specs_array_int, attr_dims)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_array_int)
+{
+    attr = escdf_attribute_new(&specs_array_int, attr_dims);
+    ck_assert(escdf_attribute_set(attr, array_int) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_array_int)
+{
+    int value[2][3] = {{-10, -11,  12},
+                       { 13,  14, -15}};
+
+    attr = escdf_attribute_new(&specs_array_int, attr_dims);
+    escdf_attribute_set(attr, array_int);
+    ck_assert(escdf_attribute_get(attr, value) == ESCDF_SUCCESS);
+    ck_assert(value[0][0] == array_int[0][0]);
+    ck_assert(value[0][1] == array_int[0][1]);
+    ck_assert(value[0][2] == array_int[0][2]);
+    ck_assert(value[1][0] == array_int[1][0]);
+    ck_assert(value[1][1] == array_int[1][1]);
+    ck_assert(value[1][2] == array_int[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_read_array_int)
+{
+    int value[2][3] = {{-10, -11,  12},
+                       { 13,  14, -15}};
+
+    attr = escdf_attribute_new(&specs_array_int, attr_dims);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, value);
+    ck_assert(value[0][0] == array_int[0][0]);
+    ck_assert(value[0][1] == array_int[0][1]);
+    ck_assert(value[0][2] == array_int[0][2]);
+    ck_assert(value[1][0] == array_int[1][0]);
+    ck_assert(value[1][1] == array_int[1][1]);
+    ck_assert(value[1][2] == array_int[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_write_array_int)
+{
+    attr = escdf_attribute_new(&specs_array_int, attr_dims);
+    escdf_attribute_set(attr, array_int);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
 START_TEST(test_attribute_new_array_double)
 {
     ck_assert((attr = escdf_attribute_new(&specs_array_double, attr_dims)) != NULL);
@@ -664,6 +721,7 @@ Suite * make_attributes_suite(void)
     TCase *tc_attribute_scalar_double;
     TCase *tc_attribute_scalar_string;
     TCase *tc_attribute_array_uint;
+    TCase *tc_attribute_array_int;
     TCase *tc_attribute_array_double;
 
     s = suite_create("Attributes");
@@ -758,6 +816,15 @@ Suite * make_attributes_suite(void)
     tcase_add_test(tc_attribute_array_uint, test_attribute_write_array_uint);
     suite_add_tcase(s, tc_attribute_array_uint);
 
+    tc_attribute_array_int = tcase_create("Attribute array int");
+    tcase_add_checked_fixture(tc_attribute_array_int, array_setup, array_teardown);
+    tcase_add_test(tc_attribute_array_int, test_attribute_new_array_int);
+    tcase_add_test(tc_attribute_array_int, test_attribute_set_array_int);
+    tcase_add_test(tc_attribute_array_int, test_attribute_get_array_int);
+    tcase_add_test(tc_attribute_array_int, test_attribute_read_array_int);
+    tcase_add_test(tc_attribute_array_int, test_attribute_write_array_int);
+    suite_add_tcase(s, tc_attribute_array_int);
+    
     tc_attribute_array_double = tcase_create("Attribute array double");
     tcase_add_checked_fixture(tc_attribute_array_double, array_setup, array_teardown);
     tcase_add_test(tc_attribute_array_double, test_attribute_new_array_double);
