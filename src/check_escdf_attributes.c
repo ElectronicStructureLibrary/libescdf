@@ -104,7 +104,7 @@ static bool scalar_bool = true;
 static unsigned int scalar_uint = 1;
 static int scalar_int = 2;
 static double scalar_double = 3.0;
-static char* scalar_string = "test-string";
+static char scalar_string[30] = "test-string";
 static hsize_t dims[] = {2, 3};
 static unsigned int array_uint[2][3] = {{1, 2, 3},
                                         {4, 5, 6}};
@@ -133,9 +133,9 @@ void file_setup(void)
     /* write attributes */
     utils_hdf5_write_bool(root_id, specs_scalar_bool.name, scalar_bool);
     utils_hdf5_write_attr(root_id, specs_scalar_uint.name, H5T_NATIVE_UINT, NULL, 0, H5T_NATIVE_UINT, &scalar_uint);
-    utils_hdf5_write_attr(root_id, specs_scalar_int.name, H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_DOUBLE, &scalar_int);
+    utils_hdf5_write_attr(root_id, specs_scalar_int.name, H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_INT, &scalar_int);
     utils_hdf5_write_attr(root_id, specs_scalar_double.name, H5T_NATIVE_DOUBLE, NULL, 0, H5T_NATIVE_DOUBLE, &scalar_double);
-    utils_hdf5_write_attr(root_id, specs_scalar_string.name, H5T_C_S1, NULL, 0, H5T_C_S1, scalar_string);
+    utils_hdf5_write_string(root_id, specs_scalar_string.name, scalar_string, specs_scalar_string.stringlength);
 
     utils_hdf5_write_attr(root_id, specs_dim1.name, H5T_NATIVE_HSIZE, NULL, 0, H5T_NATIVE_UINT, &dims[0]);
     utils_hdf5_write_attr(root_id, specs_dim2.name, H5T_NATIVE_HSIZE, NULL, 0, H5T_NATIVE_UINT, &dims[1]);
@@ -232,7 +232,7 @@ END_TEST
 
 START_TEST(test_attribute_specs_sizeof_string)
 {
-    ck_assert(escdf_attribute_specs_sizeof(&specs_scalar_string) == 30 * sizeof(char));
+    ck_assert(escdf_attribute_specs_sizeof(&specs_scalar_string) == specs_scalar_string.stringlength * sizeof(char));
 }
 END_TEST
 
@@ -365,6 +365,138 @@ START_TEST(test_attribute_write_scalar_bool)
 END_TEST
 
 
+START_TEST(test_attribute_new_scalar_uint)
+{
+    ck_assert( (attr = escdf_attribute_new(&specs_scalar_uint, NULL)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_scalar_uint)
+{
+    attr = escdf_attribute_new(&specs_scalar_uint, NULL);
+    ck_assert(escdf_attribute_set(attr, &scalar_uint) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_scalar_uint)
+{
+    unsigned int value = scalar_uint + 1;
+
+    attr = escdf_attribute_new(&specs_scalar_uint, NULL);
+    escdf_attribute_set(attr, &scalar_uint);
+    ck_assert(escdf_attribute_get(attr, &value) == ESCDF_SUCCESS);
+    ck_assert(value == scalar_uint);
+}
+END_TEST
+
+START_TEST(test_attribute_read_scalar_uint)
+{
+    unsigned int value = scalar_uint + 1;
+
+    attr = escdf_attribute_new(&specs_scalar_uint, NULL);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, &value);
+    ck_assert(value == scalar_uint);
+}
+END_TEST
+
+START_TEST(test_attribute_write_scalar_uint)
+{
+    attr = escdf_attribute_new(&specs_scalar_uint, NULL);
+    escdf_attribute_set(attr, &scalar_uint);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
+START_TEST(test_attribute_new_scalar_int)
+{
+    ck_assert( (attr = escdf_attribute_new(&specs_scalar_int, NULL)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_scalar_int)
+{
+    attr = escdf_attribute_new(&specs_scalar_int, NULL);
+    ck_assert(escdf_attribute_set(attr, &scalar_int) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_scalar_int)
+{
+    int value = scalar_int + 1;
+
+    attr = escdf_attribute_new(&specs_scalar_int, NULL);
+    escdf_attribute_set(attr, &scalar_int);
+    ck_assert(escdf_attribute_get(attr, &value) == ESCDF_SUCCESS);
+    ck_assert(value == scalar_int);
+}
+END_TEST
+
+START_TEST(test_attribute_read_scalar_int)
+{
+    int value = scalar_int + 1;
+
+    attr = escdf_attribute_new(&specs_scalar_int, NULL);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, &value);
+    ck_assert(value == scalar_int);
+}
+END_TEST
+
+START_TEST(test_attribute_write_scalar_int)
+{
+    attr = escdf_attribute_new(&specs_scalar_int, NULL);
+    escdf_attribute_set(attr, &scalar_int);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
+START_TEST(test_attribute_new_scalar_double)
+{
+    ck_assert( (attr = escdf_attribute_new(&specs_scalar_double, NULL)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_scalar_double)
+{
+    attr = escdf_attribute_new(&specs_scalar_double, NULL);
+    ck_assert(escdf_attribute_set(attr, &scalar_double) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_scalar_double)
+{
+    double value = scalar_double + 1.0;
+
+    attr = escdf_attribute_new(&specs_scalar_double, NULL);
+    escdf_attribute_set(attr, &scalar_double);
+    ck_assert(escdf_attribute_get(attr, &value) == ESCDF_SUCCESS);
+    ck_assert(value == scalar_double);
+}
+END_TEST
+
+START_TEST(test_attribute_read_scalar_double)
+{
+    double value = scalar_double + 1;
+
+    attr = escdf_attribute_new(&specs_scalar_double, NULL);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, &value);
+    ck_assert(value == scalar_double);
+}
+END_TEST
+
+START_TEST(test_attribute_write_scalar_double)
+{
+    attr = escdf_attribute_new(&specs_scalar_double, NULL);
+    escdf_attribute_set(attr, &scalar_double);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
 START_TEST(test_attribute_new_scalar_string)
 {
     ck_assert( (attr = escdf_attribute_new(&specs_scalar_string, NULL)) != NULL);
@@ -380,23 +512,23 @@ END_TEST
 
 START_TEST(test_attribute_get_scalar_string)
 {
-    bool value = !scalar_bool;
+    char value[30] = " ";
 
-    attr = escdf_attribute_new(&specs_scalar_bool, NULL);
-    escdf_attribute_set(attr, &scalar_bool);
+    attr = escdf_attribute_new(&specs_scalar_string, NULL);
+    escdf_attribute_set(attr, &scalar_string);
     ck_assert(escdf_attribute_get(attr, &value) == ESCDF_SUCCESS);
-    ck_assert(value == scalar_bool);
+    ck_assert_str_eq(value, scalar_string);
 }
 END_TEST
 
 START_TEST(test_attribute_read_scalar_string)
 {
-  char  value[80];
+    char value[30] = " ";
 
     attr = escdf_attribute_new(&specs_scalar_string, NULL);
     ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
-    escdf_attribute_get(attr, value);
-    ck_assert( cmpstr(scalar_string, value ) == 0);
+    escdf_attribute_get(attr, &value);
+    ck_assert_str_eq(scalar_string, value);
 }
 END_TEST
 
@@ -407,9 +539,6 @@ START_TEST(test_attribute_write_scalar_string)
     ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
 }
 END_TEST
-
-
-
 
 
 START_TEST(test_attribute_new_array_uint)
@@ -530,6 +659,9 @@ Suite * make_attributes_suite(void)
     Suite *s;
     TCase *tc_attribute_specs_sizeof, *tc_attribute_specs_hdf5_disk_type, *tc_attribute_specs_hdf5_mem_type, *tc_attribute_specs_is_present;
     TCase *tc_attribute_scalar_bool;
+    TCase *tc_attribute_scalar_uint;
+    TCase *tc_attribute_scalar_int;
+    TCase *tc_attribute_scalar_double;
     TCase *tc_attribute_scalar_string;
     TCase *tc_attribute_array_uint;
     TCase *tc_attribute_array_double;
@@ -581,8 +713,40 @@ Suite * make_attributes_suite(void)
     tcase_add_test(tc_attribute_scalar_bool, test_attribute_write_scalar_bool);
     suite_add_tcase(s, tc_attribute_scalar_bool);
 
+    tc_attribute_scalar_uint = tcase_create("Attribute scalar uint");
+    tcase_add_checked_fixture(tc_attribute_scalar_uint, scalar_setup, scalar_teardown);
+    tcase_add_test(tc_attribute_scalar_uint, test_attribute_new_scalar_uint);
+    tcase_add_test(tc_attribute_scalar_uint, test_attribute_set_scalar_uint);
+    tcase_add_test(tc_attribute_scalar_uint, test_attribute_get_scalar_uint);
+    tcase_add_test(tc_attribute_scalar_uint, test_attribute_read_scalar_uint);
+    tcase_add_test(tc_attribute_scalar_uint, test_attribute_write_scalar_uint);
+    suite_add_tcase(s, tc_attribute_scalar_uint);
+
+    tc_attribute_scalar_int = tcase_create("Attribute scalar int");
+    tcase_add_checked_fixture(tc_attribute_scalar_int, scalar_setup, scalar_teardown);
+    tcase_add_test(tc_attribute_scalar_int, test_attribute_new_scalar_int);
+    tcase_add_test(tc_attribute_scalar_int, test_attribute_set_scalar_int);
+    tcase_add_test(tc_attribute_scalar_int, test_attribute_get_scalar_int);
+    tcase_add_test(tc_attribute_scalar_int, test_attribute_read_scalar_int);
+    tcase_add_test(tc_attribute_scalar_int, test_attribute_write_scalar_int);
+    suite_add_tcase(s, tc_attribute_scalar_int);
+
+    tc_attribute_scalar_double = tcase_create("Attribute scalar double");
+    tcase_add_checked_fixture(tc_attribute_scalar_double, scalar_setup, scalar_teardown);
+    tcase_add_test(tc_attribute_scalar_double, test_attribute_new_scalar_double);
+    tcase_add_test(tc_attribute_scalar_double, test_attribute_set_scalar_double);
+    tcase_add_test(tc_attribute_scalar_double, test_attribute_get_scalar_double);
+    tcase_add_test(tc_attribute_scalar_double, test_attribute_read_scalar_double);
+    tcase_add_test(tc_attribute_scalar_double, test_attribute_write_scalar_double);
+    suite_add_tcase(s, tc_attribute_scalar_double);
+    
     tc_attribute_scalar_string = tcase_create("Attribute scalar string");
     tcase_add_checked_fixture(tc_attribute_scalar_string, scalar_setup, scalar_teardown);
+    tcase_add_test(tc_attribute_scalar_string, test_attribute_new_scalar_string);
+    tcase_add_test(tc_attribute_scalar_string, test_attribute_set_scalar_string);
+    tcase_add_test(tc_attribute_scalar_string, test_attribute_get_scalar_string);
+    tcase_add_test(tc_attribute_scalar_string, test_attribute_read_scalar_string);
+    tcase_add_test(tc_attribute_scalar_string, test_attribute_write_scalar_string);
     suite_add_tcase(s, tc_attribute_scalar_string);
 
     tc_attribute_array_uint = tcase_create("Attribute array uint");
