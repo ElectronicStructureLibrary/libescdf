@@ -158,7 +158,7 @@ escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name, _int_set_t *sc
  * @param[in] len: length of the string.
  * @return error code.
  */
-escdf_errno_t utils_hdf5_read_string(hid_t loc_id, const char *name, char **string, hsize_t len);
+escdf_errno_t utils_hdf5_read_string(hid_t loc_id, const char *name, char *string, hsize_t len);
 
 /**
  * Read the values of an array attribute of unsigned integer type.
@@ -259,7 +259,7 @@ escdf_errno_t utils_hdf5_create_group(hid_t loc_id, const char *path, hid_t *gro
  *                      attribute object identifier.
  * @return error code.
  */
-escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, const unsigned int ndims, hid_t *attr_pt);
+escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, unsigned int ndims, hid_t *attr_pt);
 
 /**
  * Creates a dataset attached to a specified object.

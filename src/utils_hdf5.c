@@ -209,15 +209,14 @@ escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name, hid_t mem_typ
 escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name, _bool_set_t *scalar)
 {
     escdf_errno_t err;
-    char *value;
+    char value[4];
 
-    if ((err = utils_hdf5_read_string(loc_id, name, &value, 4)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_read_string(loc_id, name, value, 4)) != ESCDF_SUCCESS) {
         free(value);
         return err;
     }
     *scalar = _bool_set((bool)(value[0] == 'y'));
 
-    free(value);
     return ESCDF_SUCCESS;
 }
 
@@ -255,7 +254,7 @@ escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name, _int_set_t *sc
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_string(hid_t loc_id, const char *name, char **string, hsize_t len)
+escdf_errno_t utils_hdf5_read_string(hid_t loc_id, const char *name, char *string, hsize_t len)
 {
     escdf_errno_t err;
     hid_t str_id;
@@ -264,10 +263,7 @@ escdf_errno_t utils_hdf5_read_string(hid_t loc_id, const char *name, char **stri
     H5Tset_size(str_id, len);
     H5Tset_strpad(str_id, H5T_STR_NULLTERM);
 
-    *string = malloc(sizeof(char) * len);
-
-    if ((err = utils_hdf5_read_attr(loc_id, name, str_id, NULL, 0, (void *)*string)) != ESCDF_SUCCESS) {
-        free(*string);
+    if ((err = utils_hdf5_read_attr(loc_id, name, str_id, NULL, 0, (void *)string)) != ESCDF_SUCCESS) {
         H5Tclose(str_id);
         return err;
     };

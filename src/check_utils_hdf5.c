@@ -300,10 +300,9 @@ END_TEST
 
 START_TEST(test_utils_hdf5_read_string)
 {
-    char *string;
-    ck_assert(utils_hdf5_read_string(group_id, ATTRIBUTE_STRING_S, &string, 20) == ESCDF_SUCCESS);
+    char string[20];
+    ck_assert(utils_hdf5_read_string(group_id, ATTRIBUTE_STRING_S, string, 20) == ESCDF_SUCCESS);
     ck_assert_str_eq(string, "this is a string");
-    free(string);
 }
 END_TEST
 
@@ -567,11 +566,10 @@ END_TEST
 
 START_TEST(test_utils_hdf5_write_string)
 {
-    char *string;
+    char string[20];
     ck_assert(utils_hdf5_write_string(group_id, "someattribute", "some thing", 20) == ESCDF_SUCCESS);
-    ck_assert(utils_hdf5_read_string(group_id, "someattribute", &string, 20) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_string(group_id, "someattribute", string, 20) == ESCDF_SUCCESS);
     ck_assert_str_eq(string, "some thing");
-    free(string);
 }
 END_TEST
 
