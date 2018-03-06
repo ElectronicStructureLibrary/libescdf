@@ -179,19 +179,6 @@ bool escdf_group_query_attribute(const escdf_group_t *group, const char *name);
 
 
 
-/***********************************************************
- * Low level routines for accessing attributes in a group  *
- ***********************************************************/
-
-
-/**
- * This routine returns the pointer to a group attribute.
- *
- * @param[in] group: pointer to the group.
- * @param[in] attribute_name: name of the attribute.
- * @return pointer to the attribute
- */
-escdf_attribute_t *escdf_group_get_arribute_pointer(escdf_group_t *group, const char *name); 
 
 
 
@@ -223,6 +210,56 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attrib
  */
 escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attribute_name, void* buf);
 
+/************************************************************
+ * Low level routines for accessing datasets in a group     *
+ ************************************************************/
+
+/**
+ * This routine opens all datasets, registered in the group specifications.
+ */
+
+escdf_errno_t escdf_group_open_datasets(const escdf_group_t *group);
+
+/**
+ * This routine creates all datasets, registered in the group specifications.
+ */
+
+escdf_errno_t escdf_group_create_datasets(const escdf_group_t *group);
+
+
+
+/************************************************************
+ * High level routines for accessing datasets in a group    *
+ ************************************************************/
+
+escdf_errno_t escdf_group_dataset_write_at(escdf_group_t *group, escdf_dataset_t *data, 
+                                            const hid_t *start, const hid_t *count, const hid_t * stride, void* buf);
+
+escdf_errno_t escdf_group_dataset_read_at(const escdf_group_t *group, const escdf_dataset_t *data, 
+                                            const hid_t *start, const hid_t *count, const hid_t * stride, void *buf);
+
+escdf_errno_t escdf_group_dataset_write_all(escdf_group_t *group, escdf_dataset_t *data, void* buf);
+
+escdf_errno_t escdf_group_dataset_read_all(const escdf_group_t *group, const escdf_dataset_t *data, void *buf);
+
+
+
+/************************************************************
+ * Helper routines for groups                               *
+ ************************************************************/
+
+/**
+ * This routine returns the pointer to a group attribute.
+ *
+ * @param[in] group: pointer to the group.
+ * @param[in] attribute_name: name of the attribute.
+ * @return pointer to the attribute
+ */
+escdf_attribute_t *escdf_group_get_arribute_from_name(escdf_group_t *group, const char *name); 
+
+escdf_dataset_t * escdf_group_get_dataset_from_name(escdf_group_t *group, const char *name);
+
+escdf_dataset_t * escdf_group_get_dataset_form_id(escdf_group_t *group, hid_t dtset_id);
 
 
 

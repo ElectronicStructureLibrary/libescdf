@@ -288,7 +288,7 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
         SUCCEED_OR_RETURN( utils_hdf5_check_present(loc_id, data->specs->name));
 
         /* Do we bother about access property lists? If so, change to H5DOpen2() */
-        SUCCEED_OR_RETURN( utiles_hdf5_open_dataset(loc_id, data->specs->name, &(data->dtset_id)) );
+        SUCCEED_OR_RETURN( utils_hdf5_open_dataset(loc_id, data->specs->name, &(data->dtset_id)) );
     }
     else {
         RETURN_WITH_ERROR(ESCDF_ERROR);
@@ -398,3 +398,9 @@ size_t escdf_dataset_sizeof(const escdf_dataset_t* data)
 }
 
 
+hid_t escdf_dataset_get_id(escdf_dataset_t *data)
+{
+    assert(data!=NULL);
+
+    return data->dtset_id;
+}

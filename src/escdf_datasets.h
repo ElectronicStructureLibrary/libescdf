@@ -70,6 +70,15 @@ bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t lo
 typedef struct escdf_dataset escdf_dataset_t;
 
 /**
+ * Create a new dataset:
+ * 
+ * This routine only creates the structure in memory and sets the dimensions. It does not create the dataset in the file
+ */
+
+escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims);
+
+
+/**
  * Access dimensions of a dataset
  */
 
@@ -99,13 +108,8 @@ int * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
 
 escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *table);
 
-/**
- * Create a new dataset:
- * 
- * This routine only creates the structure in memory and sets the dimensions. It does not create the dataset in the file
- */
+hid_t escdf_dataset_get_id(escdf_dataset_t *data);
 
-escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims);
 
 /**
  * Create a dataset in the file:

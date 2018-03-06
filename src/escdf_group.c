@@ -436,3 +436,78 @@ escdf_errno_t escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) 
     return ESCDF_SUCCESS;
 
 };
+
+/*
+escdf_errno_t escdf_group_dataset_write_at(const escdf_group_t *group, escdf_dataset_t *data, 
+                                            const hid_t *start, const hid_t *count, const hid_t * stride, void* buf)
+{
+    assert(group != NULL);
+}
+
+escdf_errno_t escdf_group_dataset_read_at(const escdf_group_t *group, const escdf_dataset_t *data, 
+                                            const hid_t *start, const hid_t *count, const hid_t * stride, void *buf)
+{
+
+}
+
+*/
+
+/************************************************************
+ * Helper routines for groups                               *
+ ************************************************************/
+
+escdf_attribute_t *escdf_group_get_arribute_from_name(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->nattributes && found == false; i++) {
+        if ( strcmp(group->specs->attr_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->attr[result];
+    else    
+        return NULL;
+
+}
+
+escdf_dataset_t * escdf_group_get_dataset_from_name(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->datasets[result];
+    else    
+        return NULL;
+
+}
+
+escdf_dataset_t * escdf_group_get_dataset_form_id(escdf_group_t *group, hid_t dtset_id)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( escdf_dataset_get_id(group->datasets[i])  == dtset_id ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->datasets[result];
+    else    
+        return NULL;
+
+}
+
+
