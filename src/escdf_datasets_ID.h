@@ -2,5 +2,7 @@
 #define ESCDF_DATASETS_ID_H
 
 #define CARTESIAN_SITE_POSITIONS 0
+#define SPECIES_NAMES 1
+#define CHEMICAL_SYMBOLS 2
 
 #endif

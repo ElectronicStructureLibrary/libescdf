@@ -31,6 +31,9 @@ extern "C" {
 #include "escdf_handle.h"
 
 
+typedef struct escdf_attribute_specs escdf_attribute_specs_t;
+
+
 struct escdf_attribute_specs {
     int id;
     char * name;
@@ -39,10 +42,10 @@ struct escdf_attribute_specs {
     unsigned int stringlength;
     unsigned int ndims;
 
-    const struct escdf_attribute_specs **dims_specs;
+    const escdf_attribute_specs_t **dims_specs;
 };
 
-typedef struct escdf_attribute_specs escdf_attribute_specs_t;
+
 
 size_t escdf_attribute_specs_sizeof(const escdf_attribute_specs_t *specs);
 
@@ -51,6 +54,11 @@ hid_t escdf_attribute_specs_hdf5_mem_type(const escdf_attribute_specs_t *specs);
 hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs);
 
 bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_t loc_id);
+
+int escdf_attribute_specs_get_id(const escdf_attribute_specs_t *specs);
+
+int escdf_attribute_specs_get_datatype(const escdf_attribute_specs_t *specs);
+
 
 typedef struct escdf_attribute escdf_attribute_t;
 
@@ -65,9 +73,9 @@ void escdf_attribute_free(escdf_attribute_t *attr);
 
 size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
 
-escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, void *buf);
+escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, const void *buf);
 
-escdf_errno_t escdf_attribute_get(escdf_attribute_t *attr, void *buf);
+escdf_errno_t escdf_attribute_get(const escdf_attribute_t *attr, void *buf);
 
 escdf_errno_t escdf_attribute_read(escdf_attribute_t *attr, hid_t loc_id);
 
@@ -76,6 +84,9 @@ escdf_errno_t escdf_attribute_write(escdf_attribute_t *attr, hid_t loc_id);
 escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr);
 
 bool escdf_attribute_is_set(const escdf_attribute_t *attr);
+
+int escdf_attribute_get_specs_id(const escdf_attribute_t *attr);
+
 
 #ifdef __cplusplus
 }

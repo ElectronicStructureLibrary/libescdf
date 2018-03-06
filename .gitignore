@@ -44,3 +44,6 @@ tmp-*
 /src/*.la
 /src/*.c~
 /src/*.h~
+/src/*.h5
+src/escdf_*_specs.h
+src/escdf_*_IDs.h
