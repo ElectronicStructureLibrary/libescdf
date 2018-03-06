@@ -45,7 +45,14 @@ struct escdf_dataset_specs {
     bool disordered_storage_allowed;
 
     const escdf_attribute_specs_t **dims_specs;
-    const escdf_dataset_specs_t *reordering_table_specs;
+
+    /** 
+     * the reordering table specs are not necessary in the dataset_specs.
+     * 
+     *  const escdf_dataset_specs_t *reordering_table_specs;
+     */
+
+    
 };
 
 size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
@@ -73,11 +80,23 @@ hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
 bool escdf_dataset_is_disordered_storage_allowed(const escdf_dataset_t *data);
 bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
 
+escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered);
+
 /**
- * Get pointer to the dataset holding the reordering table
+ * Get pointer to the dataset holding the reordering table.
+ * 
+ * If the table is not set, this will return a NULL pointer.
  */
 
-escdf_dataset_t * escdf_dataset_get_reordering_table(const escdf_dataset_t * data);
+escdf_dataset_t * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
+
+/**
+ * Set pointer to the dataset holding the reordering table.
+ * 
+ * This will also set is_ordered to false.
+ */
+
+escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, escdf_dataset_t *table);
 
 /**
  * Create a new dataset:
@@ -86,6 +105,17 @@ escdf_dataset_t * escdf_dataset_get_reordering_table(const escdf_dataset_t * dat
  */
 
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims);
+
+/**
+ * Create a dataset in the file:
+ * 
+ * This routine creates the dataset in the file and also writes the reordering table if necessary.
+ */
+
+escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id);
+
+escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id);
+
 
 void escdf_dataset_free(escdf_dataset_t *attr);
 

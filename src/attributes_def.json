@@ -105,7 +105,8 @@
   { "Name" : "cartesian_site_positions", 
     "Data_type" : "ESCDF_DT_DOUBLE", 
     "Dimensions" : 2, 
-    "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ]
+    "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
+    "Disordered_Allowed" : "No"
   },
   {
     "Name" : "species_names",
