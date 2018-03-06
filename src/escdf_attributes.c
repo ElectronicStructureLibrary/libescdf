@@ -36,18 +36,18 @@ size_t escdf_attribute_specs_sizeof(const escdf_attribute_specs_t *specs)
     assert(specs != NULL);
 
     switch (specs->datatype) {
-        case ESCDF_DT_BOOL:
-            return sizeof(bool);
-        case ESCDF_DT_UINT:
-            return sizeof(unsigned int);
-        case ESCDF_DT_INT:
-            return sizeof(int);
-        case ESCDF_DT_DOUBLE:
-            return sizeof(double);
-        case ESCDF_DT_STRING:
-            return specs->stringlength * sizeof(char);
-        default:
-            return 0;
+    case ESCDF_DT_BOOL:
+        return sizeof(bool);
+    case ESCDF_DT_UINT:
+        return sizeof(unsigned int);
+    case ESCDF_DT_INT:
+        return sizeof(int);
+    case ESCDF_DT_DOUBLE:
+        return sizeof(double);
+    case ESCDF_DT_STRING:
+        return specs->stringlength * sizeof(char);
+    default:
+        return 0;
     }
 }
 
@@ -56,18 +56,18 @@ hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs)
     assert(specs != NULL);
 
     switch (specs->datatype) {
-        case ESCDF_DT_BOOL:
-            return H5T_C_S1;
-        case ESCDF_DT_UINT:
-            return H5T_NATIVE_UINT;
-        case ESCDF_DT_INT:
-            return H5T_NATIVE_INT;
-        case ESCDF_DT_DOUBLE:
-            return H5T_NATIVE_DOUBLE;
-        case ESCDF_DT_STRING:
-            return H5T_C_S1;
-        default:
-            return 0;
+    case ESCDF_DT_BOOL:
+        return H5T_C_S1;
+    case ESCDF_DT_UINT:
+        return H5T_NATIVE_UINT;
+    case ESCDF_DT_INT:
+        return H5T_NATIVE_INT;
+    case ESCDF_DT_DOUBLE:
+        return H5T_NATIVE_DOUBLE;
+    case ESCDF_DT_STRING:
+        return H5T_C_S1;
+    default:
+        return 0;
     }
 }
 
@@ -76,18 +76,18 @@ hid_t escdf_attribute_specs_hdf5_mem_type(const escdf_attribute_specs_t *specs)
     assert(specs != NULL);
 
     switch (specs->datatype) {
-        case ESCDF_DT_BOOL:
-            return H5T_C_S1;
-        case ESCDF_DT_UINT:
-            return H5T_NATIVE_UINT;
-        case ESCDF_DT_INT:
-            return H5T_NATIVE_INT;
-        case ESCDF_DT_DOUBLE:
-            return H5T_NATIVE_DOUBLE;
-        case ESCDF_DT_STRING:
-            return H5T_C_S1;
-        default:
-            return 0;
+    case ESCDF_DT_BOOL:
+        return H5T_C_S1;
+    case ESCDF_DT_UINT:
+        return H5T_NATIVE_UINT;
+    case ESCDF_DT_INT:
+        return H5T_NATIVE_INT;
+    case ESCDF_DT_DOUBLE:
+        return H5T_NATIVE_DOUBLE;
+    case ESCDF_DT_STRING:
+        return H5T_C_S1;
+    default:
+        return 0;
     }
 }
 
@@ -193,23 +193,20 @@ escdf_errno_t escdf_attribute_get(escdf_attribute_t *attr, void *buf)
 escdf_errno_t escdf_attribute_read(escdf_attribute_t *attr, hid_t loc_id)
 {
     escdf_errno_t err;
-    _bool_set_t tmpb;
-    char *tmpc;
 
     assert(attr != NULL);
     assert(escdf_attribute_specs_is_present(attr->specs, loc_id));
 
     switch (attr->specs->datatype) {
-        case ESCDF_DT_BOOL:
-            err = utils_hdf5_read_bool(loc_id, attr->specs->name, &tmpb );
-            *((bool *)attr->buf) = tmpb.value;
-            break;
-        case ESCDF_DT_STRING:
-            tmpc = (char *)attr->buf;
-            err = utils_hdf5_read_string(loc_id, attr->specs->name, tmpc, attr->specs->stringlength);
-            break;
-        default:
-            err = utils_hdf5_read_attr(loc_id, attr->specs->name, escdf_attribute_specs_hdf5_mem_type(attr->specs), attr->dims,
+    case ESCDF_DT_BOOL:
+        err = utils_hdf5_read_attr_bool(loc_id, attr->specs->name, attr->dims, attr->specs->ndims, attr->buf);
+        break;
+    case ESCDF_DT_STRING:
+        err = utils_hdf5_read_attr_string(loc_id, attr->specs->name, attr->specs->stringlength, attr->dims,
+                                          attr->specs->ndims, attr->buf);
+        break;
+    default:
+        err = utils_hdf5_read_attr(loc_id, attr->specs->name, escdf_attribute_specs_hdf5_mem_type(attr->specs), attr->dims,
                                        attr->specs->ndims, attr->buf);
     }
     attr->is_set = err == ESCDF_SUCCESS;
@@ -222,24 +219,19 @@ escdf_errno_t escdf_attribute_write(escdf_attribute_t *attr, hid_t loc_id)
 {
     escdf_errno_t err;
     unsigned int i;
-    hsize_t len = 1;
 
     assert(attr != NULL);
     assert(attr->is_set);
 
     switch (attr->specs->datatype) {
-        case ESCDF_DT_BOOL:
-            err = utils_hdf5_write_bool(loc_id, attr->specs->name, *((bool *)attr->buf) );
-            break;
-        case ESCDF_DT_STRING:
-            len = attr->specs->stringlength;
-            for (i = 0; i < attr->specs->ndims; i++) {
-    	        len = len * attr->dims[i];
-	        }
-      
-            err = utils_hdf5_write_string(loc_id, attr->specs->name, (char *)attr->buf, len);
-            break;
-        default:
+    case ESCDF_DT_BOOL:
+        err = utils_hdf5_write_attr_bool(loc_id, attr->specs->name, attr->dims, attr->specs->ndims, attr->buf);
+        break;
+    case ESCDF_DT_STRING:
+        err = utils_hdf5_write_attr_string(loc_id, attr->specs->name, attr->specs->stringlength, attr->dims,
+                                           attr->specs->ndims, attr->buf);
+        break;
+    default:
               err = utils_hdf5_write_attr(loc_id, attr->specs->name, escdf_attribute_specs_hdf5_disk_type(attr->specs),
                                           attr->dims, attr->specs->ndims, escdf_attribute_specs_hdf5_mem_type(attr->specs),
                                           attr->buf);
@@ -288,13 +280,27 @@ escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr)
       
         } else {
             switch(attr->specs->datatype) {
-                case ESCDF_DT_NONE   : strcpy(datatype_name, "ESCDF_DT_NONE"); break;
-                case ESCDF_DT_UINT   : strcpy(datatype_name, "ESCDF_DT_UINT"); break;
-                case ESCDF_DT_INT    : strcpy(datatype_name, "ESCDF_DT_INT"); break;
-                case ESCDF_DT_BOOL   : strcpy(datatype_name, "ESCDF_DT_BOOL"); break;
-                case ESCDF_DT_DOUBLE : strcpy(datatype_name, "ESCDF_DT_DOUBLE"); break;
-                case ESCDF_DT_STRING : strcpy(datatype_name, "ESCDF_DT_STRING"); break;
-                default : strcpy(datatype_name, "UNDEFINED"); break;
+            case ESCDF_DT_NONE:
+                strcpy(datatype_name, "ESCDF_DT_NONE");
+                break;
+            case ESCDF_DT_UINT:
+                strcpy(datatype_name, "ESCDF_DT_UINT");
+                break;
+            case ESCDF_DT_INT:
+                strcpy(datatype_name, "ESCDF_DT_INT");
+                break;
+            case ESCDF_DT_BOOL:
+                strcpy(datatype_name, "ESCDF_DT_BOOL");
+                break;
+            case ESCDF_DT_DOUBLE:
+                strcpy(datatype_name, "ESCDF_DT_DOUBLE");
+                break;
+            case ESCDF_DT_STRING:
+                strcpy(datatype_name, "ESCDF_DT_STRING");
+                break;
+            default :
+                strcpy(datatype_name, "UNDEFINED");
+                break;
             }
 
             if (attr->is_set)
@@ -316,86 +322,94 @@ escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr)
             assert( attr->buf != NULL );
 
             switch(attr->specs->datatype) {
-                case ESCDF_DT_NONE   : printf("Datetype NONE. No data.\n"); break;
-                case ESCDF_DT_UINT   :
-	                switch(attr->specs->ndims) {
-	                    case 0: printf("Value = %i \n", *( (unsigned int*) attr->buf) ); break;
-	                    case 1:
-	                        for(i=0; i<attr->dims[0]; i++) { printf("%i ", ((unsigned int*) attr->buf)[i] );}
-	                        printf("\n");
-	                        break;
-	                    case 2:
-                            for(i=0; i<attr->dims[0]; i++) {
-                                for(j=0; j<attr->dims[1]; j++) {
-                                    printf("%i ", ((unsigned int*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
-                                }
-                                printf("\n");
-                            }
-                            printf("\n");
-                            break;
-                    }
-	                break;
-                case ESCDF_DT_INT    :
-                    switch(attr->specs->ndims) {
-                        case 0: printf("Value = %i \n", *((int*) attr->buf)); break;
-                        case 1:
-                            for(i=0; i<attr->dims[0]; i++)
-                                printf("%i ", ((int*) attr->buf)[i] );
-                            printf("\n");
-                            break;
-                        case 2:
-                            for(i=0; i<attr->dims[0]; i++) {
-                                for(j=0; j<attr->dims[1]; j++) {
-                                    printf("%i ", ((int*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
-                                }
-                                printf("\n");
-                            }
-                            printf("\n");
-                            break;
-                    };
+            case ESCDF_DT_NONE:
+                printf("Datetype NONE. No data.\n");
+                break;
+            case ESCDF_DT_UINT   :
+                switch(attr->specs->ndims) {
+                case 0: printf("Value = %i \n", *( (unsigned int*) attr->buf) ); break;
+	            case 1:
+                    for(i=0; i<attr->dims[0]; i++)
+                        printf("%i ", ((unsigned int*) attr->buf)[i] );
+                    printf("\n");
                     break;
+                case 2:
+                    for(i=0; i<attr->dims[0]; i++) {
+                        for(j=0; j<attr->dims[1]; j++) {
+                            printf("%i ", ((unsigned int*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
+                        }
+                        printf("\n");
+                    }
+                    printf("\n");
+                    break;
+                }
+                break;
+            case ESCDF_DT_INT    :
+                switch(attr->specs->ndims) {
+                case 0:
+                    printf("Value = %i \n", *((int*) attr->buf));
+                    break;
+                case 1:
+                    for(i=0; i<attr->dims[0]; i++)
+                        printf("%i ", ((int*) attr->buf)[i] );
+                    printf("\n");
+                    break;
+                case 2:
+                    for(i=0; i<attr->dims[0]; i++) {
+                        for(j=0; j<attr->dims[1]; j++) {
+                            printf("%i ", ((int*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
+                        }
+                        printf("\n");
+                    }
+                    printf("\n");
+                    break;
+                };
+                break;
 
-                case ESCDF_DT_BOOL   : break;
+            case ESCDF_DT_BOOL:
+                break;
  
-                case ESCDF_DT_DOUBLE :
-	                switch(attr->specs->ndims) {
-	                    case 0: printf("Value = %f \n", *((double*) attr->buf)); break;
-	                    case 1:
-	                        for(i=0; i<attr->dims[0]; i++)
-                                printf("%f ", ((double*) attr->buf)[i] );
-	                        printf("\n");
-	                        break;
-	                    case 2:
-	                        for(i = 0; i < attr->dims[0]; i++) {
-	                            for(j = 0; j < attr->dims[1]; j++) {
-	                                printf("%f ", ((double*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
-	                            }
-	                            printf("\n");
-	                        }
-	                        printf("\n");
-	                        break;
-                    }
-	                break;
-
-                case ESCDF_DT_STRING :
-                    switch(attr->specs->ndims) {
-                        case 0: printf("Value = %s \n", ((char*) attr->buf)); break;
-                        case 1:
-                            for(i=0; i<attr->dims[0]; i++)
-                                printf("%s ", &((char*) attr->buf)[i] );
-                            printf("\n");
-                            break;
-                        case 2:
-                            for(i=0; i<attr->dims[0]; i++) {
-                                for(j=0; j<attr->dims[1]; j++) {
-                                    printf("%s ", &((char*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
-                                }
-                                printf("\n");
-                            }
-                            printf("\n");
-                            break;
-                    };
+            case ESCDF_DT_DOUBLE:
+	            switch(attr->specs->ndims) {
+                case 0:
+                    printf("Value = %f \n", *((double*) attr->buf));
                     break;
+	            case 1:
+                    for(i=0; i<attr->dims[0]; i++)
+                        printf("%f ", ((double*) attr->buf)[i] );
+                    printf("\n");
+	                break;
+                case 2:
+	                for(i = 0; i < attr->dims[0]; i++) {
+	                    for(j = 0; j < attr->dims[1]; j++) {
+	                        printf("%f ", ((double*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
+                        }
+	                    printf("\n");
+                    }
+                    printf("\n");
+	                break;
+                }
+	            break;
+
+            case ESCDF_DT_STRING:
+                switch(attr->specs->ndims) {
+                case 0: printf("Value = %s \n", ((char*) attr->buf)); break;
+                case 1:
+                    for(i=0; i<attr->dims[0]; i++)
+                        printf("%s ", &((char*) attr->buf)[i] );
+                    printf("\n");
+                    break;
+                case 2:
+                    for(i=0; i<attr->dims[0]; i++) {
+                        for(j=0; j<attr->dims[1]; j++) {
+                            printf("%s ", &((char*) attr->buf)[i+j*attr->dims[0] ] ); fflush(stdout);
+                        }
+                        printf("\n");
+                    }
+                    printf("\n");
+                    break;
+                };
+                break;
 
                 default : break;
             }

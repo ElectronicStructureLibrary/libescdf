@@ -116,14 +116,34 @@ escdf_errno_t utils_hdf5_check_dataset(hid_t loc_id, const char *name, const hsi
 escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name, hid_t mem_type_id, const hsize_t *dims, unsigned int ndims, void *buf);
 
 /**
+ * Read the value of an attribute of type string.
+ *
+ * @param[in] loc_id: object identifier to which the attribute is attached.
+ * @param[in] name: attribute name.
+ * @param[in] len: length of the string.
+ * @param[in] dims: pointer to array storing the size of each dimension.
+ * @param[in] ndims: number of dimensions of the attribute.
+ * @param[out] buf: buffer for data to be read.
+ * @return error code.
+ */
+escdf_errno_t utils_hdf5_read_attr_string(hid_t loc_id, const char *name, hsize_t len, const hsize_t *dims,
+                                          unsigned int ndims, void *buf);
+
+/**
  * Read the value of a scalar attribute of boolean type and mark it as set.
  *
  * @param[in] loc_id: object identifier to which the attribute is attached.
  * @param[in] name: attribute name.
- * @param[out] scalar: boolean value read.
+ * @param[in] dims: pointer to array storing the size of each dimension.
+ * @param[in] ndims: number of dimensions of the attribute.
+ * @param[out] buf: buffer for data to be read.
  * @return error code.
  */
-escdf_errno_t utils_hdf5_read_bool(hid_t loc_id, const char *name, _bool_set_t *scalar);
+escdf_errno_t utils_hdf5_read_attr_bool(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims,
+                                        void *buf);
+
+/* The following is a deprecated function that should be removed */
+escdf_errno_t utils_hdf5_read_bool_old(hid_t loc_id, const char *name, _bool_set_t *scalar);
 
 /**
  * Read the value of a scalar attribute of unsigned integer type and mark it as set.
@@ -148,17 +168,6 @@ escdf_errno_t utils_hdf5_read_uint(hid_t loc_id, const char *name, _uint_set_t *
  * @return error code.
  */
 escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name, _int_set_t *scalar, int range[2]);
-
-/**
- * Read the value of a scalar attribute of string type.
- *
- * @param[in] loc_id: object identifier to which the attribute is attached.
- * @param[in] name: attribute name.
- * @param[out] scalar: string value read.
- * @param[in] len: length of the string.
- * @return error code.
- */
-escdf_errno_t utils_hdf5_read_string(hid_t loc_id, const char *name, char *string, hsize_t len);
 
 /**
  * Read the values of an array attribute of unsigned integer type.
@@ -295,6 +304,33 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
 escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_type_id, const hsize_t *dims, unsigned int ndims, hid_t mem_type_id, const void *buf);
 
 /**
+ * Creates a boolean attribute attached to a specified object and write data to it.
+ *
+ * @param[in] loc_id: object identifier to which the attribute is to be attached to.
+ * @param[in] name: attribute name.
+ * @param[in] dims: pointer to array storing the size of each dimension.
+ * @param[in] ndims: number of dimensions of the attribute.
+ * @param[in] buf: data to be written.
+ * @return error code.
+ */
+escdf_errno_t utils_hdf5_write_attr_bool(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims,
+                                         const void *buf);
+
+/**
+ * Creates a string attribute attached to a specified object and writes a data to it.
+ *
+ * @param[in] loc_id: object identifier to which the attribute is to be attached to.
+ * @param[in] name: attribute name.
+ * @param[in] len: length of the string.
+ * @param[in] dims: pointer to array storing the size of each dimension.
+ * @param[in] ndims: number of dimensions of the attribute.
+ * @param[in] buf: data to be written.
+ * @return error code.
+ */
+escdf_errno_t utils_hdf5_write_attr_string(hid_t loc_id, const char *name, hsize_t len, const hsize_t *dims,
+                                           unsigned int ndims, const void *buf);
+
+/**
  * Writes raw data from a buffer to a dataset. Optionally, data is written to an hyperslice of the dataset defined by
  * setting start, count, and stride.
  *
@@ -309,26 +345,11 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_t
  */
 escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride);
 
-/**
- * Creates a scalar attribute attached to a specified object and writes a boolean to it.
- *
- * @param[in] loc_id: object identifier to which the attribute is to be attached to.
- * @param[in] name: attribute name.
- * @param[in] value: boolean to be written.
- * @return error code.
- */
-escdf_errno_t utils_hdf5_write_bool(hid_t loc_id, const char *name, const bool value);
 
-/**
- * Creates a scalar attribute attached to a specified object and writes a string to it.
- *
- * @param[in] loc_id: object identifier to which the attribute is to be attached to.
- * @param[in] name: attribute name.
- * @param[in] string: string to be written.
- * @param[in] len: length of the string.
- * @return error code.
- */
-escdf_errno_t utils_hdf5_write_string(hid_t loc_id, const char *name, const char *string, hsize_t len);
+/* The following functions are deprecated and should be removed */
+escdf_errno_t utils_hdf5_write_bool_old(hid_t loc_id, const char *name, const bool value);
+
+escdf_errno_t utils_hdf5_write_string_old(hid_t loc_id, const char *name, const char *string, hsize_t len);
 
 
 /******************************************************************************

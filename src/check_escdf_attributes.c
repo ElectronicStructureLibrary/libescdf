@@ -106,12 +106,16 @@ static int scalar_int = 2;
 static double scalar_double = 3.0;
 static char scalar_string[30] = "test-string";
 static hsize_t dims[] = {2, 3};
+static bool array_bool[2][3] = {{true, false, false},
+                                {false, true, true}};
 static unsigned int array_uint[2][3] = {{1, 2, 3},
                                         {4, 5, 6}};
 static int array_int[2][3] = {{ 1,  2, -3},
                               {-4, -5,  6}};
 static double array_double[2][3] = {{0.00, 0.00, 0.00},
                                     {0.25, 0.25, 0.25}};
+static char array_string[2][3][30] = {{"element1", "element2", "element3"},
+                                      {"string", "another string", "yet another string"}};
 
 static escdf_handle_t *handle_r = NULL, *handle_w = NULL;
 static escdf_attribute_t *attr_dims[2] = {NULL, NULL};
@@ -131,18 +135,22 @@ void file_setup(void)
     root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
 
     /* write attributes */
-    utils_hdf5_write_bool(root_id, specs_scalar_bool.name, scalar_bool);
+    utils_hdf5_write_attr_bool(root_id, specs_scalar_bool.name, NULL, 0, &scalar_bool);
     utils_hdf5_write_attr(root_id, specs_scalar_uint.name, H5T_NATIVE_UINT, NULL, 0, H5T_NATIVE_UINT, &scalar_uint);
     utils_hdf5_write_attr(root_id, specs_scalar_int.name, H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_INT, &scalar_int);
     utils_hdf5_write_attr(root_id, specs_scalar_double.name, H5T_NATIVE_DOUBLE, NULL, 0, H5T_NATIVE_DOUBLE, &scalar_double);
-    utils_hdf5_write_string(root_id, specs_scalar_string.name, scalar_string, specs_scalar_string.stringlength);
+    utils_hdf5_write_attr_string(root_id, specs_scalar_string.name, specs_scalar_string.stringlength, NULL, 0,
+                                 scalar_string);
 
     utils_hdf5_write_attr(root_id, specs_dim1.name, H5T_NATIVE_HSIZE, NULL, 0, H5T_NATIVE_UINT, &dims[0]);
     utils_hdf5_write_attr(root_id, specs_dim2.name, H5T_NATIVE_HSIZE, NULL, 0, H5T_NATIVE_UINT, &dims[1]);
 
+    utils_hdf5_write_attr_bool(root_id, specs_array_bool.name, dims, 2, array_bool);
     utils_hdf5_write_attr(root_id, specs_array_uint.name, H5T_NATIVE_UINT, dims, 2, H5T_NATIVE_UINT, array_uint);
     utils_hdf5_write_attr(root_id, specs_array_int.name, H5T_NATIVE_INT, dims, 2, H5T_NATIVE_INT, array_int);
     utils_hdf5_write_attr(root_id, specs_array_double.name, H5T_NATIVE_DOUBLE, dims, 2, H5T_NATIVE_DOUBLE, array_double);
+    utils_hdf5_write_attr_string(root_id, specs_array_string.name, specs_scalar_string.stringlength, dims, 2,
+                                 array_string);
 
     H5Gclose(root_id);
     H5Fclose(file_id);
@@ -540,6 +548,60 @@ START_TEST(test_attribute_write_scalar_string)
 }
 END_TEST
 
+START_TEST(test_attribute_new_array_bool)
+{
+    ck_assert((attr = escdf_attribute_new(&specs_array_bool, attr_dims)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_array_bool)
+{
+    attr = escdf_attribute_new(&specs_array_bool, attr_dims);
+    ck_assert(escdf_attribute_set(attr, array_bool) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_array_bool)
+{
+    bool value[2][3] = {{1, 0, 0},
+                        {0, 1, 1}};
+    attr = escdf_attribute_new(&specs_array_bool, attr_dims);
+    escdf_attribute_set(attr, array_bool);
+    ck_assert(escdf_attribute_get(attr, value) == ESCDF_SUCCESS);
+    ck_assert(value[0][0] == array_bool[0][0]);
+    ck_assert(value[0][1] == array_bool[0][1]);
+    ck_assert(value[0][2] == array_bool[0][2]);
+    ck_assert(value[1][0] == array_bool[1][0]);
+    ck_assert(value[1][1] == array_bool[1][1]);
+    ck_assert(value[1][2] == array_bool[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_read_array_bool)
+{
+    bool value[2][3] = {{false, true, true},
+                        {true, false, false}};
+
+    attr = escdf_attribute_new(&specs_array_bool, attr_dims);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, value);
+    ck_assert(value[0][0] == array_bool[0][0]);
+    ck_assert(value[0][1] == array_bool[0][1]);
+    ck_assert(value[0][2] == array_bool[0][2]);
+    ck_assert(value[1][0] == array_bool[1][0]);
+    ck_assert(value[1][1] == array_bool[1][1]);
+    ck_assert(value[1][2] == array_bool[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_write_array_bool)
+{
+    attr = escdf_attribute_new(&specs_array_bool, attr_dims);
+    escdf_attribute_set(attr, array_bool);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
 
 START_TEST(test_attribute_new_array_uint)
 {
@@ -710,6 +772,60 @@ START_TEST(test_attribute_write_array_double)
 END_TEST
 
 
+START_TEST(test_attribute_new_array_string)
+{
+    ck_assert((attr = escdf_attribute_new(&specs_array_string, attr_dims)) != NULL);
+}
+END_TEST
+
+START_TEST(test_attribute_set_array_string)
+{
+    attr = escdf_attribute_new(&specs_array_string, attr_dims);
+    ck_assert(escdf_attribute_set(attr, array_string) == ESCDF_SUCCESS);
+}
+END_TEST
+
+START_TEST(test_attribute_get_array_string)
+{
+    char value[2][3][30] = {{"", "", ""},
+                            {"", "", ""}};
+    attr = escdf_attribute_new(&specs_array_string, attr_dims);
+    escdf_attribute_set(attr, array_string);
+    ck_assert(escdf_attribute_get(attr, value) == ESCDF_SUCCESS);
+    ck_assert_str_eq(value[0][0], array_string[0][0]);
+    ck_assert_str_eq(value[0][1], array_string[0][1]);
+    ck_assert_str_eq(value[0][2], array_string[0][2]);
+    ck_assert_str_eq(value[1][0], array_string[1][0]);
+    ck_assert_str_eq(value[1][1], array_string[1][1]);
+    ck_assert_str_eq(value[1][2], array_string[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_read_array_string)
+{
+    char value[2][3][30] = {{"", "", ""},
+                            {"", "", ""}};
+    attr = escdf_attribute_new(&specs_array_string, attr_dims);
+    ck_assert(escdf_attribute_read(attr, handle_r->group_id) == ESCDF_SUCCESS);
+    escdf_attribute_get(attr, value);
+    ck_assert_str_eq(value[0][0], array_string[0][0]);
+    ck_assert_str_eq(value[0][1], array_string[0][1]);
+    ck_assert_str_eq(value[0][2], array_string[0][2]);
+    ck_assert_str_eq(value[1][0], array_string[1][0]);
+    ck_assert_str_eq(value[1][1], array_string[1][1]);
+    ck_assert_str_eq(value[1][2], array_string[1][2]);
+}
+END_TEST
+
+START_TEST(test_attribute_write_array_string)
+{
+    attr = escdf_attribute_new(&specs_array_string, attr_dims);
+    escdf_attribute_set(attr, array_string);
+    ck_assert(escdf_attribute_write(attr, handle_w->group_id) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
 
 Suite * make_attributes_suite(void)
 {
@@ -720,10 +836,12 @@ Suite * make_attributes_suite(void)
     TCase *tc_attribute_scalar_int;
     TCase *tc_attribute_scalar_double;
     TCase *tc_attribute_scalar_string;
+    TCase *tc_attribute_array_bool;
     TCase *tc_attribute_array_uint;
     TCase *tc_attribute_array_int;
     TCase *tc_attribute_array_double;
-
+    TCase *tc_attribute_array_string;
+    
     s = suite_create("Attributes");
 
     tc_attribute_specs_sizeof = tcase_create("Attribute size of");
@@ -807,6 +925,15 @@ Suite * make_attributes_suite(void)
     tcase_add_test(tc_attribute_scalar_string, test_attribute_write_scalar_string);
     suite_add_tcase(s, tc_attribute_scalar_string);
 
+    tc_attribute_array_bool = tcase_create("Attribute array bool");
+    tcase_add_checked_fixture(tc_attribute_array_bool, array_setup, array_teardown);
+    tcase_add_test(tc_attribute_array_bool, test_attribute_new_array_bool);
+    tcase_add_test(tc_attribute_array_bool, test_attribute_set_array_bool);
+    tcase_add_test(tc_attribute_array_bool, test_attribute_get_array_bool);
+    tcase_add_test(tc_attribute_array_bool, test_attribute_read_array_bool);
+    tcase_add_test(tc_attribute_array_bool, test_attribute_write_array_bool);
+    suite_add_tcase(s, tc_attribute_array_bool);
+
     tc_attribute_array_uint = tcase_create("Attribute array uint");
     tcase_add_checked_fixture(tc_attribute_array_uint, array_setup, array_teardown);
     tcase_add_test(tc_attribute_array_uint, test_attribute_new_array_uint);
@@ -834,5 +961,14 @@ Suite * make_attributes_suite(void)
     tcase_add_test(tc_attribute_array_double, test_attribute_write_array_double);
     suite_add_tcase(s, tc_attribute_array_double);
 
+    tc_attribute_array_string = tcase_create("Attribute array string");
+    tcase_add_checked_fixture(tc_attribute_array_string, array_setup, array_teardown);
+    tcase_add_test(tc_attribute_array_string, test_attribute_new_array_string);
+    tcase_add_test(tc_attribute_array_string, test_attribute_set_array_string);
+    tcase_add_test(tc_attribute_array_string, test_attribute_get_array_string);
+    tcase_add_test(tc_attribute_array_string, test_attribute_read_array_string);
+    tcase_add_test(tc_attribute_array_string, test_attribute_write_array_string);
+    suite_add_tcase(s, tc_attribute_array_string);
+    
     return s;
 }
