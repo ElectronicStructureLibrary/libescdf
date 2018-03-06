@@ -31,6 +31,9 @@ extern "C" {
 #include "escdf_handle.h"
 #include "escdf_attributes.h"
 
+typedef struct escdf_dataset_specs escdf_dataset_specs_t;
+
+
 struct escdf_dataset_specs {
     int id;
     char * name;
@@ -39,10 +42,11 @@ struct escdf_dataset_specs {
     unsigned int stringlength;
     unsigned int ndims;
 
-    const struct escdf_attribute_specs **dims_specs;
-};
+    bool disordered_storage_allowed;
 
-typedef struct escdf_dataset_specs escdf_dataset_specs_t;
+    const escdf_attribute_specs_t **dims_specs;
+    const escdf_dataset_specs_t *reordering_table_specs;
+};
 
 size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
 
@@ -53,22 +57,41 @@ hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs);
 bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id);
 
 
+
+
 typedef struct escdf_dataset escdf_dataset_t;
+
+/**
+ * Access dimensions of a dataset
+ */
+
+unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data);
+
+hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
+
+
+bool escdf_dataset_is_disordered_storage_allowed(const escdf_dataset_t *data);
+bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
+
+/**
+ * Get pointer to the dataset holding the reordering table
+ */
+
+escdf_dataset_t * escdf_dataset_get_reordering_table(const escdf_dataset_t * data);
+
+/**
+ * Create a new dataset:
+ * 
+ * This routine only creates the structure in memory and sets the dimensions. It does not create the dataset in the file
+ */
 
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims);
 
 void escdf_dataset_free(escdf_dataset_t *attr);
 
-/* 
-   size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
-   escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, void *buf);
-   escdf_errno_t escdf_attribute_get(escdf_attribute_t *attr, void *buf);
+escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf);
+escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hid_t loc_id, void *buf);
 
-   escdf_errno_t escdf_attribute_read(escdf_attribute_t *attr, hid_t loc_id);
-   escdf_errno_t escdf_attribute_write(escdf_attribute_t *attr, hid_t loc_id);
-
-   bool escdf_attribute_is_set(const escdf_attribute_t *attr);
-*/
 
 #ifdef __cplusplus
 }
