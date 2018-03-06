@@ -33,16 +33,8 @@ struct escdf_dataset {
     bool ordered_flag_set;
 
     hsize_t *dims;
-    /**
-     * It seems easier to only keep the dataset_ID of the reordering table.
-     * This eliminates the need to search for the escdf_dataset by name or ID.
-     * There is no need to keep a full dataset structure for the reordering tables, as they themselves
-     * cannot be disordered and always inherit the dimension from the dataset to which they are attached.
-     * 
-     * escdf_dataset_t *reordering_table;
-     */
 
-    hid_t reordering_table_id;
+    int *reordering_table;
     
     hid_t type_id;
     hid_t xfer_id;
@@ -166,21 +158,35 @@ escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered)
 }
 
 
-escdf_dataset_t * escdf_dataset_get_reordering_table(const escdf_dataset_t * data)
+int * escdf_dataset_get_reordering_table(const escdf_dataset_t * data)
 {
     assert( data != NULL );
 
     return data->reordering_table;
 }
 
-escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, escdf_dataset_t *table)
+escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *table)
 {
+    int ii, fast_dim;
+
     assert(data != NULL);
 
     if(!data->specs->disordered_storage_allowed)
         RETURN_WITH_ERROR(ESCDF_ERROR);
 
-    data->reordering_table = table;
+
+    fast_dim = data->dims[data->specs->ndims-1];
+
+    data->reordering_table = malloc(fast_dim * sizeof(int) );
+    assert(data->reordering_table != NULL);
+
+    for(ii=0; ii<fast_dim; ii++) {
+        data->reordering_table[ii] = table[ii];
+    }
+
+
+
+
     data->is_ordered = false;
 
     return ESCDF_SUCCESS;
@@ -256,17 +262,15 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
     }
     
 
-    SUCCEED_OR_RETURN( utils_hdf5_write_bool(data->dtset_id, "is_ordered", data->is_ordered) );
+    SUCCEED_OR_RETURN( utils_hdf5_write_attr_bool(data->dtset_id, "is_ordered", NULL, 1, &data->is_ordered) );
 
 
     if(data->reordering_table != NULL) {
-        SUCCEED_OR_RETURN( utils_hdf5_write_string( data->dtset_id, "reordering_table", 
-                            data->reordering_table->specs->name, 80) );   
+        SUCCEED_OR_RETURN( utils_hdf5_write_attr( data->dtset_id, "reordering_table", H5T_NATIVE_INT, 
+                            &(data->dims[data->specs->ndims-1]), 1, H5T_NATIVE_INT, 
+                            data->reordering_table));   
     }
-    else {
-        SUCCEED_OR_RETURN( utils_hdf5_write_string( data->dtset_id, "reordering_table", "none", 80) );   
-    }
-    
+       
     return ESCDF_SUCCESS;
 }
 
@@ -274,7 +278,8 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 {
     _bool_set_t tmp_bool;
-
+    
+    hid_t *table_ptr;
     char **table_name;
 
     assert(data != NULL);
@@ -283,32 +288,31 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
         SUCCEED_OR_RETURN( utils_hdf5_check_present(loc_id, data->specs->name));
 
         /* Do we bother about access property lists? If so, change to H5DOpen2() */
-        data->dtset_id = H5Dopen1(loc_id, data->specs->name);
+        SUCCEED_OR_RETURN( utiles_hdf5_open_dataset(loc_id, data->specs->name, &(data->dtset_id)) );
     }
     else {
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
  
-    SUCCEED_OR_RETURN( utils_hdf5_read_bool(data->dtset_id, "is_ordered", &tmp_bool ) );
+    SUCCEED_OR_RETURN( utils_hdf5_read_attr_bool(data->dtset_id, "is_ordered", NULL, 1, &tmp_bool ) );
 
     data->is_ordered = tmp_bool.value;
     data->ordered_flag_set = tmp_bool.is_set;
 
-    SUCCEED_OR_RETURN( utils_hdf5_read_string(data->dtset_id, "reordering_table", table_name, 80) );
+    /* check whether a reordering table is present in the file */
 
-    if( strcmp(*table_name, "none") ) {
-        data->reordering_table = NULL;
-        if(!data->is_ordered)
-            RETURN_WITH_ERROR(ESCDF_ERROR);
+    if( utils_hdf5_check_present(data->dtset_id, "reordering_table") ) {
+        data->reordering_table = malloc( data->dims[data->specs->ndims-1] * sizeof(int ));
+        utils_hdf5_read_attr(data->dtset_id, "reordering_table", H5T_NATIVE_INT, 
+                            &(data->dims[data->specs->ndims-1]),1, data->reordering_table );
     }
     else {
-        /* we need to search for the dataset named *table_name. */
-
-        data->reordering_table = NULL;
-        H5Dopen1(loc_id, *table_name);
-
+        RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
+
+
+    
     return ESCDF_SUCCESS;
 }
 
@@ -344,6 +348,13 @@ escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf)
 
     assert(buf != NULL);
 
+    /* check whether we need to re-order on read */
+
+    if(!data->is_ordered) {
+        if(data->reordering_table == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
+
+
+    }
 
     utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, &start, &count, &stride);
 
@@ -364,7 +375,9 @@ escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hid_t loc_id, void *buf
 
     assert(data != NULL);
 
-    /* Only here, we create the actual dataset in the file (if necessary) */
+    /* check that the dataset in the file is open */
+
+    if(data->dtset_id == ESCDF_UNDEFINED_ID) RETURN_WITH_ERROR(ESCDF_ERROR);
 
 
     return ESCDF_SUCCESS;

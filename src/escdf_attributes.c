@@ -277,6 +277,7 @@ int escdf_attribute_get_specs_id(const escdf_attribute_t *attr)
 }
 
 
+
 escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr)
 {
     unsigned int i, j;

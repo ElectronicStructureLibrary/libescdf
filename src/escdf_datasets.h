@@ -55,6 +55,7 @@ struct escdf_dataset_specs {
     
 };
 
+
 size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
 
 hid_t escdf_dataset_specs_hdf5_mem_type(const escdf_dataset_specs_t *specs);
@@ -88,7 +89,7 @@ escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered);
  * If the table is not set, this will return a NULL pointer.
  */
 
-escdf_dataset_t * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
+int * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
 
 /**
  * Set pointer to the dataset holding the reordering table.
@@ -96,7 +97,7 @@ escdf_dataset_t * escdf_dataset_get_reordering_table(const escdf_dataset_t *data
  * This will also set is_ordered to false.
  */
 
-escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, escdf_dataset_t *table);
+escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *table);
 
 /**
  * Create a new dataset:

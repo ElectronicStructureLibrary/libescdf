@@ -49,12 +49,13 @@ struct escdf_attribute_specs {
 
 size_t escdf_attribute_specs_sizeof(const escdf_attribute_specs_t *specs);
 
+bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_t loc_id);
+
+/* the next two functions should become onsolete */
+
 hid_t escdf_attribute_specs_hdf5_mem_type(const escdf_attribute_specs_t *specs);
 
 hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs);
-
-bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_t loc_id);
-
 
 
 

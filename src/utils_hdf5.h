@@ -353,6 +353,18 @@ escdf_errno_t utils_hdf5_write_string_old(hid_t loc_id, const char *name, const 
 
 
 /******************************************************************************
+ * dataset open methods                                                       *
+ ******************************************************************************/
+
+/**
+ * Open a dataset in the file.
+ */
+
+escdf_errno_t utils_hdf5_open_dataset(hid_t loc_id, const char *name, hid_t *dtset_pt );
+
+
+
+/******************************************************************************
  * misc methods                                                               *
  ******************************************************************************/
 
@@ -369,6 +381,12 @@ escdf_errno_t utils_hdf5_write_string_old(hid_t loc_id, const char *name, const 
  * @return error code.
  */
 escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id, hid_t *diskspace_id, hid_t *memspace_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride);
+
+hid_t utils_hdf5_mem_type(int datatype);
+
+hid_t utils_hdf5_disk_type(int datatype);
+
+
 
 #if H5_VERS_MINOR < 8 || H5_VERS_RELEASE < 5
 htri_t H5Oexists_by_name(hid_t loc_id, const char *name, hid_t lapl_id);
