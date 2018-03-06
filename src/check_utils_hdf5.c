@@ -54,9 +54,9 @@ static double dbl_scalar = 10.0;
 static char string_scalar[] = "this is a string";
 
 static hsize_t dims[2] = {3, 2};
-static bool bool_array[3][2] = {{1, 0},
-                                {0, 1},
-                                {1, 1}};
+static bool bool_array[3][2] = {{false, true},
+                                {true, false},
+                                {false, false}};
 static unsigned int uint_array[3][2] = {{1, 2},
                                         {3, 4},
                                         {5, 6}};
@@ -152,6 +152,7 @@ void utils_hdf5_teardown(void)
     H5Sclose(space_array_id);
     H5Sclose(space_null_id);
     H5Gclose(group_id);
+    H5Gclose(subgroup_id);
     H5Gclose(root_id);
     H5Fclose(file_id);
     unlink(CHKFILE);
@@ -246,15 +247,14 @@ END_TEST
 
 START_TEST(test_utils_hdf5_check_attr_array)
 {
-    hsize_t dims[2] = {3, 2};
     ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_A, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_attr_array_wrong)
 {
-    hsize_t dims[2] = {1, 3};
-    ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_A, dims, 2, NULL) == ESCDF_ERROR);
+    hsize_t wrong_dims[2] = {1, 3};
+    ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_A, wrong_dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
 
@@ -270,15 +270,14 @@ END_TEST
 /* check_dataset */
 START_TEST(test_utils_hdf5_check_dataset)
 {
-    hsize_t dims[2] = {3, 2};
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_dataset_wrong)
 {
-    hsize_t dims[2] = {1, 3};
-    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, NULL) == ESCDF_ERROR);
+    hsize_t wrong_dims[2] = {1, 3};
+    ck_assert(utils_hdf5_check_dataset(group_id, DATASET, wrong_dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
 
@@ -294,15 +293,23 @@ END_TEST
 /* read_attr */
 START_TEST(test_utils_hdf5_read_attr_scalar)
 {
-    double value;
+    double value = 0.0;
     ck_assert(utils_hdf5_read_attr(group_id, ATTRIBUTE_DBL_S, H5T_NATIVE_DOUBLE, NULL, 0, &value) == ESCDF_SUCCESS);
     ck_assert(value == dbl_scalar);
 }
 END_TEST
 
-START_TEST(test_utils_hdf5_read_bool)
+START_TEST(test_utils_hdf5_read_attr_string_scalar)
 {
-    bool value;
+    char string[20] = "";
+    ck_assert(utils_hdf5_read_attr_string(group_id, ATTRIBUTE_STRING_S, 20, NULL, 0, string) == ESCDF_SUCCESS);
+    ck_assert_str_eq(string, string_scalar);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_read_attr_bool_scalar)
+{
+    bool value = !bool_scalar;
     ck_assert(utils_hdf5_read_attr_bool(group_id, ATTRIBUTE_BOOL_S, NULL, 0, &value) == ESCDF_SUCCESS);
     ck_assert(value == bool_scalar);
 }
@@ -328,17 +335,11 @@ START_TEST(test_utils_hdf5_read_int)
 }
 END_TEST
 
-START_TEST(test_utils_hdf5_read_string)
-{
-    char string[20];
-    ck_assert(utils_hdf5_read_attr_string(group_id, ATTRIBUTE_STRING_S, 20, NULL, 0, string) == ESCDF_SUCCESS);
-    ck_assert_str_eq(string, string_scalar);
-}
-END_TEST
-
 START_TEST(test_utils_hdf5_read_attr_array)
 {
-    double values[3][2];
+    double values[3][2] = {{0.0, 0.0},
+                           {0.0, 0.0},
+                           {0.0, 0.0}};
     ck_assert(utils_hdf5_read_attr(group_id, ATTRIBUTE_DBL_A, H5T_NATIVE_DOUBLE, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert(values[0][0] == dbl_array[0][0]);
     ck_assert(values[0][1] == dbl_array[0][1]);
@@ -349,9 +350,11 @@ START_TEST(test_utils_hdf5_read_attr_array)
 }
 END_TEST
 
-START_TEST(test_utils_hdf5_read_string_array)
+START_TEST(test_utils_hdf5_read_attr_string_array)
 {
-    char values[3][2][20];
+    char values[3][2][20] = {{"", ""},
+                             {"", ""},
+                             {"", ""}};
     ck_assert(utils_hdf5_read_attr_string(group_id, ATTRIBUTE_STRING_A, 20, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert_str_eq(values[0][0], string_array[0][0]);
     ck_assert_str_eq(values[0][1], string_array[0][1]);
@@ -362,9 +365,11 @@ START_TEST(test_utils_hdf5_read_string_array)
 }
 END_TEST
 
-START_TEST(test_utils_hdf5_read_bool_array)
+START_TEST(test_utils_hdf5_read_attr_bool_array)
 {
-    bool values[3][2];
+    bool values[3][2]= {{true,  false},
+                        {false, true},
+                        {true,  true}};
     ck_assert(utils_hdf5_read_attr_bool(group_id, ATTRIBUTE_BOOL_A, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert(values[0][0] == bool_array[0][0]);
     ck_assert(values[0][1] == bool_array[0][1]);
@@ -571,33 +576,16 @@ START_TEST(test_utils_hdf5_create_dataset_existing)
 END_TEST
 
 /* write_attribute */
-START_TEST(test_utils_hdf5_write_attribute_scalar)
+START_TEST(test_utils_hdf5_write_attr_scalar)
 {
-    double scalar = 3., value = 0.;
-    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, H5T_NATIVE_DOUBLE, &scalar) == ESCDF_SUCCESS);
+    double value = 0.;
+    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, H5T_NATIVE_DOUBLE, &dbl_scalar) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, &value) == ESCDF_SUCCESS);
-    ck_assert(scalar == value);
+    ck_assert(dbl_scalar == value);
 }
 END_TEST
 
-START_TEST(test_utils_hdf5_write_attribute_array)
-{
-    double array[3][2] = {{1.0, 2.0},
-                          {3.0, 4.0},
-                          {5.0, 6.0}};
-    double values[3][2];
-    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, H5T_NATIVE_DOUBLE, &array) == ESCDF_SUCCESS);
-    ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, &values) == ESCDF_SUCCESS);
-    ck_assert(array[0][0] == values[0][0]);
-    ck_assert(array[0][1] == values[0][1]);
-    ck_assert(array[1][0] == values[1][0]);
-    ck_assert(array[1][1] == values[1][1]);
-    ck_assert(array[2][0] == values[2][0]);
-    ck_assert(array[2][1] == values[2][1]);
-}
-END_TEST
-
-START_TEST(test_utils_hdf5_write_bool)
+START_TEST(test_utils_hdf5_write_attr_bool_scalar)
 {
     bool value = !bool_scalar;
     ck_assert(utils_hdf5_write_attr_bool(group_id, "someattribute", NULL, 0, &bool_scalar) == ESCDF_SUCCESS);
@@ -606,13 +594,62 @@ START_TEST(test_utils_hdf5_write_bool)
 }
 END_TEST
 
-START_TEST(test_utils_hdf5_write_string)
+START_TEST(test_utils_hdf5_write_attr_string_scalar)
 {
     char string[20] = "";
     ck_assert(utils_hdf5_write_attr_string(group_id, "someattribute", 20, NULL, 0, string_scalar) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr_string(group_id, "someattribute", 20, NULL, 0, string) == ESCDF_SUCCESS);
     ck_assert_str_eq(string, string_scalar);
 }
+END_TEST
+
+START_TEST(test_utils_hdf5_write_attr_array)
+{
+    double values[3][2] = {{0.0, 0.0},
+                           {0.0, 0.0},
+                           {0.0, 0.0}};
+    ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, H5T_NATIVE_DOUBLE, &dbl_array) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, &values) == ESCDF_SUCCESS);
+    ck_assert(dbl_array[0][0] == values[0][0]);
+    ck_assert(dbl_array[0][1] == values[0][1]);
+    ck_assert(dbl_array[1][0] == values[1][0]);
+    ck_assert(dbl_array[1][1] == values[1][1]);
+    ck_assert(dbl_array[2][0] == values[2][0]);
+    ck_assert(dbl_array[2][1] == values[2][1]);
+}
+END_TEST
+
+
+START_TEST(test_utils_hdf5_write_attr_string_array)
+{
+    char values[3][2][20] = {{"", ""},
+                             {"", ""},
+                             {"", ""}};
+    ck_assert(utils_hdf5_write_attr_string(group_id, "someattribute", 20, dims, 2, &string_array) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_attr_string(group_id, "someattribute", 20, dims, 2, &values) == ESCDF_SUCCESS);
+    ck_assert_str_eq(string_array[0][0], values[0][0]);
+    ck_assert_str_eq(string_array[0][1], values[0][1]);
+    ck_assert_str_eq(string_array[1][0], values[1][0]);
+    ck_assert_str_eq(string_array[1][1], values[1][1]);
+    ck_assert_str_eq(string_array[2][0], values[2][0]);
+    ck_assert_str_eq(string_array[2][1], values[2][1]);
+}
+END_TEST
+
+START_TEST(test_utils_hdf5_write_attr_bool_array)
+{
+    bool values[3][2]= {{true,  false},
+                        {false, true},
+                        {true,  true}};
+    ck_assert(utils_hdf5_write_attr_bool(group_id, "someattribute", dims, 2, &bool_array) == ESCDF_SUCCESS);
+    ck_assert(utils_hdf5_read_attr_bool(group_id, "someattribute", dims, 2, &values) == ESCDF_SUCCESS);
+    ck_assert(bool_array[0][0] == values[0][0]);
+    ck_assert(bool_array[0][1] == values[0][1]);
+    ck_assert(bool_array[1][0] == values[1][0]);
+    ck_assert(bool_array[1][1] == values[1][1]);
+    ck_assert(bool_array[2][0] == values[2][0]);
+    ck_assert(bool_array[2][1] == values[2][1]);
+    }
 END_TEST
 
 /* write_dataset */
@@ -709,12 +746,12 @@ Suite * make_utils_hdf5_suite(void)
     tcase_add_checked_fixture(tc_utils_hdf5_read_attr, utils_hdf5_setup, utils_hdf5_teardown);
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_scalar);
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_array);
-    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_string);
-    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_bool);
+    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_string_scalar);
+    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_bool_scalar);
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_uint);
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_int);
-    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_string_array);
-    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_bool_array);
+    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_string_array);
+    tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_attr_bool_array);
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_uint_array);
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_int_array);
     tcase_add_test(tc_utils_hdf5_read_attr, test_utils_hdf5_read_dbl_array);
@@ -754,10 +791,12 @@ Suite * make_utils_hdf5_suite(void)
 
     tc_utils_hdf5_write_attribute = tcase_create("Write attribute");
     tcase_add_checked_fixture(tc_utils_hdf5_write_attribute, utils_hdf5_setup, utils_hdf5_teardown);
-    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attribute_scalar);
-    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attribute_array);
-    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_bool);
-    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_string);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attr_scalar);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attr_bool_scalar);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attr_string_scalar);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attr_array);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attr_bool_array);
+    tcase_add_test(tc_utils_hdf5_write_attribute, test_utils_hdf5_write_attr_string_array);
     suite_add_tcase(s, tc_utils_hdf5_write_attribute);
 
     tc_utils_hdf5_write_dataset = tcase_create("Write dataset");
