@@ -30,6 +30,7 @@ extern "C" {
 #include <hdf5.h>
 
 #include "escdf_error.h"
+#include "escdf_lookuptable.h" 
 
 #if defined HAVE_CONFIG_H
 #include "config.h"
@@ -55,7 +56,10 @@ typedef struct {
     hid_t group_id; /**< HDF5 group identifier that is to be considered as root */
 
     int mpi_size, mpi_rank;
+
     hid_t transfer_mode;
+
+    escdf_lookuptable_t *data_transfer; 
 
 #ifdef HAVE_MPI
     MPI_Comm comm;

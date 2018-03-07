@@ -49,3 +49,7 @@ src/escdf_*_specs.h
 src/escdf_*_IDs.h
 src/escdf_lookuptable.c
 src/escdf_lookuptable.h
+config/data/escdf-config.yml
+src/gcov_*
+src/test_memory
+

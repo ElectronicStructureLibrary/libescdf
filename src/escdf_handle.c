@@ -60,6 +60,10 @@ escdf_handle_t * escdf_create(const char *filename, const char *path)
     }
     FULFILL_OR_RETURN_VAL(handle->group_id >= 0, ESCDF_EOBJECT, NULL);
 
+    handle->data_transfer = escdf_lookuptable_new();
+    FULFILL_OR_RETURN_VAL(handle->data_transfer != NULL, ESCDF_ENOMEM, NULL);
+    escdf_lookuptable_init(handle->data_transfer);
+
     return handle;
 }
 
@@ -81,6 +85,11 @@ escdf_handle_t * escdf_open(const char *filename, const char *path) {
     }
 
     FULFILL_OR_RETURN_VAL(handle->group_id >= 0, ESCDF_EFILE_CORRUPT, NULL)
+
+    handle->data_transfer = escdf_lookuptable_new();
+    FULFILL_OR_RETURN_VAL(handle->data_transfer != NULL, ESCDF_ENOMEM, NULL);
+    escdf_lookuptable_init(handle->data_transfer);
+
 
     return handle;
 }
