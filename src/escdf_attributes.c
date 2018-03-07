@@ -98,6 +98,14 @@ bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_
     return utils_hdf5_check_present_attr(loc_id, specs->name);
 }
 
+int escdf_attribute_specs_get_id(const escdf_attribute_specs_t *specs)
+{
+    assert( specs != NULL );
+
+    return specs->id;
+}
+
+
 bool escdf_attribute_is_present(const escdf_attribute_t *attr, hid_t loc_id)
 {
     assert(attr != NULL);
@@ -168,7 +176,7 @@ void escdf_attribute_free(escdf_attribute_t *attr)
 }
 
 
-escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, void *buf)
+escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, const void *buf)
 {
     assert(attr != NULL);
 
@@ -179,7 +187,7 @@ escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, void *buf)
 }
 
 
-escdf_errno_t escdf_attribute_get(escdf_attribute_t *attr, void *buf)
+escdf_errno_t escdf_attribute_get(const escdf_attribute_t *attr, void *buf)
 {
     assert(attr != NULL);
     assert(attr->is_set);
@@ -260,6 +268,15 @@ bool escdf_attribute_is_set(const escdf_attribute_t *attr)
 
   return attr->is_set;
 }
+
+int escdf_attribute_get_specs_id(const escdf_attribute_t *attr)
+{
+    assert( attr != NULL );
+
+    return attr->specs->id;
+}
+
+
 
 escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr)
 {

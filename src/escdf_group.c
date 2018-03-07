@@ -235,20 +235,20 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group)
 
     for (iattr = 0; iattr < group->specs->nattributes; iattr++) {
 
-      if (group->attr[iattr] == NULL) {
-	SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
-      }
+        if (group->attr[iattr] == NULL) {
+	        SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
+        }
 
-      if(escdf_attribute_is_present(group->attr[iattr], group->loc_id)) {       
+        if(escdf_attribute_is_present(group->attr[iattr], group->loc_id)) {       
 	
-	if (!escdf_attribute_is_set(group->attr[iattr])) {
-	  SUCCEED_OR_RETURN(escdf_attribute_read(group->attr[iattr], group->loc_id));
-	}
-      }
-      else {
-	/* We might want to throw an error here */
-	printf("WARNING: Attribute %i not found in file. \n", iattr);
-      }
+	        if (!escdf_attribute_is_set(group->attr[iattr])) {
+	            SUCCEED_OR_RETURN(escdf_attribute_read(group->attr[iattr], group->loc_id));
+	        }   
+        }
+        else {
+	        /* We might want to throw an error here */
+	        printf("WARNING: Attribute %i not found in file. \n", iattr);
+        }
     }
     return ESCDF_SUCCESS;
 }
@@ -258,75 +258,75 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group)
 
 escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attribute_name, void* buf)
 {
-  unsigned int iattr, i;
-  bool attr_found = false;
-  escdf_errno_t error;
+    unsigned int iattr, i;
+    bool attr_found = false;
+    escdf_errno_t error;
   
-  FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
-  FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
-  FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
-  FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
 
-  for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
-    if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
-  }
-  FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
+    for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
+        if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
+    }
+    FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
 
-  if (group->attr[iattr] == NULL) {
-    SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
-  }
+    if (group->attr[iattr] == NULL) {
+        SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
+    }
 
-  SUCCEED_OR_RETURN(escdf_attribute_set(group->attr[iattr], buf));
+    SUCCEED_OR_RETURN(escdf_attribute_set(group->attr[iattr], buf));
   
-  /* If the attribute has successfully been set in memory, we can write to disk */
+    /* If the attribute has successfully been set in memory, we can write to disk */
 
-  SUCCEED_OR_RETURN(escdf_attribute_write(group->attr[iattr], group->loc_id));
+    SUCCEED_OR_RETURN(escdf_attribute_write(group->attr[iattr], group->loc_id));
   
-  return ESCDF_SUCCESS;
+    return ESCDF_SUCCESS;
 }
 
 
 
 escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, const char* attribute_name, void *buf)
 {
-  unsigned int iattr, i;
-  bool attr_found;
-  escdf_errno_t error;
+    unsigned int iattr, i;
+    bool attr_found;
+    escdf_errno_t error;
 
-  FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
-  FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
-  FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
-  FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
+    FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
 
-  for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
-    if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
-  }
-  FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
+    for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
+        if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
+    }
+    FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
 
-  if (group->attr[iattr] == NULL) {
-    SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
-  }
+    if (group->attr[iattr] == NULL) {
+        SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
+    }
 
-  /* check whether the attribute already as a value in memory */
+    /* check whether the attribute already as a value in memory */
 
-  if (!escdf_attribute_is_set(group->attr[iattr])) {
-    SUCCEED_OR_RETURN(escdf_attribute_read(group->attr[iattr], group->loc_id));
-  }
+    if (!escdf_attribute_is_set(group->attr[iattr])) {
+        SUCCEED_OR_RETURN(escdf_attribute_read(group->attr[iattr], group->loc_id));
+    }
 
-  SUCCEED_OR_RETURN(escdf_attribute_get(group->attr[iattr], buf));
+    SUCCEED_OR_RETURN(escdf_attribute_get(group->attr[iattr], buf));
   
-  return ESCDF_SUCCESS;
+    return ESCDF_SUCCESS;
   
 }
 
 escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr)
 { 
 
-  unsigned int i, ii, idim, ndims, dim_ID;
-  bool attr_found;
+    unsigned int i, ii, idim, ndims, dim_ID;
+    bool attr_found;
 
-  escdf_attribute_t **dims = NULL;
-  escdf_errno_t error;
+    escdf_attribute_t **dims = NULL;
+    escdf_errno_t error;
 
     /* need to create the attribute */ 
 
@@ -338,36 +338,36 @@ escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr
 
     if( ndims > 0 ) {
       
-      dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
+        dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
       
-      FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
+        FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
       
-      for(i = 0; i<ndims; i++) {
+        for(i = 0; i<ndims; i++) {
 	
-	FULFILL_OR_RETURN_CLEAN( group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE, dims );
-	FULFILL_OR_RETURN_CLEAN( group->specs->attr_specs[iattr]->dims_specs[i] != NULL, ESCDF_EVALUE, dims );
+	        FULFILL_OR_RETURN_CLEAN( group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE, dims );
+	        FULFILL_OR_RETURN_CLEAN( group->specs->attr_specs[iattr]->dims_specs[i] != NULL, ESCDF_EVALUE, dims );
 	
 
-	idim = group->specs->attr_specs[iattr]->dims_specs[i]->id;
+	        idim = group->specs->attr_specs[iattr]->dims_specs[i]->id;
 		  
-	for (attr_found=false, ii = 0; ii < group->specs->nattributes; ii++) {
-	  if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; attr_found=true;}
-	}
-        FULFILL_OR_RETURN_CLEAN( attr_found == true, ESCDF_ERROR, dims );
+	        for (attr_found=false, ii = 0; ii < group->specs->nattributes; ii++) {
+	            if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; attr_found=true;}
+	        }
+            FULFILL_OR_RETURN_CLEAN( attr_found == true, ESCDF_ERROR, dims );
 
-	if(group->attr[dim_ID] == NULL) {
-	  if (dims != NULL) free(dims);
-	  return ESCDF_ERROR_DIM;
-	}
-	else {
-	  FULFILL_OR_RETURN_CLEAN( group->attr[dim_ID] !=  NULL, ESCDF_EVALUE, dims );
-	  dims[i] = group->attr[dim_ID];
-	}
-      }
+	        if(group->attr[dim_ID] == NULL) {
+	            if (dims != NULL) free(dims);
+	            return ESCDF_ERROR_DIM;
+	        }
+	        else {
+	            FULFILL_OR_RETURN_CLEAN( group->attr[dim_ID] !=  NULL, ESCDF_EVALUE, dims );
+	            dims[i] = group->attr[dim_ID];
+	        }
+        }
       
     }
     else { 
-      dims = NULL;
+        dims = NULL;
     }
 
     group->attr[iattr] = escdf_attribute_new(group->specs->attr_specs[iattr], dims);
@@ -381,11 +381,11 @@ escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr
 
 escdf_errno_t escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) {
 
-  unsigned int i, ii, idim, ndims, dim_ID;
-  bool found;
+    unsigned int i, ii, idim, ndims, dim_ID;
+    bool found;
 
-  escdf_attribute_t **dims = NULL;
-  escdf_errno_t error;
+    escdf_attribute_t **dims = NULL;
+    escdf_errno_t error;
 
     /* need to create the attribute */ 
 
@@ -396,33 +396,33 @@ escdf_errno_t escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) 
     ndims = group->specs->data_specs[idata]->ndims;
 
     if( ndims > 0 ) {
+        
+        dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
       
-      dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
+        FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
       
-      FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
-      
-      for(i = 0; i<ndims; i++) {
+        for(i = 0; i<ndims; i++) {
 	
-	FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata] != NULL, ESCDF_EVALUE, dims );
-	FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata]->dims_specs[i] != NULL, ESCDF_EVALUE, dims );
+	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata] != NULL, ESCDF_EVALUE, dims );
+	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata]->dims_specs[i] != NULL, ESCDF_EVALUE, dims );
 	
 
-	idim = group->specs->data_specs[idata]->dims_specs[i]->id;
+	        idim = group->specs->data_specs[idata]->dims_specs[i]->id;
 		  
-	for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
-	  if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; found=true;}
-	}
-        FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
+	        for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
+	            if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; found=true;}
+	        }
+            FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
-	if(group->attr[dim_ID] == NULL) {
-	  if (dims != NULL) free(dims);
-	  return ESCDF_ERROR_DIM;
-	}
-	else {
-	  FULFILL_OR_RETURN_CLEAN( group->attr[dim_ID] !=  NULL, ESCDF_EVALUE, dims );
-	  dims[i] = group->attr[dim_ID];
-	}
-      }
+	        if(group->attr[dim_ID] == NULL) {
+	            if (dims != NULL) free(dims);
+	            return ESCDF_ERROR_DIM;
+	        }
+	        else {
+	            FULFILL_OR_RETURN_CLEAN( group->attr[dim_ID] !=  NULL, ESCDF_EVALUE, dims );
+	            dims[i] = group->attr[dim_ID];
+	        }
+        }
       
     }
     else { 
@@ -436,3 +436,78 @@ escdf_errno_t escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) 
     return ESCDF_SUCCESS;
 
 };
+
+/*
+escdf_errno_t escdf_group_dataset_write_at(const escdf_group_t *group, escdf_dataset_t *data, 
+                                            const hid_t *start, const hid_t *count, const hid_t * stride, void* buf)
+{
+    assert(group != NULL);
+}
+
+escdf_errno_t escdf_group_dataset_read_at(const escdf_group_t *group, const escdf_dataset_t *data, 
+                                            const hid_t *start, const hid_t *count, const hid_t * stride, void *buf)
+{
+
+}
+
+*/
+
+/************************************************************
+ * Helper routines for groups                               *
+ ************************************************************/
+
+escdf_attribute_t *escdf_group_get_arribute_from_name(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->nattributes && found == false; i++) {
+        if ( strcmp(group->specs->attr_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->attr[result];
+    else    
+        return NULL;
+
+}
+
+escdf_dataset_t * escdf_group_get_dataset_from_name(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->datasets[result];
+    else    
+        return NULL;
+
+}
+
+escdf_dataset_t * escdf_group_get_dataset_form_id(escdf_group_t *group, hid_t dtset_id)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( escdf_dataset_get_id(group->datasets[i])  == dtset_id ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->datasets[result];
+    else    
+        return NULL;
+
+}
+
+

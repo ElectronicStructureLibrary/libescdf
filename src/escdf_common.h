@@ -45,6 +45,11 @@ extern "C" {
 #define ESCDF_DT_DOUBLE 4
 #define ESCDF_DT_STRING 5
 
+/**
+ * undefined ID
+ */
+
+#define ESCDF_UNDEFINED_ID -999
 
 /**
  * Error codes

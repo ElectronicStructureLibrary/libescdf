@@ -3,7 +3,6 @@
 
 #include "escdf_groups_ID.h" 
 #include "escdf_attributes_specs.h" 
-
 #include "escdf_datasets_specs.h" 
 
 const escdf_attribute_specs_t *system_attributes[] = { 
@@ -18,6 +17,12 @@ const escdf_attribute_specs_t *system_attributes[] = {
    &spacegroup_3d_number_specs,
    &symmorphic_specs,
    &time_reversal_symmetry_specs
+};
+
+const escdf_dataset_specs_t *system_datasets[] = { 
+   &cartesian_site_positions_specs,
+   &species_names_specs,
+   &chemical_symbols_specs
 };
 
 const escdf_attribute_specs_t *density_attributes[] = { 

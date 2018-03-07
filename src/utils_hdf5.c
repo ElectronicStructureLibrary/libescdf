@@ -661,6 +661,20 @@ escdf_errno_t utils_hdf5_write_string_old(hid_t loc_id, const char *name, const 
 
 
 /******************************************************************************
+ * dataset open methods                                                       *
+ ******************************************************************************/
+
+escdf_errno_t utils_hdf5_open_dataset(hid_t loc_id, const char *name, hid_t *dtset_pt )
+{
+    *dtset_pt = H5Dopen1(loc_id, name);
+
+    if(*dtset_pt < 0) RETURN_WITH_ERROR(ESCDF_ERROR);
+
+    return ESCDF_SUCCESS;
+}
+
+
+/******************************************************************************
  * misc methods                                                               *
  ******************************************************************************/
 
@@ -713,6 +727,44 @@ escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id, hid_t *diskspace_id, hid_t
 
     return ESCDF_SUCCESS;
 }
+
+hid_t utils_hdf5_mem_type(int datatype)
+{
+    switch (datatype) {
+    case ESCDF_DT_BOOL:
+        return H5T_C_S1;
+    case ESCDF_DT_UINT:
+        return H5T_NATIVE_UINT;
+    case ESCDF_DT_INT:
+        return H5T_NATIVE_INT;
+    case ESCDF_DT_DOUBLE:
+        return H5T_NATIVE_DOUBLE;
+    case ESCDF_DT_STRING:
+        return H5T_C_S1;
+    default:
+        return 0;
+    }
+}
+
+
+hid_t utils_hdf5_disk_type(int datatype)
+{
+    switch (datatype) {
+    case ESCDF_DT_BOOL:
+        return H5T_C_S1;
+    case ESCDF_DT_UINT:
+        return H5T_NATIVE_UINT;
+    case ESCDF_DT_INT:
+        return H5T_NATIVE_INT;
+    case ESCDF_DT_DOUBLE:
+        return H5T_NATIVE_DOUBLE;
+    case ESCDF_DT_STRING:
+        return H5T_C_S1;
+    default:
+        return 0;
+    }
+}
+
 
 #if H5_VERS_MINOR < 8 || H5_VERS_RELEASE < 5
 htri_t H5Oexists_by_name(hid_t loc_id, const char *name, hid_t lapl_id)

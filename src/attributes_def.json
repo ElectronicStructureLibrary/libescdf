@@ -10,7 +10,7 @@
            "  'Data_type' : string,  obligatory  : name of the ESCDF datatype as defined in 'escdf_common.h'",
            "  'Dimensions': integer, obligatory  : number of dimentions of the attribute",
            "  'Dims_definitions': list of strings, obligatory IF Dimensions  : names of the attributes, defining the dimensions",
-           "  'Stringlength' : integer : length of the string for datatype ESCDF_DT_STRING; this determines how big the buffer is",
+           "  'String_length' : integer : length of the string for datatype ESCDF_DT_STRING; this determines how big the buffer is",
            "  'Range' : list of two numbers : [min, max], the data type has to be consisnent with 'Data_type'",
            "  'Dependencies' : dependencies on other attributes or datasets besides dimensions",
            "  'Description' : string_array : Documentation for the attribute"
@@ -22,7 +22,7 @@
     "Name" : "system_name", 
     "Data_type"  : "ESCDF_DT_STRING", 
     "Dimensions" : 0, 
-    "Stringlength" : 80,
+    "String_length" : 80,
     "Description" : ["Specifies the name of the system. This information is stored for debugging or visualization purposes."] 
   },
   { 
@@ -105,7 +105,22 @@
   { "Name" : "cartesian_site_positions", 
     "Data_type" : "ESCDF_DT_DOUBLE", 
     "Dimensions" : 2, 
-    "Dims_definitions" : [ "number_of_physical_dimensions", "number_of_sites" ]
+    "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
+    "Disordered_Allowed" : "No"
+  },
+  {
+    "Name" : "species_names",
+    "Data_type" : "ESCDF_DT_STRING",
+    "String_length" : 80,
+    "Dimensions" : 1,
+    "Dims_definitions" : [ "number_of_species" ]
+  },
+  {
+    "Name" : "chemical_symbols",
+    "Data_type" : "ESCDF_DT_STRING",
+    "String_length" : 3,
+    "Dimensions" : 1,
+    "Dims_definitions" : [ "number_of_species" ]
   }
   ],
   "Groups" :
@@ -124,7 +139,7 @@
        "symmorphic",
        "time_reversal_symmetry"
      ],
-     "Datasets" : ["cartesian_site_positions"]
+     "Datasets" : ["cartesian_site_positions", "species_names", "chemical_symbols"]
    },
    { "Name" : "density" , 
      "Attributes" :  ["system_name", "bogus"]

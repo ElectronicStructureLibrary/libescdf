@@ -4,7 +4,7 @@
 #include "escdf_attributes_ID.h" 
 
 const escdf_attribute_specs_t system_name_specs = 
-   { SYSTEM_NAME, "system_name", ESCDF_DT_STRING, 80, 0, NULL }; 
+   { SYSTEM_NAME, "system_name", ESCDF_DT_STRING, 0, 0, NULL }; 
 
 const escdf_attribute_specs_t number_of_physical_dimensions_specs = 
    { NUMBER_OF_PHYSICAL_DIMENSIONS, "number_of_physical_dimensions", ESCDF_DT_UINT, 0, 0, NULL }; 
