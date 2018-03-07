@@ -46,15 +46,36 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     return ESCDF_SUCCESS;
 }
 
+escdf_group_id _escdf_get_group_id(const char* name)
+{
+    int i;
+    escdf_group_id group_id;
+
+    group_id = ESCDF_UNDEFINED_ID;
+
+    for(i=0; i<n_known_specs; i++) {
+        if(strcmp(known_group_specs[i]->root, name) == 0) group_id = known_group_specs[i]->group_id;
+    }
+
+    return group_id;
+}
+
+
+
 
 struct escdf_group {
+    const escdf_handle_t *escdf_handle;
+
     const escdf_group_specs_t *specs;
-    const escdf_dataset_specs_t *data_specs;
+
+    char * name;
 
     hid_t loc_id; /**< Handle for HDF5 group */
 
     escdf_attribute_t **attr;
     escdf_dataset_t   **datasets;
+
+    bool *datasets_present;
 };
 
 
@@ -96,7 +117,7 @@ escdf_group_t * escdf_group_new(escdf_group_id group_id)
         return NULL;
     }
 
-    group->loc_id = -1;
+    group->loc_id = ESCDF_UNDEFINED_ID; /* was -1 */
 
     group->attr = (escdf_attribute_t **) malloc(group->specs->nattributes * sizeof(escdf_attribute_t *));
     if (group->attr == NULL) {
@@ -105,6 +126,17 @@ escdf_group_t * escdf_group_new(escdf_group_id group_id)
         for (ii=0; ii<group->specs->nattributes; ii++)
             group->attr[ii] = NULL;
     }
+
+    group->datasets = (escdf_dataset_t **) malloc(group->specs->ndatasets * sizeof(escdf_dataset_t *));
+    if (group->datasets == NULL) {
+        free(group);
+    } else {
+        for (ii=0; ii<group->specs->ndatasets; ii++)
+            group->datasets[ii] = NULL;
+    }
+
+
+    group->datasets_present = (bool *) malloc(group->specs->ndatasets * sizeof(bool));
 
     return group;
 }
@@ -117,8 +149,15 @@ void escdf_group_free(escdf_group_t *group)
         for (ii=0; ii<group->specs->nattributes; ii++)
             escdf_attribute_free(group->attr[ii]);
         free(group->attr);
+        for (ii=0; ii<group->specs->ndatasets; ii++)
+            escdf_dataset_free(group->datasets[ii]);
+
+        free(group->datasets);
+        free(group->datasets_present);
     }
     free(group);
+
+    group = NULL;
 }
 
 escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle_t *handle, const char *name)
@@ -133,9 +172,11 @@ escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle
     else
         sprintf(location_path, "%s/%s", group->specs->root, name);
 
-    group->loc_id = H5Gopen(handle->group_id, location_path, H5P_DEFAULT);
+//    group->loc_id = H5Gopen2(handle->group_id, location_path, H5P_DEFAULT);
 
-    FULFILL_OR_RETURN(group->loc_id >= 0, group->loc_id);
+    FULFILL_OR_RETURN( group->loc_id = utils_hdf5_open_group(handle->group_id, location_path) >= 0, group->loc_id);
+
+//    FULFILL_OR_RETURN(group->loc_id >= 0, group->loc_id);
 
     return ESCDF_SUCCESS;
 }
@@ -174,17 +215,25 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group)
     return ESCDF_SUCCESS;
 }
 
-escdf_group_t * escdf_group_open(escdf_group_id group_id, const escdf_handle_t *handle, const char *name)
+escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group_name, const char *instance_name)
 {
     escdf_group_t *group;
+    escdf_group_id group_id;
+
+    FULFILL_OR_RETURN_VAL( group_id = _escdf_get_group_id(group_name) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
 
     if ((group = escdf_group_new(group_id)) == NULL)
         return NULL;
 
-    if (escdf_group_open_location(group, handle, name) != ESCDF_SUCCESS)
+    if (escdf_group_open_location(group, handle, instance_name) != ESCDF_SUCCESS)
         goto cleanup;
 
     if (escdf_group_read_attributes(group) != ESCDF_SUCCESS) {
+        escdf_group_close_location(group);
+        goto cleanup;
+    }
+
+    if (escdf_group_query_datasets(group) != ESCDF_SUCCESS) {
         escdf_group_close_location(group);
         goto cleanup;
     }
@@ -196,14 +245,20 @@ escdf_group_t * escdf_group_open(escdf_group_id group_id, const escdf_handle_t *
     return NULL;
 }
 
-escdf_group_t * escdf_group_create(escdf_group_id group_id, const escdf_handle_t *handle, const char *name)
+escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *group_name, const char* instance_name)
 {
     escdf_group_t *group;
+    escdf_group_id group_id;
+
+    group_id = _escdf_get_group_id(group_name);
+    
+    FULFILL_OR_RETURN_VAL( group_id = _escdf_get_group_id(group_name) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
+
 
     if ((group = escdf_group_new(group_id)) == NULL)
         return NULL;
 
-    if (escdf_group_create_location(group, handle, name) != ESCDF_SUCCESS) {
+    if (escdf_group_create_location(group, handle, instance_name) != ESCDF_SUCCESS) {
         escdf_group_free(group);
         return NULL;
     }
@@ -436,6 +491,19 @@ escdf_errno_t escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) 
     return ESCDF_SUCCESS;
 
 };
+
+escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group)
+{
+    int i;
+
+    assert(group != NULL);
+
+    for(i=0; i<group->specs->ndatasets; i++) {
+        group->datasets_present[i] =  utils_hdf5_check_present(group->loc_id, group->specs->attr_specs[i]->name);
+    }
+
+    return ESCDF_SUCCESS;
+}
 
 /*
 escdf_errno_t escdf_group_dataset_write_at(const escdf_group_t *group, escdf_dataset_t *data, 

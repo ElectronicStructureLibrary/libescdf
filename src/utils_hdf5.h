@@ -362,6 +362,9 @@ escdf_errno_t utils_hdf5_write_string_old(hid_t loc_id, const char *name, const 
 
 escdf_errno_t utils_hdf5_open_dataset(hid_t loc_id, const char *name, hid_t *dtset_pt );
 
+hid_t utils_hdf5_open_group(hid_t loc_id, const char *path);
+
+
 
 
 /******************************************************************************

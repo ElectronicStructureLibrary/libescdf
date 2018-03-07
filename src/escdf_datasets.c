@@ -23,6 +23,8 @@
 #include "escdf_attributes.h"
 #include "escdf_datasets.h"
 #include "utils_hdf5.h"
+#include "escdf_datatransfer.h"
+
 
 struct escdf_dataset {
 
@@ -34,7 +36,9 @@ struct escdf_dataset {
 
     hsize_t *dims;
 
-    int *reordering_table;
+    /* int *reordering_table; */
+
+    escdf_datatransfer_t *transfer;
     
     hid_t type_id;
     hid_t xfer_id;
@@ -158,14 +162,14 @@ escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered)
 }
 
 
-int * escdf_dataset_get_reordering_table(const escdf_dataset_t * data)
+escdf_datatransfer_t * escdf_dataset_get_datatransfer(const escdf_dataset_t * data)
 {
     assert( data != NULL );
 
-    return data->reordering_table;
+    return data->transfer;
 }
 
-escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *table)
+escdf_errno_t escdf_dataset_set_datatransfer(escdf_dataset_t *data, escdf_datatransfer_t *transfer)
 {
     int ii, fast_dim;
 
@@ -174,18 +178,7 @@ escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *tab
     if(!data->specs->disordered_storage_allowed)
         RETURN_WITH_ERROR(ESCDF_ERROR);
 
-
-    fast_dim = data->dims[data->specs->ndims-1];
-
-    data->reordering_table = malloc(fast_dim * sizeof(int) );
-    assert(data->reordering_table != NULL);
-
-    for(ii=0; ii<fast_dim; ii++) {
-        data->reordering_table[ii] = table[ii];
-    }
-
-
-
+    data->transfer = transfer;
 
     data->is_ordered = false;
 
@@ -232,9 +225,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     data->specs = specs;
 
-    data->dims = malloc(ndims * sizeof(hsize_t));
-    assert (data->dims != NULL);
-
+    
     for(ii = 0; ii<ndims; ii++) 
         data->dims[ii] = dims[ii];  
     
@@ -242,7 +233,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     data->dtset_id = 0;
     data->is_ordered = true;
-    data->reordering_table = NULL;
+    data->transfer = NULL;
     data->type_id = escdf_dataset_specs_hdf5_disk_type(specs);
 
     /* QUESTION: Where do we define the xfer_id? */
@@ -254,6 +245,8 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
 escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 {
+
+    int transfer_id;
 
     assert(data != NULL);
 
@@ -273,16 +266,17 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 
     /* Flag error if data is not ordered but there is no reordering table */
 
-    if( data->is_ordered || data->reordering_table!=NULL ) 
+    if( data->is_ordered || data->transfer!=NULL ) 
         RETURN_WITH_ERROR(ESCDF_ERROR);
 
     /* write reordering table as dataset within the dataset. Write even is data is ordered (?) */
 
-    if(data->reordering_table != NULL) {
-        SUCCEED_OR_RETURN( utils_hdf5_write_attr( data->dtset_id, "reordering_table", H5T_NATIVE_INT, 
-                            &(data->dims[data->specs->ndims-1]), 1, H5T_NATIVE_INT, 
-                            data->reordering_table));   
-    }
+    if(data->transfer)
+        transfer_id = escdf_datatransfer_get_id(data->transfer);
+    else
+        transfer_id = ESCDF_UNDEFINED_ID;
+
+    SUCCEED_OR_RETURN( utils_hdf5_write_attr(data->dtset_id, "is_ordered", H5T_NATIVE_UINT, NULL, 1, H5T_NATIVE_UINT, &transfer_id) );
        
     return ESCDF_SUCCESS;
 }
@@ -313,9 +307,7 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
     /* check whether a reordering table is present in the file */
 
     if( utils_hdf5_check_present(data->dtset_id, "reordering_table") ) {
-        data->reordering_table = malloc( data->dims[data->specs->ndims-1] * sizeof(int ));
-        SUCCEED_OR_RETURN( utils_hdf5_read_attr(data->dtset_id, "reordering_table", H5T_NATIVE_INT, 
-                            &(data->dims[data->specs->ndims-1]),1, data->reordering_table ));
+        ; 
     }
     else {
         if(!data->is_ordered) {
@@ -332,7 +324,6 @@ void escdf_dataset_free(escdf_dataset_t *data)
 {
     if (data != NULL) {
         free(data->dims);
-        if(data->reordering_table!=NULL) free(data->reordering_table);
         free(data);
     }
 }
@@ -366,7 +357,7 @@ escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf)
     /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
 
     if(!data->is_ordered) {
-        if(data->reordering_table == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
+        if(data->transfer == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
 
     }
 

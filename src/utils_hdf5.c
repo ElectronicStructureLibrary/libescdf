@@ -674,6 +674,16 @@ escdf_errno_t utils_hdf5_open_dataset(hid_t loc_id, const char *name, hid_t *dts
 }
 
 
+hid_t utils_hdf5_open_group(hid_t parent_id, const char *location_path)
+{
+    hid_t loc_id;
+
+    loc_id = H5Gopen2(parent_id, location_path, H5P_DEFAULT);
+
+    return loc_id;
+}
+
+
 /******************************************************************************
  * misc methods                                                               *
  ******************************************************************************/

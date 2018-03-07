@@ -117,6 +117,8 @@ escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *tab
 
 hid_t escdf_dataset_get_id(escdf_dataset_t *data);
 
+void escdf_dataset_free(escdf_dataset_t *attr);
+
 
 /**
  * Create a dataset in the file:
@@ -129,7 +131,6 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id);
 escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id);
 
 
-void escdf_dataset_free(escdf_dataset_t *attr);
 
 
 

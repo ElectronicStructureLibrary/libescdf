@@ -38,7 +38,7 @@ extern "C" {
 
 struct escdf_group_specs {
     int group_id;
-    char * root;
+    const char * root;
 
     unsigned int nattributes;
     const escdf_attribute_specs_t **attr_specs;
@@ -54,6 +54,7 @@ typedef struct escdf_group escdf_group_t;
 typedef int escdf_group_id;
 
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
+
 
 /******************************************************************************
  * Low-level creators and destructors                                         *
@@ -124,11 +125,12 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group);
  *
  * @param[in] handle: the file/group handle defining the root where to open
  * the "/group" group.
- * @param[in] name: If NULL, assume that the group is stored in the
+ * @param[in] group_name: Group name, as defined in the specifications.
+ * @param[in] instance_name: If NULL, assume that the group is stored in the
  * "/group" group, otherwise "/group/name" is used.
  * @return instance of the group data type.
  */
-escdf_group_t * escdf_group_open(escdf_group_id group_id, const escdf_handle_t *handle, const char *name);
+escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char *group_name, const char *instance_name);
 
 /**
  * This function performs the following tasks:
@@ -137,12 +139,13 @@ escdf_group_t * escdf_group_open(escdf_group_id group_id, const escdf_handle_t *
  *
  * @param[in] handle: the file/group handle defining the root where to open
  * the "/group" group.
- * @param[in] name: If NULL, assume that the group is stored in the
+ * @param[in] group_name: Group name, as defined in the specifications.
+ * @param[in] instance_name: If NULL, assume that the group is stored in the
  * "/group" group, otherwise "/group/name" is used.
  * @return instance of the group data type.
  *
  */
-escdf_group_t * escdf_group_create(escdf_group_id group_id, const escdf_handle_t *handle, const char *name);
+escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *group_name, const char *instance_name);
 
 /**
  * This function performs the following tasks:
@@ -226,10 +229,13 @@ escdf_errno_t escdf_group_open_datasets(const escdf_group_t *group);
 
 /**
  * This routine creates all datasets, registered in the group specifications.
+ * 
+ * Create only memory data structures
  */
 
 escdf_errno_t escdf_group_create_datasets(const escdf_group_t *group);
 
+escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
 
 
 /************************************************************
