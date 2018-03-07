@@ -373,14 +373,16 @@ escdf_errno_t utils_hdf5_open_dataset(hid_t loc_id, const char *name, hid_t *dts
  * dataspace.
  *
  * @param[in] dtset_id: dataset identifier.
- * @param[in] diskspace_id: identifier for a copy of the dataspace on disk.
- * @param[in] memspace_id: identifier of the dataspace in memory.
+ * @param[in] diskspace_id: identifier for a copy of the dataspace on disk. ?? IN/OUT
+ * @param[in] memspace_id: identifier of the dataspace in memory.           ?? IN/OUT
  * @param[in] start: offset of start of hyperslab.
  * @param[in] count: number of blocks included in hyperslab.
  * @param[in] stride: hyperslab stride.
  * @return error code.
  */
 escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id, hid_t *diskspace_id, hid_t *memspace_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride);
+
+
 
 hid_t utils_hdf5_mem_type(int datatype);
 

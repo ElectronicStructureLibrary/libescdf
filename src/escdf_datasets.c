@@ -245,6 +245,10 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->reordering_table = NULL;
     data->type_id = escdf_dataset_specs_hdf5_disk_type(specs);
 
+    /* QUESTION: Where do we define the xfer_id? */
+
+    data->xfer_id = ESCDF_UNDEFINED_ID;
+
     return data;
 }
 
@@ -259,11 +263,20 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
     }
     else {
         RETURN_WITH_ERROR(ESCDF_ERROR);
+
+        /* alternatively we could close and reopen the dataset? */
     }
     
 
     SUCCEED_OR_RETURN( utils_hdf5_write_attr_bool(data->dtset_id, "is_ordered", NULL, 1, &data->is_ordered) );
 
+
+    /* Flag error if data is not ordered but there is no reordering table */
+
+    if( data->is_ordered || data->reordering_table!=NULL ) 
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+
+    /* write reordering table as dataset within the dataset. Write even is data is ordered (?) */
 
     if(data->reordering_table != NULL) {
         SUCCEED_OR_RETURN( utils_hdf5_write_attr( data->dtset_id, "reordering_table", H5T_NATIVE_INT, 
@@ -279,18 +292,16 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 {
     _bool_set_t tmp_bool;
     
-    hid_t *table_ptr;
-    char **table_name;
-
     assert(data != NULL);
 
     if(data->dtset_id == ESCDF_UNDEFINED_ID ) {
         SUCCEED_OR_RETURN( utils_hdf5_check_present(loc_id, data->specs->name));
 
-        /* Do we bother about access property lists? If so, change to H5DOpen2() */
         SUCCEED_OR_RETURN( utils_hdf5_open_dataset(loc_id, data->specs->name, &(data->dtset_id)) );
     }
     else {
+
+        /* Should we return with error, if the dataset is already open? */
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
  
@@ -303,14 +314,14 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 
     if( utils_hdf5_check_present(data->dtset_id, "reordering_table") ) {
         data->reordering_table = malloc( data->dims[data->specs->ndims-1] * sizeof(int ));
-        utils_hdf5_read_attr(data->dtset_id, "reordering_table", H5T_NATIVE_INT, 
-                            &(data->dims[data->specs->ndims-1]),1, data->reordering_table );
+        SUCCEED_OR_RETURN( utils_hdf5_read_attr(data->dtset_id, "reordering_table", H5T_NATIVE_INT, 
+                            &(data->dims[data->specs->ndims-1]),1, data->reordering_table ));
     }
     else {
-        RETURN_WITH_ERROR(ESCDF_ERROR);
+        if(!data->is_ordered) {
+            RETURN_WITH_ERROR(ESCDF_ERROR);
+        }
     }
-
-
 
     
     return ESCDF_SUCCESS;
@@ -319,10 +330,11 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 
 void escdf_dataset_free(escdf_dataset_t *data)
 {
-    if (data != NULL) 
+    if (data != NULL) {
         free(data->dims);
-    
-    free(data);
+        if(data->reordering_table!=NULL) free(data->reordering_table);
+        free(data);
+    }
 }
 
 
@@ -334,12 +346,13 @@ escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf)
     _bool_set_t tmpb;
 
     hid_t mem_type_id;
-    hsize_t num_points;
     hsize_t start, count, stride;
 
     char *tmpc;
 
     assert(data != NULL);
+
+    /* QUESTION: do we need that ? */
     assert(escdf_dataset_specs_is_present(data->specs, loc_id));
 
     
@@ -350,11 +363,15 @@ escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf)
 
     /* check whether we need to re-order on read */
 
+    /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
+
     if(!data->is_ordered) {
         if(data->reordering_table == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
 
-
     }
+
+    mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
+
 
     utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, &start, &count, &stride);
 
@@ -370,7 +387,6 @@ escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hid_t loc_id, void *buf
     unsigned int i, len=1;
     hid_t type_id;
     hid_t *attr_ptr;
-
 
 
     assert(data != NULL);

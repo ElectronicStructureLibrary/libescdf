@@ -215,7 +215,11 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attrib
  ************************************************************/
 
 /**
- * This routine opens all datasets, registered in the group specifications.
+ * This routine tried to open all datasets, registered in the group specifications.
+ * 
+ * QUESTIONS: 
+ * - Shall this routine already open all datasets in the file (if they exist)?
+ * - Shall we create a table of existing datasets for quick lookup (other than checking the file for every access)?
  */
 
 escdf_errno_t escdf_group_open_datasets(const escdf_group_t *group);

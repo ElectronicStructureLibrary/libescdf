@@ -56,13 +56,20 @@ struct escdf_dataset_specs {
 };
 
 
+bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id);
+
 size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
+
+
+/**
+ *  The next two functions will be superceeded by 
+ *  utils_hdf5_mem_type and utils_hdf5_disk_type. 
+ **/
 
 hid_t escdf_dataset_specs_hdf5_mem_type(const escdf_dataset_specs_t *specs);
 
 hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs);
 
-bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id);
 
 
 
@@ -123,6 +130,8 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id);
 
 
 void escdf_dataset_free(escdf_dataset_t *attr);
+
+
 
 escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf);
 escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hid_t loc_id, void *buf);
