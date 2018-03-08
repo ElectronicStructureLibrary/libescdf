@@ -30,11 +30,32 @@ int main() {
     escdf_handle_t *escdf_file;
     escdf_group_t *group_system;
 
+    escdf_dataset_t *dataset_species_names;
+
+    char names[80][3];
+
+    strcpy(names[0], "Copper");
+    strcpy(names[1], "Oxygen");
+    strcpy(names[2], "Oxygen 2");
+
+
+    int num_species = 5;
+
     escdf_register_all_group_specs();
 
     escdf_file = escdf_create("escdf-test.h5", NULL);
 
     group_system = escdf_group_create(escdf_file, "system", NULL); 
+
+    escdf_group_attribute_set(group_system, "number_of_species", &num_species);
+    escdf_group_attribute_set(group_system, "number_of_jokes", &num_species);
+
+    dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
+
+    escdf_group_dataset_write_simple(dataset_species_names, names);
+
+    escdf_group_dataset_close(group_system, "species_names");
+
 
     escdf_group_close(group_system);
 

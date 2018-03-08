@@ -55,3 +55,14 @@ src/test_memory
 
 config/data/escdf-config.yml
 src/escdf_globals.h
+examples/groups_example.o
+src/check_escdf
+src/check_escdf.log
+src/check_escdf.trs
+src/escdf_attributes_specs.h
+src/escdf_datasets_specs.h
+src/escdf_groups_specs.h
+src/generate_attributes_from_JSON.py
+src/test-suite.log
+src/test_memory.log
+src/test_memory.trs

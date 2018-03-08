@@ -43,6 +43,8 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     known_group_specs[n_known_specs] = specs;
     n_known_specs++;
 
+    printf("Registering group %d, %s\n", specs->group_id, specs->root);
+
     return ESCDF_SUCCESS;
 }
 
@@ -54,8 +56,10 @@ escdf_group_id _escdf_get_group_id(const char* name)
     group_id = ESCDF_UNDEFINED_ID;
 
     for(i=0; i<n_known_specs; i++) {
+        printf("searching for %s: %d %s %d \n", name, i, known_group_specs[i]->root, known_group_specs[i]->group_id );
         if(strcmp(known_group_specs[i]->root, name) == 0) group_id = known_group_specs[i]->group_id;
     }
+    printf("found %d.\n",group_id);
 
     return group_id;
 }
@@ -346,12 +350,18 @@ escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *gro
     
     /* get group_id corresponding to the group name */
 
-    FULFILL_OR_RETURN_VAL( group_id = _escdf_get_group_id(group_name) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
+    FULFILL_OR_RETURN_VAL( (group_id = _escdf_get_group_id(group_name)) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
+
+    printf("Looking for group %s\n", group_name);
+
 
     /* create new escdf_group instance */
 
     if ((group = escdf_group_new(group_id)) == NULL)
         return NULL;
+
+    printf("Found group ID = %d with name %s \n", group_id, group->specs->root);
+
 
     /* create group in the file */
 
