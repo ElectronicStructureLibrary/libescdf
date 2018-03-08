@@ -225,7 +225,7 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
 
 escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name);
  
-escdf_errno_t *escdf_group_dataset_close(escdf_group_t *group, const char *name);
+escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name);
 
 
 

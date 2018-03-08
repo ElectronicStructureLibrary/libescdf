@@ -89,6 +89,7 @@ attrib_specs_file = open('escdf_attributes_specs.h','w')
 
 attrib_specs_file.write('#ifndef ESCDF_ATTRIBUTES_SPECS_H\n')
 attrib_specs_file.write('#define ESCDF_ATTRIBUTES_SPECS_H\n\n')
+attrib_specs_file.write('#include \"escdf_attributes.h\" \n')
 attrib_specs_file.write('#include \"escdf_attributes_ID.h\" \n\n')
 
 
@@ -104,6 +105,7 @@ group_specs_file = open('escdf_groups_specs.h','w')
 
 group_specs_file.write('#ifndef ESCDF_GROUPS_SPECS_H\n')
 group_specs_file.write('#define ESCDF_GROUPS_SPECS_H\n\n')
+group_specs_file.write('#include \"escdf_group.h\" \n')
 group_specs_file.write('#include \"escdf_groups_ID.h\" \n')
 group_specs_file.write('#include \"escdf_attributes_specs.h\" \n')
 group_specs_file.write('#include \"escdf_datasets_specs.h\" \n\n')
@@ -180,12 +182,19 @@ for d in datasets:
             dims_names += '\n  &'+specs_name(p) + ','
     
         dims_names = dims_names.rstrip(',')
-        dataset_specs_file.write('const escdf_dataset_specs_t *' + dims_name(dataset_name) + '[] = { ' + dims_names + ' \n};\n\n')
+        dataset_specs_file.write('const escdf_attribute_specs_t *' + dims_name(dataset_name) + '[] = { ' + dims_names + ' \n};\n\n')
         dims_pointer = dims_name(dataset_name)
+        if 'Disordered_Allowed' in d:
+            if d['Disordered_Allowed']=='Yes': 
+                disordered = 'true, '
+            else:   
+                disordered = 'false, '
+        else:
+            disordered = 'false, '
 
     dataset_specs_file.write('const escdf_dataset_specs_t '+specs_name(dataset_name) + ' = \n')
     dataset_specs_file.write('   { '+ ID_name + ', ' + name_string( dataset_name )+ ', ' + a['Data_type'] + ', ' +str(stringlength) + ', ' 
-                            + str(a['Dimensions']) +', ' + dims_pointer + ' }; \n\n')
+                            + str(a['Dimensions']) +', '+ disordered + dims_pointer + ' }; \n\n')
 
 
 # Create group specs definitions:

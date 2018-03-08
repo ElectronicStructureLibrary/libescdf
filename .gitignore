@@ -53,3 +53,5 @@ config/data/escdf-config.yml
 src/gcov_*
 src/test_memory
 
+config/data/escdf-config.yml
+src/escdf_globals.h

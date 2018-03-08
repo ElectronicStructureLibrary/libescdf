@@ -350,8 +350,6 @@ void escdf_dataset_free(escdf_dataset_t *data)
 }
 
 
-
-
 escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, hid_t loc_id, void *buf)
 {
     escdf_errno_t err;

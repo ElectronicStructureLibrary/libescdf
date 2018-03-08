@@ -666,7 +666,7 @@ escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name
     return dataset;   
 }
 
-escdf_errno_t *escdf_group_dataset_close(escdf_group_t *group, const char *name)
+escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name)
 {
     unsigned int dataset_id;
 
@@ -676,7 +676,11 @@ escdf_errno_t *escdf_group_dataset_close(escdf_group_t *group, const char *name)
 
     if(dataset_id == ESCDF_UNDEFINED_ID)  return ESCDF_SUCCESS; /* QUESTION: Shall wi throw an error ? */
 
-    
+    FULFILL_OR_RETURN(escdf_dataset_close(group->datasets[dataset_id]) == ESCDF_SUCCESS, ESCDF_ERROR);
+
+    escdf_dataset_free(group->datasets[dataset_id]);
+
+
     return ESCDF_SUCCESS;
 
 }
