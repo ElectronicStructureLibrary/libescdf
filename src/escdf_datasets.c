@@ -34,6 +34,8 @@ struct escdf_dataset {
     bool is_ordered;
     bool ordered_flag_set;
 
+    bool transfer_on_disk;
+
     hsize_t *dims;
 
     /* int *reordering_table; */
@@ -234,6 +236,8 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->dtset_id = 0;
     data->is_ordered = true;
     data->transfer = NULL;
+    data->transfer_on_disk = false;
+
     data->type_id = escdf_dataset_specs_hdf5_disk_type(specs);
 
     /* QUESTION: Where do we define the xfer_id? */
@@ -319,6 +323,23 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
     return ESCDF_SUCCESS;
 }
 
+escdf_errno_t escdf_dataset_close(escdf_dataset_t *data)
+{
+    escdf_errno_t err;
+
+
+    if( data->transfer != NULL && data->transfer_on_disk ) {
+        /* TODO: need to write transfer table */
+    }
+
+
+    /* close dataset on disk */
+    
+    FULFILL_OR_RETURN(utils_hdf5_close_dataset(data->dtset_id)==ESCDF_SUCCESS, ESCDF_ERROR);
+
+    return ESCDF_SUCCESS;
+}
+
 
 void escdf_dataset_free(escdf_dataset_t *data)
 {
@@ -331,13 +352,15 @@ void escdf_dataset_free(escdf_dataset_t *data)
 
 
 
-escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf)
+escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, hid_t loc_id, void *buf)
 {
     escdf_errno_t err;
     _bool_set_t tmpb;
 
+    unsigned int i;
+
     hid_t mem_type_id;
-    hsize_t start, count, stride;
+    hsize_t *start, *count, *stride;
 
     char *tmpc;
 
@@ -363,14 +386,15 @@ escdf_errno_t escdf_dataset_read(escdf_dataset_t *data, hid_t loc_id, void *buf)
 
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
 
-
-    utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, &start, &count, &stride);
+    
+    
+    utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
 
     return ESCDF_SUCCESS;
 }
 
 
-escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hid_t loc_id, void *buf)
+escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, hid_t loc_id, void *buf)
 {
     escdf_errno_t err;
     herr_t h5err;
@@ -379,12 +403,36 @@ escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hid_t loc_id, void *buf
     hid_t type_id;
     hid_t *attr_ptr;
 
+    hid_t mem_type_id;
+    hsize_t *start, *count, *stride;
+
+
 
     assert(data != NULL);
 
     /* check that the dataset in the file is open */
 
-    if(data->dtset_id == ESCDF_UNDEFINED_ID) RETURN_WITH_ERROR(ESCDF_ERROR);
+    if(data->dtset_id == ESCDF_UNDEFINED_ID) {
+        printf("dataset not opened.");
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+    }
+
+    if(!data->is_ordered) {
+        printf("disordered write not permitted in write_simple.");
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+    }
+
+    start = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    count = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    stride = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    
+    for(i=0; i<data->specs->ndims; i++) {
+        start[i] = 0;
+        count[i] = data->dims[i];
+        stride[i] = 1;
+    }
+
+    utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
 
 
     return ESCDF_SUCCESS;

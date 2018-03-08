@@ -178,10 +178,7 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group);
  * @param[in] name: name of the attribute to be queried
  * @return yes/no.
  */
-bool escdf_group_query_attribute(const escdf_group_t *group, const char *name);
-
-
-
+bool escdf_group_query_attribute(const escdf_group_t *group, const char *name); /* unused */
 
 
 
@@ -217,24 +214,6 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attrib
  * Low level routines for accessing datasets in a group     *
  ************************************************************/
 
-/**
- * This routine tried to open all datasets, registered in the group specifications.
- * 
- * QUESTIONS: 
- * - Shall this routine already open all datasets in the file (if they exist)?
- * - Shall we create a table of existing datasets for quick lookup (other than checking the file for every access)?
- */
-
-escdf_errno_t escdf_group_open_datasets(const escdf_group_t *group);
-
-/**
- * This routine creates all datasets, registered in the group specifications.
- * 
- * Create only memory data structures
- */
-
-escdf_errno_t escdf_group_create_datasets(const escdf_group_t *group);
-
 escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
 
 
@@ -242,16 +221,27 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
  * High level routines for accessing datasets in a group    *
  ************************************************************/
 
+escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *name);
+
+escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name);
+ 
+escdf_errno_t *escdf_group_dataset_close(escdf_group_t *group, const char *name);
+
+
+
+
+escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf);
+
+escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void *buf);
+
+/*
 escdf_errno_t escdf_group_dataset_write_at(escdf_group_t *group, escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void* buf);
 
 escdf_errno_t escdf_group_dataset_read_at(const escdf_group_t *group, const escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void *buf);
 
-escdf_errno_t escdf_group_dataset_write_all(escdf_group_t *group, escdf_dataset_t *data, void* buf);
-
-escdf_errno_t escdf_group_dataset_read_all(const escdf_group_t *group, const escdf_dataset_t *data, void *buf);
-
+*/
 
 
 /************************************************************
@@ -265,12 +255,14 @@ escdf_errno_t escdf_group_dataset_read_all(const escdf_group_t *group, const esc
  * @param[in] attribute_name: name of the attribute.
  * @return pointer to the attribute
  */
+
+/*
 escdf_attribute_t *escdf_group_get_arribute_from_name(escdf_group_t *group, const char *name); 
 
 escdf_dataset_t * escdf_group_get_dataset_from_name(escdf_group_t *group, const char *name);
 
 escdf_dataset_t * escdf_group_get_dataset_form_id(escdf_group_t *group, hid_t dtset_id);
-
+*/
 
 
 #ifdef __cplusplus

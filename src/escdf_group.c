@@ -33,7 +33,7 @@
 static unsigned int n_known_specs = 0;
 static escdf_group_specs_t const * known_group_specs[MAX_KNOWN_SPECS];
 
-escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr);
+escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr); /* unsused */
 
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     FULFILL_OR_RETURN(specs != NULL, ESCDF_EVALUE)
@@ -61,8 +61,6 @@ escdf_group_id _escdf_get_group_id(const char* name)
 }
 
 
-
-
 struct escdf_group {
     const escdf_handle_t *escdf_handle;
 
@@ -78,7 +76,82 @@ struct escdf_group {
     bool *datasets_present;
 };
 
+/************************************************************
+ * Helper routines for groups                               *
+ ************************************************************/
 
+escdf_attribute_t * _escdf_group_get_arribute_from_name(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->nattributes && found == false; i++) {
+        if ( strcmp(group->specs->attr_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->attr[result];
+    else    
+        return NULL;
+
+}
+
+escdf_dataset_t * _escdf_group_get_dataset_from_name(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->datasets[result];
+    else    
+        return NULL;
+
+}
+
+escdf_dataset_t * _escdf_group_get_dataset_form_id(escdf_group_t *group, hid_t dtset_id)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( escdf_dataset_get_id(group->datasets[i])  == dtset_id ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->datasets[result];
+    else    
+        return NULL;
+
+}
+
+
+int _escdf_group_get_dataset_number_from_name(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return result;
+    else    
+        return ESCDF_UNDEFINED_ID;
+
+}
 
 
 const escdf_attribute_specs_t * _get_attribute_specs(escdf_group_specs_t *group_specs, char *name)
@@ -93,8 +166,22 @@ const escdf_attribute_specs_t * _get_attribute_specs(escdf_group_specs_t *group_
     return NULL;
 }
 
+const escdf_dataset_specs_t * _get_dataset_specs(escdf_group_specs_t *group_specs, char *name)
+{
+    unsigned int ii;
+
+    for (ii=0; ii<group_specs->ndatasets; ii++) {
+        if (strcmp(group_specs->data_specs[ii]->name, name) == 0)
+            return group_specs->data_specs[ii];
+    }
+
+    return NULL;
+}
 
 
+/******************************************************************************
+ * Low-level creators and destructors                                         *
+ ******************************************************************************/
 
 escdf_group_t * escdf_group_new(escdf_group_id group_id)
 {
@@ -174,7 +261,7 @@ escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle
 
 //    group->loc_id = H5Gopen2(handle->group_id, location_path, H5P_DEFAULT);
 
-    FULFILL_OR_RETURN( group->loc_id = utils_hdf5_open_group(handle->group_id, location_path) >= 0, group->loc_id);
+    FULFILL_OR_RETURN( utils_hdf5_open_group(handle->group_id, location_path, &group->loc_id) == ESCDF_SUCCESS, group->loc_id);
 
 //    FULFILL_OR_RETURN(group->loc_id >= 0, group->loc_id);
 
@@ -215,10 +302,17 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group)
     return ESCDF_SUCCESS;
 }
 
+
+/******************************************************************************
+ * High-level creators and destructors                                        *
+ ******************************************************************************/
+
 escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group_name, const char *instance_name)
 {
     escdf_group_t *group;
     escdf_group_id group_id;
+
+    /* get group_id corresponding to the group name */
 
     FULFILL_OR_RETURN_VAL( group_id = _escdf_get_group_id(group_name) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
 
@@ -249,14 +343,17 @@ escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *gro
 {
     escdf_group_t *group;
     escdf_group_id group_id;
-
-    group_id = _escdf_get_group_id(group_name);
     
+    /* get group_id corresponding to the group name */
+
     FULFILL_OR_RETURN_VAL( group_id = _escdf_get_group_id(group_name) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
 
+    /* create new escdf_group instance */
 
     if ((group = escdf_group_new(group_id)) == NULL)
         return NULL;
+
+    /* create group in the file */
 
     if (escdf_group_create_location(group, handle, instance_name) != ESCDF_SUCCESS) {
         escdf_group_free(group);
@@ -434,7 +531,7 @@ escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr
 }
 
 
-escdf_errno_t escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) {
+escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) {
 
     unsigned int i, ii, idim, ndims, dim_ID;
     bool found;
@@ -442,7 +539,6 @@ escdf_errno_t escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) 
     escdf_attribute_t **dims = NULL;
     escdf_errno_t error;
 
-    /* need to create the attribute */ 
 
     /* determine the dimensions from linked dimension attributes */
     
@@ -505,6 +601,95 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group)
     return ESCDF_SUCCESS;
 }
 
+
+/************************************************************
+ * High level routines for accessing datasets in a group    *
+ ************************************************************/
+
+
+
+escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *name)
+{
+    unsigned int dataset_id;
+    escdf_dataset_t *dataset;
+
+    assert(group!=NULL);
+
+    /* get dataset ID */
+
+    dataset_id = _escdf_group_get_dataset_number_from_name(group, name);
+
+    if(dataset_id == ESCDF_UNDEFINED_ID)  return NULL;
+    
+    /* create dataset structure */
+
+    FULFILL_OR_RETURN_VAL(_escdf_group_dataset_new(group, dataset_id), ESCDF_ERROR, NULL);
+
+    dataset = group->datasets[dataset_id];
+
+    /* create dataset in file */
+
+    if( escdf_dataset_create(dataset, group->loc_id) != ESCDF_SUCCESS ) {
+        escdf_dataset_close(dataset);
+        FULFILL_OR_RETURN_VAL(false, ESCDF_ERROR, NULL);
+    }
+
+    return dataset;   
+}
+
+
+escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name)
+{
+    escdf_dataset_t *dataset;
+
+    unsigned int dataset_id;
+
+    assert(group!=NULL);
+
+    dataset_id = _escdf_group_get_dataset_number_from_name(group, name);
+
+    if(dataset_id == ESCDF_UNDEFINED_ID)  return NULL;
+
+    FULFILL_OR_RETURN_VAL(_escdf_group_dataset_new(group, dataset_id), ESCDF_ERROR, NULL);
+
+    dataset = group->datasets[dataset_id];
+
+    /* open dataset in the file */
+
+    if( escdf_dataset_open(dataset, group->loc_id) != ESCDF_SUCCESS) {
+        escdf_dataset_free(dataset);
+        FULFILL_OR_RETURN_VAL(false, ESCDF_ERROR, NULL);    
+    }
+
+    group->datasets_present[dataset_id] = true;
+
+    return dataset;   
+}
+
+escdf_errno_t *escdf_group_dataset_close(escdf_group_t *group, const char *name)
+{
+    unsigned int dataset_id;
+
+    assert(group != NULL);
+
+    dataset_id = _escdf_group_get_dataset_number_from_name(group, name);
+
+    if(dataset_id == ESCDF_UNDEFINED_ID)  return ESCDF_SUCCESS; /* QUESTION: Shall wi throw an error ? */
+
+    
+    return ESCDF_SUCCESS;
+
+}
+
+
+escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf)
+{
+    assert(data != NULL);
+
+    return ESCDF_SUCCESS;
+}
+
+
 /*
 escdf_errno_t escdf_group_dataset_write_at(const escdf_group_t *group, escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void* buf)
@@ -519,63 +704,4 @@ escdf_errno_t escdf_group_dataset_read_at(const escdf_group_t *group, const escd
 }
 
 */
-
-/************************************************************
- * Helper routines for groups                               *
- ************************************************************/
-
-escdf_attribute_t *escdf_group_get_arribute_from_name(escdf_group_t *group, const char *name)
-{
-    int i, result;
-    bool found;
-
-    assert(group != NULL);
-
-    for (found = false, i = 0; i < group->specs->nattributes && found == false; i++) {
-        if ( strcmp(group->specs->attr_specs[i]->name, name) == 0 ) {result = i; found=true;}
-    }
-
-    if(found)
-        return group->attr[result];
-    else    
-        return NULL;
-
-}
-
-escdf_dataset_t * escdf_group_get_dataset_from_name(escdf_group_t *group, const char *name)
-{
-    int i, result;
-    bool found;
-
-    assert(group != NULL);
-
-    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
-        if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
-    }
-
-    if(found)
-        return group->datasets[result];
-    else    
-        return NULL;
-
-}
-
-escdf_dataset_t * escdf_group_get_dataset_form_id(escdf_group_t *group, hid_t dtset_id)
-{
-    int i, result;
-    bool found;
-
-    assert(group != NULL);
-
-    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
-        if ( escdf_dataset_get_id(group->datasets[i])  == dtset_id ) {result = i; found=true;}
-    }
-
-    if(found)
-        return group->datasets[result];
-    else    
-        return NULL;
-
-}
-
 

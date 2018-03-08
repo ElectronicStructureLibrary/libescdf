@@ -673,15 +673,35 @@ escdf_errno_t utils_hdf5_open_dataset(hid_t loc_id, const char *name, hid_t *dts
     return ESCDF_SUCCESS;
 }
 
-
-hid_t utils_hdf5_open_group(hid_t parent_id, const char *location_path)
+escdf_errno_t utils_hdf5_close_dataset(hid_t dtset_id)
 {
-    hid_t loc_id;
+    herr_t err;
 
-    loc_id = H5Gopen2(parent_id, location_path, H5P_DEFAULT);
+    err = H5Dclose(dtset_id);
 
-    return loc_id;
+    if(err<0) RETURN_WITH_ERROR(ESCDF_ERROR);
+    return ESCDF_SUCCESS;   
 }
+
+escdf_errno_t utils_hdf5_open_group(hid_t parent_id, const char *location_path, hid_t *group_id)
+{
+ 
+    *group_id = H5Gopen2(parent_id, location_path, H5P_DEFAULT);
+
+    if(*group_id < 0) RETURN_WITH_ERROR(ESCDF_ERROR);
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_errno_t utils_hdf5_close_group(hid_t group_id)
+{
+    herr_t err;
+    err = H5Gclose(group_id);
+
+    if(err<0) RETURN_WITH_ERROR(ESCDF_ERROR);
+    return ESCDF_SUCCESS;
+}
+
 
 
 /******************************************************************************

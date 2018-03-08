@@ -10,7 +10,7 @@ escdf_handle_ptr = escdf_create(filename, path)
 /* Creating the file implies:
  *
  * - Setting a WRITE access flag
- * - Create some global lookup tables (e.g. for ordering lists)
+ * - Create some global lookup tables (e.g. for ordering lists) ✓
  */
 
 
@@ -19,14 +19,22 @@ group_system = escdf_group_create(escdf_handle_ptr, "system", flags);
 /**
  * Creating the group implies:
  *
- * - creating an instance of the escdf_group_t memory structure
- * - create group on disk
+ * - creating an instance of the escdf_group_t memory structure ✓
+ * - create group on disk ✓
  */
 
 
-escdf_group_attribute_set(group_system, "system_name", "Test System");
+escdf_group_attribute_set(group_system, "system_name", "Test System"); ✓
 
-dataset_pos = escdf_group_dataset_create(group_system, "cartesian_site_positions");
+dataset_positions = escdf_group_dataset_create(group_system, "cartesian_site_positions");
+
+/**
+ * Creating the dataset implies:
+ *
+ * - Create an instance of escdf_dataset ✓
+ * - Create the dataset in the file ✓
+ * - Open the dataset in the file ? (this should be implied by H5Dcreate) check !
+ */
 
 data_transfer_write = escdf_group_dataset_prepare_write(dims, memory_layout, disk_layout, flags ); // optional
 
@@ -36,14 +44,15 @@ data_transfer_write = escdf_group_dataset_prepare_write(dims, memory_layout, dis
  * - strategy (re-indexing / communication)
  * - reindexing array
  * - comminication plan (whatever that might be...?)
+ * - adds datatransfer object to lookup table
  */
 
 
-escdf_group_dataset_set_write_reordering_table(dataset_pos, data_tranfer_write); // optional
+escdf_group_dataset_set_write_reordering_table(dataset_positions, data_tranfer_write); // optional
 
-escdf_group_dataset_write(dataset_pos, selection, data);
+escdf_group_dataset_write(dataset_positions, selection, data);
 
-escdf_group_dataset_close(dataset_pos); // (optional??)
+escdf_group_dataset_close(dataset_positions); // (optional??)
 
 escdf_group_close(group_system);  // (optional??)
 
