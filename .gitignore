@@ -66,3 +66,10 @@ src/generate_attributes_from_JSON.py
 src/test-suite.log
 src/test_memory.log
 src/test_memory.trs
+config/data/escdf-config.yml
+examples/escdf-test.h5
+examples/groups_example
+examples/.libs/groups_example
+src/escdf_attributes_specs.h
+src/escdf_datasets_specs.h
+src/escdf_groups_specs.h
