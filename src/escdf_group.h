@@ -54,6 +54,8 @@ typedef struct escdf_group escdf_group_t;
 typedef int escdf_group_id;
 
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
+/* void escdf_register_all_group_specs(); */
+
 
 
 /******************************************************************************

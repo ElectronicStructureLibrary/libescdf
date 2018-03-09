@@ -89,6 +89,7 @@ attrib_specs_file = open('escdf_attributes_specs.h','w')
 
 attrib_specs_file.write('#ifndef ESCDF_ATTRIBUTES_SPECS_H\n')
 attrib_specs_file.write('#define ESCDF_ATTRIBUTES_SPECS_H\n\n')
+attrib_specs_file.write('#include \"escdf_common.h\" \n')
 attrib_specs_file.write('#include \"escdf_attributes.h\" \n')
 attrib_specs_file.write('#include \"escdf_attributes_ID.h\" \n\n')
 
@@ -97,6 +98,7 @@ dataset_specs_file = open('escdf_datasets_specs.h','w')
 
 dataset_specs_file.write('#ifndef ESCDF_DATASETS_SPECS_H\n')
 dataset_specs_file.write('#define ESCDF_DATASETS_SPECS_H\n\n')
+dataset_specs_file.write('#include \"escdf_common.h\" \n')
 dataset_specs_file.write('#include \"escdf_datasets.h\" \n')
 dataset_specs_file.write('#include \"escdf_datasets_ID.h\" \n')
 dataset_specs_file.write('#include \"escdf_attributes_specs.h\" \n\n')
@@ -140,7 +142,7 @@ for a in attributes:
     attribute_list.append(attribute_name)
     use_counter[attribute_name] = 0
 
-    if 'Stringlength' in a:
+    if 'String_length' in a:
         stringlength = a['String_length']
     else:
         stringlength = 0
@@ -174,6 +176,13 @@ for d in datasets:
     dataset_list.append(dataset_name)
     use_counter[dataset_name] = 0
 
+    if 'String_length' in d:
+        stringlength = d['String_length']
+    else:
+        stringlength = 0
+
+
+
     if d['Dimensions'] == 0:
         dims_pointer = 'NULL'
     else:
@@ -193,8 +202,8 @@ for d in datasets:
             disordered = 'false, '
 
     dataset_specs_file.write('const escdf_dataset_specs_t '+specs_name(dataset_name) + ' = \n')
-    dataset_specs_file.write('   { '+ ID_name + ', ' + name_string( dataset_name )+ ', ' + a['Data_type'] + ', ' +str(stringlength) + ', ' 
-                            + str(a['Dimensions']) +', '+ disordered + dims_pointer + ' }; \n\n')
+    dataset_specs_file.write('   { '+ ID_name + ', ' + name_string( dataset_name )+ ', ' + d['Data_type'] + ', ' +str(stringlength) + ', ' 
+                            + str(d['Dimensions']) +', '+ disordered + dims_pointer + ' }; \n\n')
 
 
 # Create group specs definitions:
@@ -207,9 +216,10 @@ for g in groups:
     attrib_list = ''
     datas_list = ''
 
+    g['Num_Attrib'] = 0
+    g['Num_Datasets'] = 0
+    
     if 'Attributes' in g:
-
-        g['Num_Attrib'] = 0
     
         for a in g['Attributes']:
             if a in attribute_list:
@@ -226,7 +236,6 @@ for g in groups:
 
     if 'Datasets' in g:
 
-        g['Num_Datasets'] = 0
         for d in g['Datasets']:
             if d in dataset_list:
                 datas_list += '\n   &'+ specs_name(d) + ','
@@ -244,14 +253,26 @@ for g in groups:
 
 for g in groups:
 
-    if g['Num_Attrib'] > 0:
-        group_specs_file.write('const escdf_group_specs_t '+specs_name(g['Name']) +' = {\n ')
-        group_specs_file.write(   def_name(g['Name']) + ', ' + name_string(g['Name'])  + ', ' + str(g['Num_Attrib']) + ', '
-                           + attributes_name(g['Name'])  + ' \n')
-        group_specs_file.write('};\n \n')
-    else:
-        print('WARNING: Group ' + g['Name'] + ' has no attributes! ')
+    if g['Num_Attrib'] == 0: 
+        attrib_name = 'NULL'
+    else:   
+        attrib_name = attributes_name(g['Name'])
 
+    if g['Num_Datasets'] == 0: 
+        datas_name = 'NULL'
+    else:   
+        datas_name = datasets_name(g['Name'])
+
+        
+        
+    group_specs_file.write('const escdf_group_specs_t '+specs_name(g['Name']) +' = {\n ')
+    group_specs_file.write(   def_name(g['Name']) + ', ' + name_string(g['Name'])  + ', ' 
+                            + str(g['Num_Attrib']) + ', '
+                            + attrib_name + ', ' 
+                            + str(g['Num_Datasets']) + ', ' 
+                            + datas_name + '\n')
+    group_specs_file.write('};\n \n')
+    
 
 # print some informations and warnings:
 

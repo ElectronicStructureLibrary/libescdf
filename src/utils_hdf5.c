@@ -520,9 +520,16 @@ escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_
 
 escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, unsigned int ndims, hid_t *dtset_pt)
 {
+    int i;
     hid_t dtset_id, dtspace_id;
 
     /* Create space dimensions. */
+
+    printf("utils_hdf5_create_datasets: ndims = %d \n ", ndims);
+    for(i=0; i<ndims; i++) {
+        printf("utils_hdf5_create_datasets: dims[%d]= %d \n", i, (int) dims[i]);
+    }
+
     if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
         RETURN_WITH_ERROR(dtspace_id);
     }

@@ -116,6 +116,9 @@ int * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
 escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *table);
 
 hid_t escdf_dataset_get_id(escdf_dataset_t *data);
+hid_t escdf_dataset_get_dtset_id(escdf_dataset_t *data);
+
+const char * escdf_dataset_get_name(const escdf_dataset_t *data);
 
 void escdf_dataset_free(escdf_dataset_t *attr);
 
@@ -135,8 +138,8 @@ escdf_errno_t escdf_dataset_close(escdf_dataset_t *data);
 
 
 
-escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, hid_t loc_id, void *buf);
-escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, hid_t loc_id, void *buf);
+escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, void *buf);
+escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf);
 
 
 #ifdef __cplusplus
