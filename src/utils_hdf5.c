@@ -626,16 +626,21 @@ escdf_errno_t utils_hdf5_write_attr_bool(hid_t loc_id, const char *name, const h
 escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
 {
     escdf_errno_t err;
-    hid_t memspace_id, diskspace_id;
+    hid_t memspace_id, diskspace_id, xfer_plist;
     herr_t err_id;
 
     err = utils_hdf5_select_slice(dtset_id, &diskspace_id, &memspace_id,
                                   start, count, stride);
     FULFILL_OR_RETURN(err == ESCDF_SUCCESS, err);
     
+    if( xfer_id != ESCDF_UNDEFINED_ID ) 
+        xfer_plist = xfer_id;
+    else
+        xfer_plist = H5P_DEFAULT;
+
     /* Write */
     if ((err_id = H5Dwrite(dtset_id, mem_type_id, memspace_id,
-                           diskspace_id, xfer_id, buf)) < 0) {
+                           diskspace_id, xfer_plist, buf)) < 0) {
         H5Sclose(diskspace_id);
         H5Sclose(memspace_id);
         RETURN_WITH_ERROR(err_id);

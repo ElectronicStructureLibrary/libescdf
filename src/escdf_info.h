@@ -20,7 +20,7 @@
  */
 
 #ifndef LIBESCDF_ESCDF_INFO_H
-#define LIBESCDF_ESCDF_INFO_
+#define LIBESCDF_ESCDF_INFO_H
 
 #ifdef __cplusplus
 extern "C" {

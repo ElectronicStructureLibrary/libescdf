@@ -233,7 +233,10 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->specs = specs;
 
     printf("escdf_dataset_new: created %d dims for %s\n",ndims, specs->name); fflush(stdout);
-    
+
+    data->dims = malloc(ndims * sizeof(unsigned int));
+
+
     for(ii = 0; ii<ndims; ii++) {
         data->dims[ii] = dims[ii];  
         printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, dims[ii]); fflush(stdout);
@@ -247,6 +250,15 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->transfer_on_disk = false;
 
     data->type_id = escdf_dataset_specs_hdf5_disk_type(specs);
+
+    if(data->type_id == H5T_C_S1) {
+        printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength );
+
+        data->type_id = H5Tcopy(H5T_C_S1);
+        H5Tset_size(data->type_id, data->specs->stringlength);
+        H5Tset_strpad(data->type_id, H5T_STR_NULLTERM);
+    }
+    
 
     /* QUESTION: Where do we define the xfer_id? */
 
@@ -411,7 +423,15 @@ escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, void *buf)
 
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
 
-    
+    if(mem_type_id == H5T_C_S1) {
+        printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength );
+
+        mem_type_id = H5Tcopy(H5T_C_S1);
+        H5Tset_size(mem_type_id, data->specs->stringlength);
+        H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
+    }
+
+   
     
     utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
 
@@ -459,7 +479,18 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
 
 
     printf("escdf_datasets_write_simple: data-type = %d\n",data->specs->datatype );
+
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
+
+
+    if(mem_type_id == H5T_C_S1) {
+        printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength );
+
+        mem_type_id = H5Tcopy(H5T_C_S1);
+        H5Tset_size(mem_type_id, data->specs->stringlength);
+        H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
+    }
+
 
     utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
 

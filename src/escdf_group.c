@@ -453,12 +453,13 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attrib
     FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
     FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
     FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
-    FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
 
     for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
         if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
     }
     FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
+
+    FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
 
     if (group->attr[iattr] == NULL) {
         SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
@@ -484,12 +485,13 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, const char* attrib
     FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE);
     FULFILL_OR_RETURN(group->specs != NULL, ESCDF_EVALUE);
     FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
-    FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
 
     for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
         if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
     }
     FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
+
+    FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
 
     if (group->attr[iattr] == NULL) {
         SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));

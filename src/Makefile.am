@@ -36,6 +36,8 @@
 escdf_core_srcs = \
   escdf.c \
   escdf_attributes.c \
+  escdf_datasets.c \
+  escdf_lookuptable.c \
   escdf_error.c \
   escdf_grid_scalarfields.c \
   escdf_group.c \
