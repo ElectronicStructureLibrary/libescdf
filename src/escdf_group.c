@@ -252,7 +252,8 @@ escdf_group_t * escdf_group_new(escdf_group_id group_id)
 
     group->datasets_present = (bool *) malloc(group->specs->ndatasets * sizeof(bool));
 
-    printf("created new escdf_group_t %s with %d attributes and %d datasets\n", group->specs->root, group->specs->nattributes, group->specs->ndatasets);
+    printf("escdf_group_new: created new escdf_group_t %s with %d attributes and %d datasets\n", 
+        group->specs->root, group->specs->nattributes, group->specs->ndatasets);
     fflush(stdout);
 
     return group;
@@ -342,24 +343,57 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group
     escdf_group_t *group;
     escdf_group_id group_id;
 
+    int i;
+
+    printf("escdf_group_open: opening group %s \n", group_name);
+
     /* get group_id corresponding to the group name */
 
-    FULFILL_OR_RETURN_VAL( group_id = _escdf_get_group_id(group_name) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
+    FULFILL_OR_RETURN_VAL( (group_id = _escdf_get_group_id(group_name)) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
 
     if ((group = escdf_group_new(group_id)) == NULL)
         return NULL;
 
-    if (escdf_group_open_location(group, handle, instance_name) != ESCDF_SUCCESS)
+    printf("escdf_group_open: found id = %d for group %s \n", group_id, group_name);
+
+
+    /* we need to check first whether thr group existst in the file */
+
+
+    /* QUESTIONS: What do we need to pass here as loc_id ?? */
+
+/*
+    if( utils_hdf5_check_present(handle->group_id, location_path) != ESCDF_SUCCESS ) {
+        printf("escdf_group_open: group %s is not found in the file\n", group_name);
         goto cleanup;
+    }
+    printf("escdf_group_open: group %s is present in the file. \n", group_name);
+
+*/
+
+
+    if (escdf_group_open_location(group, handle, instance_name) != ESCDF_SUCCESS) {
+        printf("escdf_group_open: opening group %s failed. \n", group_name);
+        goto cleanup;
+    }
+    printf("escdf_group_open: group %s successful opened. \n", group_name);
 
     if (escdf_group_read_attributes(group) != ESCDF_SUCCESS) {
         escdf_group_close_location(group);
         goto cleanup;
     }
 
+    printf("escdf_group_open: read attributes for group %s. \n", group_name);
+
     if (escdf_group_query_datasets(group) != ESCDF_SUCCESS) {
         escdf_group_close_location(group);
         goto cleanup;
+    }
+
+    printf("escdf_group_open: queried datasets for group %s. \n", group_name);
+
+    for(i=0; i< group->specs->ndatasets; i++) {
+        printf("escdf_group_open: dataset[%d] is %s. \n", i, group->datasets_present[i]?"present":"NOT present");
     }
 
     return group;
@@ -645,7 +679,7 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group)
     assert(group != NULL);
 
     for(i=0; i<group->specs->ndatasets; i++) {
-        group->datasets_present[i] =  utils_hdf5_check_present(group->loc_id, group->specs->attr_specs[i]->name);
+        group->datasets_present[i] =  utils_hdf5_check_present(group->loc_id, group->specs->data_specs[i]->name);
     }
 
     return ESCDF_SUCCESS;
@@ -707,27 +741,47 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
 escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name)
 {
     escdf_dataset_t *dataset;
+    escdf_errno_t err;
 
-    unsigned int dataset_id;
+    unsigned int dataset_number, id;
+    const char * dataset_name;
+
 
     assert(group!=NULL);
 
-    dataset_id = _escdf_group_get_dataset_number_from_name(group, name);
+    dataset_number = _escdf_group_get_dataset_number_from_name(group, name);
 
-    if(dataset_id == ESCDF_UNDEFINED_ID)  return NULL;
+    if(dataset_number == ESCDF_UNDEFINED_ID)  return NULL;
 
-    FULFILL_OR_RETURN_VAL(_escdf_group_dataset_new(group, dataset_id), ESCDF_ERROR, NULL);
+    printf("escdf_group_dataset_open: name = %s, dataset_number = %d\n",name, dataset_number);
 
-    dataset = group->datasets[dataset_id];
+    err = _escdf_group_dataset_new(group, dataset_number);
+
+    printf("escdf_group_dataset_open: name = %s, new() resulted in %d\n",name, err);
+    
+    FULFILL_OR_RETURN_VAL(err == ESCDF_SUCCESS,  ESCDF_ERROR, NULL);
+
+    dataset = group->datasets[dataset_number];
+
+
+    id = escdf_dataset_get_id(dataset);
+    dataset_name = escdf_dataset_get_name(dataset);
+
+
+    printf("escdf_group_dataset_open: name = %s, dataset->specs->id = %d, %s\n", name, id, dataset_name);
+
+
 
     /* open dataset in the file */
 
     if( escdf_dataset_open(dataset, group->loc_id) != ESCDF_SUCCESS) {
+        printf("escdf_group_dataset_open: name = %s, failed to open dataset\n", name);
+    
         escdf_dataset_free(dataset);
         FULFILL_OR_RETURN_VAL(false, ESCDF_ERROR, NULL);    
     }
 
-    group->datasets_present[dataset_id] = true;
+    group->datasets_present[dataset_number] = true;
 
     return dataset;   
 }
@@ -777,6 +831,17 @@ escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf)
     return err;
 }
 
+escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void* buf)
+{
+
+    escdf_errno_t err;
+    assert(data != NULL);
+    assert(buf!=NULL);
+
+    err = escdf_dataset_read_simple(data, buf);
+
+    return err;
+}
 
 /*
 escdf_errno_t escdf_group_dataset_write_at(const escdf_group_t *group, escdf_dataset_t *data, 

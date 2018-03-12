@@ -121,6 +121,13 @@
     "String_length" : 3,
     "Dimensions" : 1,
     "Dims_definitions" : [ "number_of_species" ]
+  },
+  {
+    "Name" : "atomic_numbers",
+    "Data_type" : "ESCDF_DT_DOUBLE",
+    "Dimensions" : 1,
+    "Dims_definitions" : [ "number_of_species" ],
+    "Disordered_Allowed" : "No" 
   }
   ],
   "Groups" :
@@ -139,7 +146,7 @@
        "symmorphic",
        "time_reversal_symmetry"
      ],
-     "Datasets" : ["cartesian_site_positions", "species_names", "chemical_symbols"]
+     "Datasets" : ["cartesian_site_positions", "species_names", "chemical_symbols", "atomic_numbers" ]
    },
    { "Name" : "density" , 
      "Attributes" :  ["system_name", "bogus"]

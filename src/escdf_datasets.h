@@ -138,7 +138,7 @@ escdf_errno_t escdf_dataset_close(escdf_dataset_t *data);
 
 
 
-escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, void *buf);
+escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf);
 escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf);
 
 

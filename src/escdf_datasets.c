@@ -328,36 +328,63 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 {
     _bool_set_t tmp_bool;
-    
+    escdf_errno_t err;
+    bool result;
+    hid_t dtset_pt;
+
     assert(data != NULL);
 
-    if(data->dtset_id == ESCDF_UNDEFINED_ID ) {
-        SUCCEED_OR_RETURN( utils_hdf5_check_present(loc_id, data->specs->name));
+    printf("escdf_dataset_open: attempting to open %s, %d.\n", data->specs->name, loc_id );
 
-        SUCCEED_OR_RETURN( utils_hdf5_open_dataset(loc_id, data->specs->name, &(data->dtset_id)) );
+
+    if(data->dtset_id == ESCDF_UNDEFINED_ID ) {
+
+        result = utils_hdf5_check_present(loc_id, data->specs->name);
+        printf("escdf_dataset_open: check if %s is present: %s.\n", data->specs->name, result?"true":"false" );
+    
+        // SUCCEED_OR_RETURN( result==true );
+        printf("escdf_dataset_open: %s is present.\n", data->specs->name ); fflush(stdout);
+
+        err = utils_hdf5_open_dataset(loc_id, data->specs->name, &(dtset_pt));
+
+        printf("escdf_dataset_open: open %s returned: %d, %d.\n", data->specs->name, err, dtset_pt );
+        data->dtset_id = dtset_pt;
+
+        SUCCEED_OR_RETURN( err );
     }
     else {
-
+        printf("escdf_dataset_open: %s is is already open with dtset id %d .\n", data->specs->name, data->dtset_id );
+ 
         /* Should we return with error, if the dataset is already open? */
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
+
+    printf("escdf_dataset_open: %s attempting to read attribute is_ordered.\n", data->specs->name );
  
-    SUCCEED_OR_RETURN( utils_hdf5_read_attr_bool(data->dtset_id, "is_ordered", NULL, 1, &tmp_bool ) );
+    SUCCEED_OR_RETURN( utils_hdf5_read_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &tmp_bool ) );
+
+    printf("escdf_dataset_open: %s attribute is_ordered read.\n", data->specs->name );
+
 
     data->is_ordered = tmp_bool.value;
     data->ordered_flag_set = tmp_bool.is_set;
 
     /* check whether a reordering table is present in the file */
 
-    if( utils_hdf5_check_present(data->dtset_id, "reordering_table") ) {
-        ; 
+    result = utils_hdf5_check_present_attr(data->dtset_id, "transfer");
+
+    if( result ) {
+        printf("escdf_dataset_open: %s transfer table present.\n", data->specs->name ); 
     }
     else {
+        printf("escdf_dataset_open: %s transfer table NOT present.\n", data->specs->name ); 
+
         if(!data->is_ordered) {
             RETURN_WITH_ERROR(ESCDF_ERROR);
         }
     }
 
+    printf("escdf_dataset_open: %s opened.\n", data->specs->name );
     
     return ESCDF_SUCCESS;
 }
@@ -389,7 +416,7 @@ void escdf_dataset_free(escdf_dataset_t *data)
 }
 
 
-escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, void *buf)
+escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
 {
     escdf_errno_t err;
     _bool_set_t tmpb;
@@ -402,21 +429,23 @@ escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, void *buf)
     char *tmpc;
 
     assert(data != NULL);
+    assert(buf != NULL);
+
 
     /* QUESTION: do we need that ? */
 //    assert(escdf_dataset_specs_is_present(data->specs, loc_id));
 
-    
+    printf("escdf_dataset_read_simple: attempting to read from %s.\n", data->specs->name); fflush(stdout);    
 
     /* check that the buffer exists. (Unfortunately, we can't check that it is big enough) */
 
-    assert(buf != NULL);
 
     /* check whether we need to re-order on read */
 
     /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
 
     if(!data->is_ordered) {
+        printf("escdf_dataset_read_simple: %s is not stored in normal order.\n", data->specs->name); fflush(stdout);    
         if(data->transfer == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
 
     }
@@ -431,6 +460,15 @@ escdf_errno_t escdf_dataset_read_simple(escdf_dataset_t *data, void *buf)
         H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
     }
 
+    start = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    count = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    stride = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    
+    for(i=0; i<data->specs->ndims; i++) {
+        start[i] = 0;
+        count[i] = data->dims[i];
+        stride[i] = 1;
+    }
    
     
     utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
