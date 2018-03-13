@@ -182,6 +182,10 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group);
  */
 bool escdf_group_query_attribute(const escdf_group_t *group, const char *name); /* unused */
 
+const escdf_attribute_specs_t * escdf_group_get_attribute_specs(escdf_group_t *group, const char *name);
+
+const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group, const char *name);
+
 
 
 /************************************************************

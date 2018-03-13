@@ -100,6 +100,42 @@ struct escdf_group {
  * Helper routines for groups                               *
  ************************************************************/
 
+const escdf_attribute_specs_t * escdf_group_get_attribute_specs(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->nattributes && found == false; i++) {
+        if ( strcmp(group->specs->attr_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->specs->attr_specs[result];
+    else    
+        return NULL;
+}
+
+const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group, const char *name)
+{
+    int i, result;
+    bool found;
+
+    assert(group != NULL);
+
+    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+        if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
+    }
+
+    if(found)
+        return group->specs->data_specs[result];
+    else    
+        return NULL;
+}
+
+
+
 escdf_attribute_t * _escdf_group_get_arribute_from_name(escdf_group_t *group, const char *name)
 {
     int i, result;
