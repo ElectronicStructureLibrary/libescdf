@@ -136,10 +136,14 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id);
 escdf_errno_t escdf_dataset_close(escdf_dataset_t *data);
 
 
-
-
 escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf);
+
 escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf);
+
+
+escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
+
+escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
 
 
 #ifdef __cplusplus

@@ -127,9 +127,6 @@ int main() {
     for(i=0; i<num_sites; i++){
         printf("coords[%d] = (%8.3f %8.3f %8.3f). \n", i, coords[i][0], coords[i][1], coords[i][2]);
     }
-/*
-    escdf_group_dataset_read_simple(dataset_species_names, names);
-*/
 
     err = escdf_group_dataset_read_simple(dataset_species_names, (void*) names[0]);
 
@@ -140,7 +137,7 @@ int main() {
         printf("names[%d] = %s \n", i, names[i]);
     }
 
-    // escdf_group_dataset_close(group_system, "species_names");
+    escdf_group_dataset_close(group_system, "species_names");
     escdf_group_dataset_close(group_system, "cartesian_site_positions");
     printf("still here. after closing dataset.\n");
 

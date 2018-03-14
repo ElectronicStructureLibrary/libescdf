@@ -207,7 +207,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     dims = malloc(ndims * sizeof(unsigned int));
     assert(dims != NULL);
 
-    printf("escdf_dataset_new: created memory for dims for %s\n",specs->name); fflush(stdout);
+    /* printf("escdf_dataset_new: created memory for dims for %s\n",specs->name); fflush(stdout); */
 
     if (ndims > 0) {
         assert(attr_dims != NULL);
@@ -228,18 +228,18 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     if (data == NULL)
         return data;
 
-    printf("escdf_dataset_new: created memory for %s\n",specs->name); fflush(stdout);
+    /* printf("escdf_dataset_new: created memory for %s\n",specs->name); fflush(stdout); */
 
     data->specs = specs;
 
-    printf("escdf_dataset_new: created %d dims for %s\n",ndims, specs->name); fflush(stdout);
+    /* printf("escdf_dataset_new: created %d dims for %s\n",ndims, specs->name); fflush(stdout); */
 
     data->dims = malloc(ndims * sizeof(unsigned int));
 
 
     for(ii = 0; ii<ndims; ii++) {
         data->dims[ii] = dims[ii];  
-        printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, dims[ii]); fflush(stdout);
+        /* printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, dims[ii]); fflush(stdout); */
     }
     
     free(dims);
@@ -252,7 +252,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->type_id = escdf_dataset_specs_hdf5_disk_type(specs);
 
     if(data->type_id == H5T_C_S1) {
-        printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength );
+        /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */
 
         data->type_id = H5Tcopy(H5T_C_S1);
         H5Tset_size(data->type_id, data->specs->stringlength);
@@ -264,7 +264,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     data->xfer_id = ESCDF_UNDEFINED_ID;
 
-    printf("escdf_dataset_new: completed for %s\n",data->specs->name); fflush(stdout);
+    /* printf("escdf_dataset_new: completed for %s\n",data->specs->name); fflush(stdout); */
 
     return data;
 }
@@ -277,15 +277,16 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 
     assert(data != NULL);
 
+    /*
     printf("escdf_dataset_create attempting to create %s; %d\n", data->specs->name, data->dtset_id);
     printf("escdf_dataset_create attempting to create %s; ndims = %d\n", data->specs->name, data->specs->ndims);
-
+    */
 
     if(data->dtset_id == ESCDF_UNDEFINED_ID ) {
 
         err = utils_hdf5_create_dataset(loc_id, data->specs->name, data->type_id, data->dims, data->specs->ndims, &data->dtset_id);
 
-        printf("escdf_dataset_create: utils_hdf5_create_dataset returned %d\n", err);
+        /* printf("escdf_dataset_create: utils_hdf5_create_dataset returned %d\n", err); */
 
         SUCCEED_OR_RETURN( err );
     }
@@ -295,19 +296,19 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
         /* alternatively we could close and reopen the dataset? */
     }
 
-    printf("escdf_dataset_create: data->dtset_it =  %d\n", data->dtset_id);
+    /* printf("escdf_dataset_create: data->dtset_it =  %d\n", data->dtset_id); */
 
 
     err = utils_hdf5_write_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &(data->is_ordered));
 
-    printf("escdf_dataset_create: utils_hdf5_write_attr_bool returned %d\n", err);
+    /* printf("escdf_dataset_create: utils_hdf5_write_attr_bool returned %d\n", err); */
 
     SUCCEED_OR_RETURN(err);
 
 
     /* Flag error if data is not ordered but there is no reordering table */
 
-    printf("escdf_dataset_create: is_ordered = %s\n", data->is_ordered?"yes":"no");
+    /* printf("escdf_dataset_create: is_ordered = %s\n", data->is_ordered?"yes":"no"); */
 
     if( !data->is_ordered || data->transfer!=NULL ) 
         RETURN_WITH_ERROR(ESCDF_ERROR);
@@ -334,36 +335,36 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 
     assert(data != NULL);
 
-    printf("escdf_dataset_open: attempting to open %s, %d.\n", data->specs->name, loc_id );
+    /* printf("escdf_dataset_open: attempting to open %s, %d.\n", data->specs->name, loc_id ); */
 
 
     if(data->dtset_id == ESCDF_UNDEFINED_ID ) {
 
         result = utils_hdf5_check_present(loc_id, data->specs->name);
-        printf("escdf_dataset_open: check if %s is present: %s.\n", data->specs->name, result?"true":"false" );
+        /* printf("escdf_dataset_open: check if %s is present: %s.\n", data->specs->name, result?"true":"false" ); */
     
         // SUCCEED_OR_RETURN( result==true );
-        printf("escdf_dataset_open: %s is present.\n", data->specs->name ); fflush(stdout);
+        /* printf("escdf_dataset_open: %s is present.\n", data->specs->name ); fflush(stdout); */
 
         err = utils_hdf5_open_dataset(loc_id, data->specs->name, &(dtset_pt));
 
-        printf("escdf_dataset_open: open %s returned: %d, %d.\n", data->specs->name, err, dtset_pt );
+        /* printf("escdf_dataset_open: open %s returned: %d, %d.\n", data->specs->name, err, dtset_pt ); */
         data->dtset_id = dtset_pt;
 
         SUCCEED_OR_RETURN( err );
     }
     else {
-        printf("escdf_dataset_open: %s is is already open with dtset id %d .\n", data->specs->name, data->dtset_id );
+        /* printf("escdf_dataset_open: %s is is already open with dtset id %d .\n", data->specs->name, data->dtset_id ); */
  
         /* Should we return with error, if the dataset is already open? */
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
-    printf("escdf_dataset_open: %s attempting to read attribute is_ordered.\n", data->specs->name );
+    /* printf("escdf_dataset_open: %s attempting to read attribute is_ordered.\n", data->specs->name ); */
  
     SUCCEED_OR_RETURN( utils_hdf5_read_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &tmp_bool ) );
 
-    printf("escdf_dataset_open: %s attribute is_ordered read.\n", data->specs->name );
+    /* printf("escdf_dataset_open: %s attribute is_ordered read.\n", data->specs->name ); */
 
 
     data->is_ordered = tmp_bool.value;
@@ -374,17 +375,17 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
     result = utils_hdf5_check_present_attr(data->dtset_id, "transfer");
 
     if( result ) {
-        printf("escdf_dataset_open: %s transfer table present.\n", data->specs->name ); 
+        /* printf("escdf_dataset_open: %s transfer table present.\n", data->specs->name ); */
     }
     else {
-        printf("escdf_dataset_open: %s transfer table NOT present.\n", data->specs->name ); 
+        /* printf("escdf_dataset_open: %s transfer table NOT present.\n", data->specs->name ); */
 
         if(!data->is_ordered) {
             RETURN_WITH_ERROR(ESCDF_ERROR);
         }
     }
 
-    printf("escdf_dataset_open: %s opened.\n", data->specs->name );
+    /* printf("escdf_dataset_open: %s opened.\n", data->specs->name ); */
     
     return ESCDF_SUCCESS;
 }
@@ -416,6 +417,48 @@ void escdf_dataset_free(escdf_dataset_t *data)
 }
 
 
+escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf)
+{
+    escdf_errno_t err;
+    _bool_set_t tmpb;
+
+    unsigned int i;
+
+    hid_t mem_type_id;
+
+    char *tmpc;
+
+    assert(data != NULL);
+    assert(buf != NULL);
+
+    /* printf("escdf_dataset_read_simple: attempting to read from %s.\n", data->specs->name); fflush(stdout); */
+
+    /* check whether we need to re-order on read */
+
+    /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
+
+    if(!data->is_ordered) {
+        /* printf("escdf_dataset_read_simple: %s is not stored in normal order.\n", data->specs->name); fflush(stdout); */
+        if(data->transfer == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
+
+    }
+
+    mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
+
+        H5Tset_size(mem_type_id, data->specs->stringlength);
+    if(mem_type_id == H5T_C_S1) {
+        /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */
+
+        mem_type_id = H5Tcopy(H5T_C_S1);
+        H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
+    }
+
+    utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
+
+    return ESCDF_SUCCESS;
+}
+
+
 escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
 {
     escdf_errno_t err;
@@ -431,21 +474,14 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
     assert(data != NULL);
     assert(buf != NULL);
 
-
-    /* QUESTION: do we need that ? */
-//    assert(escdf_dataset_specs_is_present(data->specs, loc_id));
-
-    printf("escdf_dataset_read_simple: attempting to read from %s.\n", data->specs->name); fflush(stdout);    
-
-    /* check that the buffer exists. (Unfortunately, we can't check that it is big enough) */
-
+    /* printf("escdf_dataset_read_simple: attempting to read from %s.\n", data->specs->name); fflush(stdout);  */
 
     /* check whether we need to re-order on read */
 
     /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
 
     if(!data->is_ordered) {
-        printf("escdf_dataset_read_simple: %s is not stored in normal order.\n", data->specs->name); fflush(stdout);    
+        /* printf("escdf_dataset_read_simple: %s is not stored in normal order.\n", data->specs->name); fflush(stdout); */
         if(data->transfer == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
 
     }
@@ -453,7 +489,7 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
 
     if(mem_type_id == H5T_C_S1) {
-        printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength );
+        /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */
 
         mem_type_id = H5Tcopy(H5T_C_S1);
         H5Tset_size(mem_type_id, data->specs->stringlength);
@@ -477,6 +513,8 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
 }
 
 
+
+
 escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
 {
     escdf_errno_t err;
@@ -488,8 +526,6 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
 
     hid_t mem_type_id;
     hsize_t *start, *count, *stride;
-
-
 
     assert(data != NULL);
 
@@ -516,13 +552,13 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
     }
 
 
-    printf("escdf_datasets_write_simple: data-type = %d\n",data->specs->datatype );
+    /* printf("escdf_datasets_write_simple: data-type = %d\n",data->specs->datatype ); */
 
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
 
 
     if(mem_type_id == H5T_C_S1) {
-        printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength );
+        /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */
 
         mem_type_id = H5Tcopy(H5T_C_S1);
         H5Tset_size(mem_type_id, data->specs->stringlength);
@@ -535,6 +571,61 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
 
     return ESCDF_SUCCESS;
 }
+
+
+escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf)
+{
+    escdf_errno_t err;
+    herr_t h5err;
+
+    unsigned int i, len=1;
+    hid_t type_id;
+    hid_t *attr_ptr;
+
+    hid_t mem_type_id;
+
+    assert(data != NULL);
+
+    /* check that the dataset in the file is open */
+
+    if(data->dtset_id == ESCDF_UNDEFINED_ID) {
+        printf("dataset not opened.");
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+    }
+
+    if(!data->is_ordered) {
+        printf("disordered write not permitted in write_simple.");
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+    }
+
+
+
+    /* printf("escdf_datasets_write_simple: data-type = %d\n",data->specs->datatype ); */
+
+    mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
+
+
+    if(mem_type_id == H5T_C_S1) {
+        /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */
+
+        mem_type_id = H5Tcopy(H5T_C_S1);
+        H5Tset_size(mem_type_id, data->specs->stringlength);
+        H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
+    }
+
+
+    utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
+
+
+    return ESCDF_SUCCESS;
+}
+
+
+
+/**********************************************************************************************/
+/**********************************************************************************************/
+/**********************************************************************************************/
+
 
 size_t escdf_dataset_sizeof(const escdf_dataset_t* data)
 {

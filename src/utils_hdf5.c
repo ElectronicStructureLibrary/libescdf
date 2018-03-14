@@ -36,22 +36,22 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
 {
     htri_t bool_id;
 
-    printf("utils_hdf5_check_present: %s\n", name);
+    /* printf("utils_hdf5_check_present: %s\n", name); */
 
     if ((bool_id = H5Lexists(loc_id, name, H5P_DEFAULT)) < 0 || !bool_id) {
-        printf("utils_hdf5_check_present: link to %s NOT found\n", name);
+        /* printf("utils_hdf5_check_present: link to %s NOT found\n", name); */
         return false;
     }
     else {
-        printf("utils_hdf5_check_present: link to %s found\n", name);
+        /* printf("utils_hdf5_check_present: link to %s found\n", name); */
     }
 
     if ((bool_id = H5Oexists_by_name(loc_id, name, H5P_DEFAULT)) < 0 || !bool_id) {
-        printf("utils_hdf5_check_present: object %s NOT found\n", name);
+        /* printf("utils_hdf5_check_present: object %s NOT found\n", name); */
         return false;
     } 
     else {
-        printf("utils_hdf5_check_present: object %s found\n", name);
+        /* printf("utils_hdf5_check_present: object %s found\n", name); */
     }
 
 
@@ -551,10 +551,12 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
 
     /* Create space dimensions. */
 
+    /*
     printf("utils_hdf5_create_datasets: ndims = %d \n ", ndims);
     for(i=0; i<ndims; i++) {
         printf("utils_hdf5_create_datasets: dims[%d]= %d \n", i, (int) dims[i]);
     }
+    */
 
     if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
         RETURN_WITH_ERROR(dtspace_id);
@@ -704,11 +706,11 @@ escdf_errno_t utils_hdf5_write_string_old(hid_t loc_id, const char *name, const 
 
 escdf_errno_t utils_hdf5_open_dataset(hid_t loc_id, const char *name, hid_t *dtset_pt )
 {
-    printf("utils_hdf5_open_dataset: attempting to open %s, %d. \n", name, loc_id);
+    /* printf("utils_hdf5_open_dataset: attempting to open %s, %d. \n", name, loc_id); */
 
     *dtset_pt = H5Dopen1(loc_id, name);
 
-    printf("utils_hdf5_open_dataset: %s opened with %d. \n", name, *dtset_pt);
+    /* printf("utils_hdf5_open_dataset: %s opened with %d. \n", name, *dtset_pt); */
 
 
     if(*dtset_pt < 0) RETURN_WITH_ERROR(ESCDF_ERROR);
