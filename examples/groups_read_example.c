@@ -76,7 +76,6 @@ int main() {
     escdf_group_attribute_get(group_system, "number_of_sites", &num_sites);
     escdf_group_attribute_get(group_system, "number_of_jokes", &dummy); 
 
-    printf("still here. after reading attributes.\n");
 
     printf("num_dims = %d \n", num_dims);
     printf("num_sites = %d \n", num_sites);
@@ -115,23 +114,16 @@ int main() {
     if(dataset_species_names==NULL) printf("Null pointer for dataset species_names!!\n");
     if(dataset_site_pos==NULL) printf("Null pointer for dataset site_pos!!\n");
 
-    printf("still here. after opening dataset.\n");
-    fflush(stdout);
 
     err = escdf_group_dataset_read_simple(dataset_site_pos, (void*) coords[0]);
-
-    printf("still here. after reading. err = %d \n", err);
-    fflush(stdout);
-    
 
     for(i=0; i<num_sites; i++){
         printf("coords[%d] = (%8.3f %8.3f %8.3f). \n", i, coords[i][0], coords[i][1], coords[i][2]);
     }
 
+
     err = escdf_group_dataset_read_simple(dataset_species_names, (void*) names[0]);
 
-    printf("still here. after reading. err = %d \n", err);
-    fflush(stdout);
 
     for(i=0; i<num_species; i++){
         printf("names[%d] = %s \n", i, names[i]);
@@ -139,14 +131,11 @@ int main() {
 
     escdf_group_dataset_close(group_system, "species_names");
     escdf_group_dataset_close(group_system, "cartesian_site_positions");
-    printf("still here. after closing dataset.\n");
 
 
     escdf_group_close(group_system);
-    printf("still here. after closing group.\n");
 
     escdf_close(escdf_file);
-    printf("still here. after closing file.\n");
 
     free(coords);
 
