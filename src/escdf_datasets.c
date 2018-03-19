@@ -72,6 +72,7 @@ size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs)
     }
 }
 
+/*
 hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs)
 {
     assert(specs != NULL);
@@ -111,7 +112,7 @@ hid_t escdf_dataset_specs_hdf5_mem_type(const escdf_dataset_specs_t *specs)
             return 0;
     }
 }
-
+*/
 
 bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id)
 {
@@ -249,7 +250,8 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->transfer = NULL;
     data->transfer_on_disk = false;
 
-    data->type_id = escdf_dataset_specs_hdf5_disk_type(specs);
+    /* data->type_id = escdf_dataset_specs_hdf5_disk_type(specs); */
+    data->type_id = utils_hdf5_disk_type(specs->datatype);
 
     if(data->type_id == H5T_C_S1) {
         /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */

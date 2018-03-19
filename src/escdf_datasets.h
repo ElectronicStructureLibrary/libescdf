@@ -66,12 +66,12 @@ size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
  *  utils_hdf5_mem_type and utils_hdf5_disk_type. 
  **/
 
-hid_t escdf_dataset_specs_hdf5_mem_type(const escdf_dataset_specs_t *specs);
 
-hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs);
+/*
+hid_t escdf_dataset_specs_hdf5_mem_type(const escdf_dataset_specs_t *specs) {};
 
-
-
+hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs) {};
+*/
 
 
 typedef struct escdf_dataset escdf_dataset_t;

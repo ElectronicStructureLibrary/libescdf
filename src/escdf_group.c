@@ -35,7 +35,7 @@
 static unsigned int n_known_specs = 0;
 static escdf_group_specs_t const * known_group_specs[MAX_KNOWN_SPECS];
 
-escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr); /* unsused */
+escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr); 
 
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
 
@@ -657,17 +657,19 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 	        idim = group->specs->data_specs[idata]->dims_specs[i]->id;
 
             /*
-            printf("_escdf_group_dataset_new for %s, dim_id = %d\n", 
-                group->specs->data_specs[idata]->name, idim); fflush(stdout);
+            printf("_escdf_group_dataset_new for %s, dim_id = %d\n", group->specs->data_specs[idata]->name, idim); fflush(stdout);
             */
 
 	        for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
 	            if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; found=true;}
 	        }
 
-            /*
-            printf("_escdf_group_dataset_new for %s, found dim_id = %d\n", 
-                group->specs->data_specs[idata]->name, dim_ID); fflush(stdout);
+            /* 
+            printf("_escdf_group_dataset_new for %s, found %s with %d dimensions.\n", 
+                group->specs->data_specs[idata]->name, 
+                group->specs->attr_specs[idim]->name,
+                group->specs->attr_specs[idim]->ndims); 
+            fflush(stdout);
             */
 
             FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );

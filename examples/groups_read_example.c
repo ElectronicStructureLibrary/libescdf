@@ -34,20 +34,24 @@ int main() {
 
     escdf_dataset_t *dataset_species_names;
     escdf_dataset_t *dataset_site_pos;
+    escdf_dataset_t *dataset_species_at_site;
 
     escdf_errno_t err;
 
     const escdf_dataset_specs_t *tmp_specs;
 
-    int num_dims;
-    int num_species;
-    int num_sites;
+    unsigned int num_dims;
+    unsigned int num_species;
+    unsigned int num_sites;
+
+    unsigned int *num_species_at_site;
+    unsigned int max_num_species_at_site;
 
     int dummy;
 
-    int i;
+    int i, j;
 
-    int str_length;
+    unsigned int str_length;
 
     char *tmp_names;
     char **names;
@@ -55,6 +59,10 @@ int main() {
     double **coords;
 
     double *tmp;
+
+    int **species_at_site;
+    int *tmp_int;
+
 
     escdf_register_all_group_specs();
 
@@ -75,12 +83,23 @@ int main() {
     escdf_group_attribute_get(group_system, "number_of_species", &num_species);
     escdf_group_attribute_get(group_system, "number_of_sites", &num_sites);
     escdf_group_attribute_get(group_system, "number_of_jokes", &dummy); 
+    escdf_group_attribute_get(group_system, "max_number_of_species_at_site", &max_num_species_at_site); 
 
-    printf("still here. after reading attributes.\n");
+    num_species_at_site = (unsigned int*) malloc(num_sites * sizeof(unsigned));
+
+    escdf_group_attribute_get(group_system, "number_of_species_at_site", num_species_at_site); 
+    
+
+
 
     printf("num_dims = %d \n", num_dims);
     printf("num_sites = %d \n", num_sites);
     printf("num_species = %d \n", num_species);
+    printf("max_num_species_at_site = %d\n", max_num_species_at_site);
+
+    for(i=0; i<num_sites; i++) {
+        printf("number_of_species_at_site(%d) = %d\n", i, num_species_at_site[i]);
+    }
 
     fflush(stdout);
 
@@ -91,7 +110,6 @@ int main() {
         coords[i] = &tmp[i * num_dims];
     }
     
-
     tmp_specs = escdf_group_get_dataset_specs(group_system, "species_names");
 
     assert(tmp_specs!=NULL);
@@ -107,46 +125,58 @@ int main() {
     }
     
 
+    tmp_int = (int*) malloc( num_sites * max_num_species_at_site * sizeof(int));
+
+    species_at_site = (int**) malloc(num_sites * sizeof(int*));
+
+    for(i=0; i<num_sites; i++) {
+        species_at_site[i] = &tmp_int[i * max_num_species_at_site];
+    }
+
 
 
     dataset_species_names = escdf_group_dataset_open(group_system, "species_names");
     dataset_site_pos = escdf_group_dataset_open(group_system, "cartesian_site_positions");
+    dataset_species_at_site = escdf_group_dataset_open(group_system, "species_at_site");
+
 
     if(dataset_species_names==NULL) printf("Null pointer for dataset species_names!!\n");
     if(dataset_site_pos==NULL) printf("Null pointer for dataset site_pos!!\n");
+    if(dataset_species_at_site==NULL) printf("Null pointer for dataset species_at_site!!\n");
 
-    printf("still here. after opening dataset.\n");
-    fflush(stdout);
 
     err = escdf_group_dataset_read_simple(dataset_site_pos, (void*) coords[0]);
-
-    printf("still here. after reading. err = %d \n", err);
-    fflush(stdout);
-    
 
     for(i=0; i<num_sites; i++){
         printf("coords[%d] = (%8.3f %8.3f %8.3f). \n", i, coords[i][0], coords[i][1], coords[i][2]);
     }
 
-    err = escdf_group_dataset_read_simple(dataset_species_names, (void*) names[0]);
 
-    printf("still here. after reading. err = %d \n", err);
-    fflush(stdout);
+    err = escdf_group_dataset_read_simple(dataset_species_names, (void*) names[0]);
 
     for(i=0; i<num_species; i++){
         printf("names[%d] = %s \n", i, names[i]);
     }
 
+    err = escdf_group_dataset_read_simple(dataset_species_at_site, (void*) species_at_site[0]);
+    printf("reading species_at_site resulted in error = %d\n", err);
+
+
+
+    for(i=0; i<num_sites; i++) {
+        printf("Species at site %2d: ", i);
+        for(j=0; j<num_species_at_site[i]; j++) printf("%s, ", names[ species_at_site[i][j] ] );
+        printf("\n");
+    }
+
+
     escdf_group_dataset_close(group_system, "species_names");
     escdf_group_dataset_close(group_system, "cartesian_site_positions");
-    printf("still here. after closing dataset.\n");
 
 
     escdf_group_close(group_system);
-    printf("still here. after closing group.\n");
 
     escdf_close(escdf_file);
-    printf("still here. after closing file.\n");
 
     free(coords);
 

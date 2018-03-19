@@ -1,5 +1,5 @@
 { 
-  "Version"    : "0.0.1",
+  "Version"    : "0.0.2",
   "Author"     : "Martin Lueders",
   "Comment"    : [ 
            "How to use this definitions file:",
@@ -76,6 +76,13 @@
     "Dims_definitions" : ["number_of_sites"],
     "Description" : ["The number of component species for each site. If not present, it is taken to be 1 for all sites (i.e., no statistical mixing)."]
   },  
+  {
+    "Name" : "max_number_of_species_at_site",
+    "Data_type" : "ESCDF_DT_UINT",
+    "Dimensions" : 0,
+    "Description" : ["The maximum number of component species for each site."]
+  },  
+
   { 
     "Name" : "number_of_symmetry_operations", 
     "Data_type" : "ESCDF_DT_UINT", 
@@ -132,10 +139,10 @@
     "Description" : ["The position of each site in fractional (reduced/crystallographic) coordinates"]
   },
   {
-    "Name" : "species_at_sites",
-    "Data_type" : "ESCDF_DT_UINT",
+    "Name" : "species_at_site",
+    "Data_type" : "ESCDF_DT_INT",
     "Dimensions" : 2,
-    "Dims_definitions" : ["number_of_sites", "number_of_species_at_site"],
+    "Dims_definitions" : ["number_of_sites", "max_number_of_species_at_site"],
     "Description" : ["This variable defines the species at each site, according to the list specified previously (see variables relating to species).",
                      "If [number_of_species_at_site(site_index)] is set to 1, the site is simply a single species;",
                      "otherwise, it will be a mixture of more species"]
@@ -177,6 +184,7 @@
        "number_of_species", 
        "number_of_sites",
        "number_of_species_at_site",
+       "max_number_of_species_at_site",
        "number_of_symmetry_operations",
        "lattice_vectors",
        "spacegroup_3D_number",
@@ -186,7 +194,7 @@
      "Datasets" : [
        "cartesian_site_positions",
        "fractional_site_positions",
-       "species_at_sites", 
+       "species_at_site", 
        "species_names", 
        "chemical_symbols", 
        "atomic_numbers" 
