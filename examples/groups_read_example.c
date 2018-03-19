@@ -151,8 +151,14 @@ int main() {
         printf("coords[%d] = (%8.3f %8.3f %8.3f). \n", i, coords[i][0], coords[i][1], coords[i][2]);
     }
 
+<<<<<<< HEAD
 
     err = escdf_group_dataset_read_simple(dataset_species_names, (void*) names[0]);
+=======
+
+    err = escdf_group_dataset_read_simple(dataset_species_names, (void*) names[0]);
+
+>>>>>>> 461f15f4b353f14d389ad64c6ddeb6df8d99c008
 
     for(i=0; i<num_species; i++){
         printf("names[%d] = %s \n", i, names[i]);
