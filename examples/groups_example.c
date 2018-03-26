@@ -34,7 +34,6 @@ int main() {
     escdf_dataset_t *dataset_site_pos;
     escdf_dataset_t *dataset_species_at_site;
 
-<<<<<<< HEAD
     escdf_errno_t error;
 
     unsigned int num_dims = 3;
@@ -46,16 +45,6 @@ int main() {
 
     int *tmp_species_at_site;
     int **species_at_site;
-=======
-    unsigned int num_dims = 3;
-    unsigned int num_species = 5;
-    unsigned int num_sites = 5;
-
-    unsigned int *num_species_at_site;
-
-    unsigned int *tmp_species_at_site;
-    unsigned int **species_at_site;
->>>>>>> 461f15f4b353f14d389ad64c6ddeb6df8d99c008
 
     unsigned int tot_num_species;
 
@@ -101,7 +90,6 @@ int main() {
     num_species_at_site[3] = 1;
     num_species_at_site[4] = 1;
     
-<<<<<<< HEAD
 
     species_at_site = (int **) malloc(num_sites * sizeof(int*));
     tmp_species_at_site = (int*) malloc(sizeof(int)* num_sites * max_num_species_at_site);
@@ -109,18 +97,6 @@ int main() {
     for(i=0; i<num_sites; i++) {
         species_at_site[i] = &(tmp_species_at_site[i * max_num_species_at_site]);
         for(j=0; j<max_num_species_at_site; j++) species_at_site[i][j] = ESCDF_UNDEFINED_ID;
-=======
-    tot_num_species = 0;
-    for(i=0; i<num_sites; i++) 
-        tot_num_species += num_species_at_site[i];
-
-    species_at_site = (unsigned int **) malloc(num_sites * sizeof(unsigned int*));
-    tmp_species_at_site = (unsigned int*) malloc(sizeof(unsigned int)* tot_num_species);
-    
-    for(i=0, j=0; i<num_sites; i++) {
-        species_at_site[i] = &(tmp_species_at_site[j]);
-        j += num_species_at_site[i];
->>>>>>> 461f15f4b353f14d389ad64c6ddeb6df8d99c008
     }
 
     species_at_site[0][0] = 0;
@@ -171,20 +147,10 @@ int main() {
     printf("setting 'max_number_of_species_at_site' results in error = %d \n", error);
 
 
-<<<<<<< HEAD
-
-=======
-    escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site);
->>>>>>> 461f15f4b353f14d389ad64c6ddeb6df8d99c008
-
     dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
     dataset_site_pos = escdf_group_dataset_create(group_system, "cartesian_site_positions");
 
-<<<<<<< HEAD
     dataset_species_at_site = escdf_group_dataset_create(group_system, "species_at_site");
-=======
-    dataset_species_at_site = escdf_group_dataset_create(group_system, "species_at_sites");
->>>>>>> 461f15f4b353f14d389ad64c6ddeb6df8d99c008
 
     if(dataset_species_names==NULL) printf("Null pointer for dataset species_names!!\n");
     if(dataset_site_pos==NULL) printf("Null pointer for dataset site_pos!!\n");

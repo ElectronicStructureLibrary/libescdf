@@ -636,7 +636,6 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
     
     FULFILL_OR_EXIT(group->datasets != NULL, ESCDF_EVALUE);
 
-
     ndims = group->specs->data_specs[idata]->ndims;
 
     /* printf("_escdf_group_dataset_new for %s, ndims = %d\n", group->specs->data_specs[idata]->name, ndims); fflush(stdout); */
