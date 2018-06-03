@@ -134,6 +134,8 @@ const char *escdf_error_string(const escdf_errno_t error_id);
  * Macros                                                             *
  **********************************************************************/
 
+
+
 /**
  * Macro to break loops when there are deferred errors, in order to propagate
  * error conditions from inner loops to outer loops
@@ -279,6 +281,16 @@ const char *escdf_error_string(const escdf_errno_t error_id);
     if ( (escdf_error_get_last(__func__) == ESCDF_SUCCESS) && !(condition) ) { \
         escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
     }
+
+
+/**
+ * Error handler macro ensuring that errors are properly registered
+ * 
+ * @param[in] error_id: error code
+ */
+#define REGISTER_ERROR(error_id) \
+    escdf_error_add(error_id, __FILE__, __LINE__, __func__);
+
 
 #ifdef __cplusplus
 }

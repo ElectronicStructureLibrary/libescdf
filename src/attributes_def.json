@@ -140,9 +140,9 @@
   },
   {
     "Name" : "species_at_site",
-    "Data_type" : "ESCDF_DT_INT",
+    "Data_type" : "ESCDF_DT_UINT",
     "Dimensions" : 2,
-    "Dims_definitions" : ["number_of_sites", "max_number_of_species_at_site"],
+    "Dims_definitions" : ["number_of_sites", "number_of_species_at_site"],
     "Description" : ["This variable defines the species at each site, according to the list specified previously (see variables relating to species).",
                      "If [number_of_species_at_site(site_index)] is set to 1, the site is simply a single species;",
                      "otherwise, it will be a mixture of more species"]

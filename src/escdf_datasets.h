@@ -44,6 +44,16 @@ struct escdf_dataset_specs {
 
     bool disordered_storage_allowed;
 
+    /* If the specifications indicate a non-regular shape for a dataset,
+     * e.g. species_at_site, we will store it as an effective one-dimensional array.
+     *
+     * This is currently allowed only for irregular 2D arrays.
+     * 
+     * The bool 'compact' indicates whether a dataset is stored that way.
+     */
+
+    bool compact;
+
     const escdf_attribute_specs_t **dims_specs;
 
     /** 
@@ -91,7 +101,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
 unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data);
 
-hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
+const hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
 
 
 bool escdf_dataset_is_disordered_storage_allowed(const escdf_dataset_t *data);
@@ -144,6 +154,8 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf);
 escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
 
 escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
+
+escdf_errno_t escdf_dataset_print(escdf_dataset_t *data);
 
 
 #ifdef __cplusplus

@@ -41,7 +41,7 @@ mkdir -p config/gnu config/m4
 
 # Generate libtool scripts
 echo "Generating libtool scripts..."
-my_libtoolize="libtoolize"
+my_libtoolize="/sw/bin/libtoolize"
 ${my_libtoolize} --version >/dev/null 2>&1
 if test "${?}" != "0"; then 
   my_libtoolize="glibtoolize"

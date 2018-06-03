@@ -1,10 +1,12 @@
 #ifndef ESCDF_ATTRIBUTES_SPECS_H
 #define ESCDF_ATTRIBUTES_SPECS_H
 
+#include "escdf_common.h" 
+#include "escdf_attributes.h" 
 #include "escdf_attributes_ID.h" 
 
 const escdf_attribute_specs_t system_name_specs = 
-   { SYSTEM_NAME, "system_name", ESCDF_DT_STRING, 0, 0, NULL }; 
+   { SYSTEM_NAME, "system_name", ESCDF_DT_STRING, 80, 0, NULL }; 
 
 const escdf_attribute_specs_t number_of_physical_dimensions_specs = 
    { NUMBER_OF_PHYSICAL_DIMENSIONS, "number_of_physical_dimensions", ESCDF_DT_UINT, 0, 0, NULL }; 
@@ -24,6 +26,16 @@ const escdf_attribute_specs_t number_of_species_specs =
 
 const escdf_attribute_specs_t number_of_sites_specs = 
    { NUMBER_OF_SITES, "number_of_sites", ESCDF_DT_UINT, 0, 0, NULL }; 
+
+const escdf_attribute_specs_t *number_of_species_at_site_dims[] = { 
+  &number_of_sites_specs 
+};
+
+const escdf_attribute_specs_t number_of_species_at_site_specs = 
+   { NUMBER_OF_SPECIES_AT_SITE, "number_of_species_at_site", ESCDF_DT_UINT, 0, 1, number_of_species_at_site_dims }; 
+
+const escdf_attribute_specs_t max_number_of_species_at_site_specs = 
+   { MAX_NUMBER_OF_SPECIES_AT_SITE, "max_number_of_species_at_site", ESCDF_DT_UINT, 0, 0, NULL }; 
 
 const escdf_attribute_specs_t number_of_symmetry_operations_specs = 
    { NUMBER_OF_SYMMETRY_OPERATIONS, "number_of_symmetry_operations", ESCDF_DT_UINT, 0, 0, NULL }; 

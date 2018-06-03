@@ -74,6 +74,8 @@ void escdf_attribute_free(escdf_attribute_t *attr);
 
 size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
 
+const unsigned int * escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
+
 escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, const void *buf);
 
 escdf_errno_t escdf_attribute_get(const escdf_attribute_t *attr, void *buf);

@@ -1,12 +1,12 @@
 %YAML 1.1
 ---
 
-timestamp: "20180212T174746+0100"
+timestamp: "20180508T142711+0100"
 
 target:
     cpu: "x86_64"
-    vendor: "apple"
-    os: "darwin17.4.0"
+    vendor: "pc"
+    os: "linux-gnu"
 
 compilers:
     CPP: "gcc -E"

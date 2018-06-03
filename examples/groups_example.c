@@ -1,4 +1,4 @@
-/*  -*- c-basic-example-groups -*- */
+ /*  -*- c-basic-example-groups -*- */
 
 /* Copyright (C) 2018 Martin Lueders <martin.lueders@stfc.ac.uk>
  *
@@ -137,18 +137,20 @@ int main() {
     error = escdf_group_attribute_set(group_system, "number_of_sites", &num_sites);
     printf("setting 'number_of_sites' results in error = %d \n", error);
 
-    error = escdf_group_attribute_set(group_system, "number_of_jokes", &num_species);
-    printf("setting 'number_of_joks' results in error = %d \n", error);
+    // error = escdf_group_attribute_set(group_system, "number_of_jokes", &num_species);
+    // printf("setting 'number_of_jokes' results in error = %d \n", error);
 
     error = escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site);
     printf("setting 'number_of_species_at_site' results in error = %d \n", error);
 
-    error = escdf_group_attribute_set(group_system, "max_number_of_species_at_site", &max_num_species_at_site);
-    printf("setting 'max_number_of_species_at_site' results in error = %d \n", error);
-
+    // error = escdf_group_attribute_set(group_system, "max_number_of_species_at_site", &max_num_species_at_site);
+    // printf("setting 'max_number_of_species_at_site' results in error = %d \n", error);
 
     dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
+    printf("Dataset species_names created.\n");
+
     dataset_site_pos = escdf_group_dataset_create(group_system, "cartesian_site_positions");
+    printf("Dataset cartesian_site_positions created.\n");
 
     dataset_species_at_site = escdf_group_dataset_create(group_system, "species_at_site");
 
@@ -156,18 +158,26 @@ int main() {
     if(dataset_site_pos==NULL) printf("Null pointer for dataset site_pos!!\n");
     if(dataset_species_at_site==NULL) printf("Null pointer for dataset species_at_sites!!\n");
 
+    escdf_dataset_print(dataset_species_at_site);
 
     escdf_group_dataset_write_simple(dataset_species_names, names);
     escdf_group_dataset_write_simple(dataset_site_pos, coords);
     escdf_group_dataset_write_simple(dataset_species_at_site, species_at_site[0]);
     
+    printf("Datasets written.\n");
 
     escdf_group_dataset_close(group_system, "species_names");
     escdf_group_dataset_close(group_system, "cartesian_site_positions");
 
+    printf("Datasets closed. \n");
+
     escdf_group_close(group_system);
 
+    printf("Group closed. \n");
+
     escdf_close(escdf_file);
+
+    printf("File closed. \n");
 
     return 0;
 }

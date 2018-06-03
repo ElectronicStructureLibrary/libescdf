@@ -20,6 +20,7 @@
 
 #include <assert.h>
 
+
 #include "escdf_attributes.h"
 #include "escdf_datasets.h"
 #include "utils_hdf5.h"
@@ -37,6 +38,16 @@ struct escdf_dataset {
     bool transfer_on_disk;
 
     hsize_t *dims;
+
+    escdf_attribute_t **dims_attr;
+
+    /* In case of irregular arrays (only two-dimensional allowed) the data is stored
+     * as one dimensional array, and we need the additional index array to map to the array.
+     * 
+     * Whether or not this compact storage is used, is determined by specs->compact.
+     */
+
+    hsize_t *index_array; /* only used for compact storage */
 
     /* int *reordering_table; */
 
@@ -131,8 +142,10 @@ unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data)
 
 
 
-hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
+const hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
 {
+    /* this routine assumes regular dimensions of the dataset */
+
     assert(data != NULL);
 
     return data->dims;
@@ -192,58 +205,144 @@ escdf_errno_t escdf_dataset_set_datatransfer(escdf_dataset_t *data, escdf_datatr
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims)
 {
     escdf_dataset_t *data = NULL;
-    unsigned int ii, ndims;
-    unsigned int *dims;
-    size_t len;
+    escdf_errno_t error;
+    unsigned int ii, j;
+    unsigned int dims0;
+    hsize_t *dims;
+    int  *dims1;
+    hsize_t ndims;
+    hsize_t len;
 
  
     /* Check input */
     assert(specs != NULL);
-    
+    assert(attr_dims != NULL);
+
+
+    printf("escdf_dataset_new: name = %s\n",specs->name); fflush(stdout); 
+
 
     ndims = specs->ndims; 
 
-    /* Check dimensions */
-
-    dims = malloc(ndims * sizeof(unsigned int));
-    assert(dims != NULL);
-
-    /* printf("escdf_dataset_new: created memory for dims for %s\n",specs->name); fflush(stdout); */
-
-    if (ndims > 0) {
-        assert(attr_dims != NULL);
-        for (ii = 0; ii < ndims; ii++) {
-            assert(escdf_attribute_is_set(attr_dims[ii]));
-            assert(escdf_attribute_get_specs_id(attr_dims[ii]) == specs->dims_specs[ii]->id);
-            assert(specs->dims_specs[ii]->datatype == ESCDF_DT_UINT);
-
-            /* Shall we set the dimensions here? */
-
-            SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], &(dims[ii])));
-
-        }
-    }
-
-    /* Allocate memory and set default values */
+    /* Allocate memory */ 
     data = (escdf_dataset_t *) malloc(sizeof(escdf_dataset_t));
+    
     if (data == NULL)
         return data;
 
-    /* printf("escdf_dataset_new: created memory for %s\n",specs->name); fflush(stdout); */
+    /* set default values */
 
+
+    /* Check whether dimensions are regular shaped */
+
+    if (specs->compact) {
+        printf("escdf_dataset_new: name = %s, compact flag set. \n",specs->name); fflush(stdout); 
+
+        if (ndims != 2) { 
+            printf("escdf_dataset_new: name = %s, compact flag set for ndims /= 2. Return NULL!\n",specs->name); fflush(stdout); 
+            REGISTER_ERROR(ESCDF_ERROR_DIM); 
+
+            return NULL;
+        } 
+        else {
+
+            printf("escdf_dataset_new: name = %s, First dimension: %s, %d. \n", specs->name, specs->dims_specs[0]->name, specs->dims_specs[0]->ndims); fflush(stdout);
+            
+            printf("escdf_dataset_new: name = %s, First dimension: %d, %d. \n", specs->name, escdf_attribute_sizeof(attr_dims[0]), sizeof(dims0)); fflush(stdout);
+            
+            
+            // printf("escdf_dataset_new: name = %s, Still here. \n", specs->name); fflush(stdout);
+
+            // DEFER_FUNC_ERROR(escdf_attribute_get(attr_dims[0], &dims0));
+
+
+            error = escdf_attribute_get(attr_dims[0], &dims0);
+
+            printf("escdf_dataset_new: name = %s, dims0 = %d. error = %d \n", specs->name, dims0, error); fflush(stdout); fflush(stdout);
+
+            printf("escdf_dataset_new: name = %s, sizeof(attr_dims[1]) = %d. \n", specs->name, escdf_attribute_sizeof(attr_dims[1])); fflush(stdout);
+
+
+            dims =  (hsize_t*) malloc( ndims * sizeof(hsize_t) );
+            dims1 = (int*) malloc( escdf_attribute_sizeof(attr_dims[1]) ); 
+
+            printf("escdf_dataset_new: name = %s, Second dimension: %s, %d. \n", specs->name, specs->dims_specs[1]->name, specs->dims_specs[1]->ndims); fflush(stdout);
+
+
+           
+            printf("escdf_dataset_new: name = %s, Second dimension: %d, %d. \n", specs->name, escdf_attribute_sizeof(attr_dims[1]), dims0 * escdf_attribute_specs_sizeof(specs->dims_specs[1])); fflush(stdout);
+
+            // DEFER_FUNC_ERROR(escdf_attribute_get(attr_dims[1], dims1));
+
+            error = escdf_attribute_get(attr_dims[1], dims1);
+
+            printf("escdf_dataset_new: name = %s, error = %d \n", specs->name, error); fflush(stdout); 
+
+            for(ii=0; ii<dims0; ii++) {
+                printf("escdf_dataset_new: name = %s, dims1[%d] = %d. \n", specs->name, ii, dims1[ii]);
+            }
+
+
+            printf("escdf_dataset_new: name = %s, before malloc index_array: %d. \n", specs->name, dims0 * sizeof(hsize_t)); fflush(stdout);
+
+            data->index_array = (hsize_t*) malloc( (dims0 * sizeof(hsize_t)) );
+//            data->index_array = (hsize_t*) malloc( (dims0 * 8 ) );
+
+            printf("escdf_dataset_new: name = %s, after malloc index_array. \n", specs->name); fflush(stdout);
+
+            for(ii=0, j=0; ii<dims0; ii++) {
+                data->index_array[ii] = j;
+                j += dims1[ii];
+            }
+            dims[0] = j;
+            // dims[1] = 0;
+
+            printf("escdf_dataset_new: name = %s, dims set: %d %d \n",specs->name, dims[0], dims[1]); fflush(stdout); 
+
+        } 
+    }
+    else {
+        printf("escdf_dataset_new: created memory for dims for %s\n",specs->name); fflush(stdout); 
+
+        if (ndims > 0) {
+            dims = (hsize_t*) malloc(ndims * sizeof(hsize_t));
+
+            assert(attr_dims != NULL);
+            for (ii = 0; ii < ndims; ii++) {
+                assert(escdf_attribute_is_set(attr_dims[ii]));
+                assert(escdf_attribute_get_specs_id(attr_dims[ii]) == specs->dims_specs[ii]->id);
+                assert(specs->dims_specs[ii]->datatype == ESCDF_DT_UINT);
+
+                SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], &(dims[ii])));
+                printf("escdf_dataset_new: read dim[%d] for %s. ndims of dim[%d] = %d.\n", ii, specs->name, ii, dims[ii] ); fflush(stdout); 
+
+
+            }
+        }
+
+    }
+
+    printf("escdf_dataset_new: created memory for %s\n",specs->name); fflush(stdout); 
     data->specs = specs;
 
-    /* printf("escdf_dataset_new: created %d dims for %s\n",ndims, specs->name); fflush(stdout); */
+    printf("escdf_dataset_new: will create %d dims for %s\n",ndims, specs->name); fflush(stdout); 
+    data->dims = (hsize_t*) malloc(ndims * sizeof(hsize_t));
+    printf("escdf_dataset_new: succesfully created %d dims for %s\n",ndims, specs->name); fflush(stdout); 
 
-    data->dims = malloc(ndims * sizeof(unsigned int));
-
+    assert(data->dims != NULL);
 
     for(ii = 0; ii<ndims; ii++) {
         data->dims[ii] = dims[ii];  
-        /* printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, dims[ii]); fflush(stdout); */
+        printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, data->dims[ii]); fflush(stdout);
     }
     
     free(dims);
+
+    data->dims_attr = (escdf_attribute_t**) malloc( data->specs->ndims * sizeof(escdf_attribute_t*) );
+
+    for(ii=0; ii<data->specs->ndims; ii++) {
+        data->dims_attr[ii] = attr_dims[ii];
+    }    
 
     data->dtset_id = ESCDF_UNDEFINED_ID;
     data->is_ordered = true;
@@ -266,7 +365,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     data->xfer_id = ESCDF_UNDEFINED_ID;
 
-    /* printf("escdf_dataset_new: completed for %s\n",data->specs->name); fflush(stdout); */
+    printf("escdf_dataset_new: completed for %s\n",data->specs->name); fflush(stdout);
 
     return data;
 }
@@ -665,3 +764,126 @@ const char * escdf_dataset_get_name(const escdf_dataset_t *data)
     return data->specs->name;
 }
 
+escdf_errno_t escdf_dataset_print(escdf_dataset_t *data)
+{
+    unsigned int i, j;
+    escdf_errno_t error;
+
+    char datatype_name[20], isSet[6];
+
+    unsigned int *dims;
+    unsigned int *dims_from_specs;
+
+    if( data == NULL ) {
+
+        printf("Dataset not defined! \n"); fflush(stdout);
+        return ESCDF_ERROR;
+
+    } else {
+
+        if( data->specs == NULL ) {
+
+        printf("Dataset Specs not defined! \n"); fflush(stdout);
+        return ESCDF_ERROR;
+      
+        } else {
+            switch(data->specs->datatype) {
+            case ESCDF_DT_NONE:
+                strcpy(datatype_name, "ESCDF_DT_NONE");
+                break;
+            case ESCDF_DT_UINT:
+                strcpy(datatype_name, "ESCDF_DT_UINT");
+                break;
+            case ESCDF_DT_INT:
+                strcpy(datatype_name, "ESCDF_DT_INT");
+                break;
+            case ESCDF_DT_BOOL:
+                strcpy(datatype_name, "ESCDF_DT_BOOL");
+                break;
+            case ESCDF_DT_DOUBLE:
+                strcpy(datatype_name, "ESCDF_DT_DOUBLE");
+                break;
+            case ESCDF_DT_STRING:
+                strcpy(datatype_name, "ESCDF_DT_STRING");
+                break;
+            default :
+                strcpy(datatype_name, "UNDEFINED");
+                break;
+            }
+
+            /*
+            if (data->is_set)
+                strcpy(isSet,"True");
+            else
+                strcpy(isSet,"False");
+            */
+      
+
+            printf("Dataset dump for: %s with ID = %i \n", data->specs->name, data->specs->id);
+            printf("  Data type = %s (%i) \n", datatype_name, data->specs->datatype );
+
+            printf("  Dimensions According to specs = %i \n", data->specs->ndims );
+            
+            for(i = 0; i < data->specs->ndims; i++) {
+
+	            printf("  Dimensions (%i) = %s %s \n", i,  data->specs->dims_specs[i]->name, escdf_dataset_get_name(data->dims_attr[i]) );
+
+                dims_from_specs = escdf_attribute_get_dimensions(data->dims_attr[i]);
+
+                for(j=0; j<data->specs->dims_specs[i]->ndims; j++) {
+
+                    printf("  Dimensions (%i): dims_from_spec[%i] = %i \n", i, j, dims_from_specs[j] );
+        
+                }
+
+	            printf("  Dimensions (%i): ndims = %i. dims[] = ", i, data->specs->dims_specs[i]->ndims );
+
+                dims = (unsigned int*) malloc( escdf_attribute_sizeof (data->dims_attr[i]) );
+                error = escdf_attribute_get(data->dims_attr[i], dims);
+
+                assert(error == 0);
+
+                if(dims_from_specs) {
+                    for(j=0; j<dims_from_specs[0]; j++) {
+
+                        printf(" %i, ", dims[j] );
+                    }
+                }    
+
+                free(dims);
+                printf("\n");
+            }
+
+            
+            printf("  Number of Dimensions = %i \n", data->specs->ndims );
+            for(i = 0; i < data->specs->ndims; i++) {
+	            printf("  Dimensions (%i) = %i \n", i, (int) data->dims[i] );
+
+            }
+            
+
+            
+            if(data->specs->compact) {
+
+                    printf("Compact storage used. \n");
+
+                    assert(data->index_array);
+
+                    for(i=0; i<dims_from_specs[0]; i++) {
+
+                        printf("index[%i] = %i \n", i, data->index_array[i]);
+                    }
+
+
+
+            }
+            
+            /* Get dimentions */
+
+            printf("\n");
+            fflush(stdout);
+        }
+  }
+  return ESCDF_SUCCESS;
+
+}

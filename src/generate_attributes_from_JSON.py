@@ -24,6 +24,16 @@ def datasets_name(name):
     return name.lower() + '_datasets'
 
 
+# access routine
+
+def get_attribute(name):
+    for a in attributes:
+        if a['Name'] == name: 
+            return a
+    return 0
+
+
+
 # set up function to write the ID file
 
 def write_ID_file(x, type):
@@ -188,7 +198,14 @@ for d in datasets:
     else:
         dims_names = ''
         for p in d['Dims_definitions']:
-            dims_names += '\n  &'+specs_name(p) + ','
+            dims_names += '\n  &' + specs_name(p) + ','
+            aa = get_attribute(p)
+            num_dims = aa['Dimensions']
+            if num_dims > 0:
+                print(p + ': ' + str(num_dims) + '\n')
+                compact = 'true, '
+            else:
+                compact = 'false, '
     
         dims_names = dims_names.rstrip(',')
         dataset_specs_file.write('const escdf_attribute_specs_t *' + dims_name(dataset_name) + '[] = { ' + dims_names + ' \n};\n\n')
@@ -203,7 +220,7 @@ for d in datasets:
 
     dataset_specs_file.write('const escdf_dataset_specs_t '+specs_name(dataset_name) + ' = \n')
     dataset_specs_file.write('   { '+ ID_name + ', ' + name_string( dataset_name )+ ', ' + d['Data_type'] + ', ' +str(stringlength) + ', ' 
-                            + str(d['Dimensions']) +', '+ disordered + dims_pointer + ' }; \n\n')
+                            + str(d['Dimensions']) +', '+ disordered + compact + dims_pointer + ' }; \n\n')
 
 
 # Create group specs definitions:
