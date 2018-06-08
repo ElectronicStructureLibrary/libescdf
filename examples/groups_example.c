@@ -43,8 +43,8 @@ int main() {
     unsigned int *num_species_at_site;
     unsigned int max_num_species_at_site = 2;
 
-    int *tmp_species_at_site;
-    int **species_at_site;
+    unsigned int *tmp_species_at_site;
+    unsigned int **species_at_site;
 
     unsigned int tot_num_species;
 
@@ -91,8 +91,8 @@ int main() {
     num_species_at_site[4] = 1;
     
 
-    species_at_site = (int **) malloc(num_sites * sizeof(int*));
-    tmp_species_at_site = (int*) malloc(sizeof(int)* num_sites * max_num_species_at_site);
+    species_at_site     = (unsigned int**) malloc(sizeof(unsigned int*) * num_sites);
+    tmp_species_at_site = (unsigned int*)  malloc(sizeof(unsigned int)  * num_sites * max_num_species_at_site);
     
     for(i=0; i<num_sites; i++) {
         species_at_site[i] = &(tmp_species_at_site[i * max_num_species_at_site]);
@@ -137,14 +137,18 @@ int main() {
     error = escdf_group_attribute_set(group_system, "number_of_sites", &num_sites);
     printf("setting 'number_of_sites' results in error = %d \n", error);
 
-    // error = escdf_group_attribute_set(group_system, "number_of_jokes", &num_species);
-    // printf("setting 'number_of_jokes' results in error = %d \n", error);
+    /*
+    error = escdf_group_attribute_set(group_system, "number_of_jokes", &num_species);
+    printf("setting 'number_of_jokes' results in error = %d \n", error);
+    */
 
     error = escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site);
     printf("setting 'number_of_species_at_site' results in error = %d \n", error);
 
-    // error = escdf_group_attribute_set(group_system, "max_number_of_species_at_site", &max_num_species_at_site);
-    // printf("setting 'max_number_of_species_at_site' results in error = %d \n", error);
+    /*
+    error = escdf_group_attribute_set(group_system, "max_number_of_species_at_site", &max_num_species_at_site);
+    printf("setting 'max_number_of_species_at_site' results in error = %d \n", error);
+    */
 
     dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
     printf("Dataset species_names created.\n");
@@ -162,7 +166,33 @@ int main() {
 
     escdf_group_dataset_write_simple(dataset_species_names, names);
     escdf_group_dataset_write_simple(dataset_site_pos, coords);
+
+    /*
     escdf_group_dataset_write_simple(dataset_species_at_site, species_at_site[0]);
+    */
+
+
+
+    for(i=0; i<num_sites; i++) {
+
+        hsize_t start[2];
+        hsize_t count[2];
+        hsize_t stride[2];
+        
+        start[0] = i;
+        start[1] = 0;
+
+        count[0] = 1; 
+        count[1] = num_species_at_site[i]; 
+
+        stride[0] = 1;
+        stride[1] = 1;
+
+        printf("writing species_at_site[%d]: start = (%d,%d), count = (%d,%d). \n", i, start[0], start[1], count[0], count[1]);
+
+        escdf_group_dataset_write_at(dataset_species_at_site, start, count, stride, species_at_site[i]);
+
+    }
     
     printf("Datasets written.\n");
 

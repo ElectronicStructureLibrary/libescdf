@@ -83,7 +83,6 @@ int main() {
     escdf_group_attribute_get(group_system, "number_of_species", &num_species);
     escdf_group_attribute_get(group_system, "number_of_sites", &num_sites);
     escdf_group_attribute_get(group_system, "number_of_jokes", &dummy); 
-    escdf_group_attribute_get(group_system, "max_number_of_species_at_site", &max_num_species_at_site); 
 
     num_species_at_site = (unsigned int*) malloc(num_sites * sizeof(unsigned));
 
@@ -159,12 +158,26 @@ int main() {
         printf("names[%d] = %s \n", i, names[i]);
     }
 
-    err = escdf_group_dataset_read_simple(dataset_species_at_site, (void*) species_at_site[0]);
-    printf("reading species_at_site resulted in error = %d\n", err);
-
+    
 
 
     for(i=0; i<num_sites; i++) {
+
+        hsize_t start[2];
+        hsize_t count[2];
+        hsize_t stride[2];
+        
+        start[0] = i;
+        start[1] = 0;
+
+        count[0] = 1; 
+        count[1] = num_species_at_site[i]; 
+
+        stride[0] = 1;
+        stride[1] = 1;
+
+        err = escdf_group_dataset_read_at(dataset_species_at_site, start, count, stride, (void*) species_at_site[i]);
+        
         printf("Species at site %2d: ", i);
         for(j=0; j<num_species_at_site[i]; j++) printf("%s, ", names[ species_at_site[i][j] ] );
         printf("\n");

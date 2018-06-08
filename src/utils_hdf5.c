@@ -55,10 +55,13 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
     }
 
 
-//    bool_id = H5Oexists_by_name(loc_id, name, H5P_DEFAULT);
+    /*
+    bool_id = H5Oexists_by_name(loc_id, name, H5P_DEFAULT);
 
-//    printf("utils_hdf5_check_present: %s %d\n", name, bool_id);
-//    return (bool_id > 0);
+    printf("utils_hdf5_check_present: %s %d\n", name, bool_id);
+    return (bool_id > 0);
+
+    */
     return true;
 }
 
@@ -657,6 +660,10 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void
     hid_t memspace_id, diskspace_id, xfer_plist;
     herr_t err_id;
 
+    hsize_t ndims, *dims, *maxdims, i;
+
+    printf("utils_hdf5_write_dataset: trying to write %d elements at %d.\n", count[0], start[0]);
+
     err = utils_hdf5_select_slice(dtset_id, &diskspace_id, &memspace_id,
                                   start, count, stride);
     FULFILL_OR_RETURN(err == ESCDF_SUCCESS, err);
@@ -665,6 +672,22 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void
         xfer_plist = xfer_id;
     else
         xfer_plist = H5P_DEFAULT;
+
+    ndims = H5Sget_simple_extent_ndims(diskspace_id);
+
+    dims = malloc(sizeof(hsize_t) * ndims);
+    maxdims = malloc(sizeof(hsize_t) * ndims);
+    
+
+    ndims = H5Sget_simple_extent_dims(diskspace_id, dims, maxdims);
+
+    printf("utils_hdf5_write_dataset: diskspace ndims = %d.\n", ndims);
+    for(i=0; i<ndims; i++) {
+        printf("utils_hdf5_write_dataset: diskspace dims[%d] = %d.\n", i, dims[i]);
+    }
+
+    free(dims);
+    free(maxdims);
 
     /* Write */
     if ((err_id = H5Dwrite(dtset_id, mem_type_id, memspace_id,

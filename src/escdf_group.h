@@ -240,14 +240,16 @@ escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf)
 
 escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void *buf);
 
-/*
-escdf_errno_t escdf_group_dataset_write_at(escdf_group_t *group, escdf_dataset_t *data, 
+
+escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void* buf);
 
-escdf_errno_t escdf_group_dataset_read_at(const escdf_group_t *group, const escdf_dataset_t *data, 
+
+
+escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void *buf);
 
-*/
+
 
 
 /************************************************************

@@ -36,6 +36,7 @@
 escdf_core_srcs = \
   escdf.c \
   escdf_attributes.c \
+  escdf_datatransfer.c \
   escdf_datasets.c \
   escdf_lookuptable.c \
   escdf_error.c \
@@ -52,6 +53,7 @@ escdf_core_hdrs = \
   escdf.h \
   escdf_attributes.h \
   escdf_common.h \
+  escdf_datatransfer.h \
   escdf_error.h \
   escdf_grid_scalarfields.h \
   escdf_group.h \

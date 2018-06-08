@@ -325,11 +325,11 @@ escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle
     else
         sprintf(location_path, "%s/%s", group->specs->root, name);
 
-//    group->loc_id = H5Gopen2(handle->group_id, location_path, H5P_DEFAULT);
+        /*    group->loc_id = H5Gopen2(handle->group_id, location_path, H5P_DEFAULT); */
 
     FULFILL_OR_RETURN( utils_hdf5_open_group(handle->group_id, location_path, &group->loc_id) == ESCDF_SUCCESS, group->loc_id);
 
-//    FULFILL_OR_RETURN(group->loc_id >= 0, group->loc_id);
+    /*  FULFILL_OR_RETURN(group->loc_id >= 0, group->loc_id); */
 
     return ESCDF_SUCCESS;
 }
@@ -395,13 +395,11 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group
     /* we need to check first whether thr group existst in the file */
 
 
-    /* QUESTIONS: What do we need to pass here as loc_id ?? */
 
     if (escdf_group_open_location(group, handle, instance_name) != ESCDF_SUCCESS) {
         printf("escdf_group_open: opening group %s failed. \n", group_name);
         goto cleanup;
     }
-    /* printf("escdf_group_open: group %s successful opened. \n", group_name); */
 
     if (escdf_group_read_attributes(group) != ESCDF_SUCCESS) {
         escdf_group_close_location(group);
@@ -637,7 +635,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 
     ndims = group->specs->data_specs[idata]->ndims;
 
-    printf("_escdf_group_dataset_new for %s, ndims = %d\n", group->specs->data_specs[idata]->name, ndims); fflush(stdout);
+    /* printf("_escdf_group_dataset_new for %s, ndims = %d\n", group->specs->data_specs[idata]->name, ndims); fflush(stdout); */
 
 
     if( ndims > 0 ) {
@@ -655,20 +653,20 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 	        idim = group->specs->data_specs[idata]->dims_specs[i]->id;
 
             
-            printf("_escdf_group_dataset_new for %s, dim_id = %d\n", group->specs->data_specs[idata]->name, idim); fflush(stdout);
+            /* printf("_escdf_group_dataset_new for %s, dim_id = %d\n", group->specs->data_specs[idata]->name, idim); fflush(stdout); */
             
 
 	        for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
 	            if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; found=true;}
 	        }
 
-            
+            /*
             printf("_escdf_group_dataset_new for %s, found %s with %d dimensions.\n", 
                 group->specs->data_specs[idata]->name, 
                 group->specs->attr_specs[idim]->name,
                 group->specs->attr_specs[idim]->ndims); 
             fflush(stdout);
-            
+            */
 
             FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
@@ -821,7 +819,7 @@ escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name)
 
     /* printf("escdf_group_dataset_close: attempting to close dataset %d: %s %s\n", dataset_number, name, name_check); */
 
-//    if(dataset_number == ESCDF_UNDEFINED_ID)  return ESCDF_SUCCESS; /* QUESTION: Shall wi throw an error ? */
+    /* if(dataset_number == ESCDF_UNDEFINED_ID)  return ESCDF_SUCCESS; */ /* QUESTION: Shall wi throw an error ? */
 
     err = escdf_dataset_close(group->datasets[dataset_number]);
 
@@ -839,6 +837,10 @@ escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name)
     return ESCDF_SUCCESS;
 
 }
+
+/*******
+ * Do we need these wrappers?
+ */
 
 
 escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf)
@@ -864,18 +866,35 @@ escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void*
     return err;
 }
 
-/*
-escdf_errno_t escdf_group_dataset_write_at(const escdf_group_t *group, escdf_dataset_t *data, 
+
+escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void* buf)
 {
-    assert(group != NULL);
+    escdf_errno_t err;
+    assert(data != NULL);
+
+    
+
+    err = escdf_dataset_write(data, start, count, stride, buf);
+    return err;
+    
+
+
 }
 
-escdf_errno_t escdf_group_dataset_read_at(const escdf_group_t *group, const escdf_dataset_t *data, 
+
+
+escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void *buf)
 {
+    escdf_errno_t err;
+    assert(data != NULL);
+
+    
+
+    err = escdf_dataset_read(data, start, count, stride, buf);
+    return err;
+    
 
 }
-
-*/
 

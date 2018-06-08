@@ -96,7 +96,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
 
 /**
- * Access dimensions of a dataset
+ * @brief Access dimensions of a dataset
  */
 
 unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data);
@@ -105,12 +105,24 @@ const hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
 
 
 bool escdf_dataset_is_disordered_storage_allowed(const escdf_dataset_t *data);
+
 bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
+
+/**
+ * @brief return whether compact storage is used.
+ * 
+ * @param data 
+ * @return true 
+ * @return false 
+ */
+bool escdf_dataset_is_compact(const escdf_dataset_t *data);
 
 escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered);
 
 /**
- * Get pointer to the dataset holding the reordering table.
+ * @brief Get pointer to the dataset holding the reordering table.
+ * 
+ * @param data
  * 
  * If the table is not set, this will return a NULL pointer.
  */
@@ -118,7 +130,7 @@ escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered);
 int * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
 
 /**
- * Set pointer to the dataset holding the reordering table.
+ * @brief Set pointer to the dataset holding the reordering table.
  * 
  * This will also set is_ordered to false.
  */
@@ -130,7 +142,13 @@ hid_t escdf_dataset_get_dtset_id(escdf_dataset_t *data);
 
 const char * escdf_dataset_get_name(const escdf_dataset_t *data);
 
-void escdf_dataset_free(escdf_dataset_t *attr);
+/**
+ * @brief Free the memory of the dataset
+ * 
+ * @param data 
+ */
+
+void escdf_dataset_free(escdf_dataset_t *data);
 
 
 /**
@@ -151,8 +169,28 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf);
 escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf);
 
 
+/**
+ * @brief read from dataset *data
+ * 
+ * @param data 
+ * @param start 
+ * @param count 
+ * @param stride 
+ * @param buf 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
 
+/**
+ * @brief write to dataset *data
+ * 
+ * @param data 
+ * @param start 
+ * @param count 
+ * @param stride 
+ * @param buf 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
 
 escdf_errno_t escdf_dataset_print(escdf_dataset_t *data);
