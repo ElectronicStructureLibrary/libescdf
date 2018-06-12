@@ -283,7 +283,7 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hs
  * @param buf 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
+escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
 
 /**
  * @brief dump basic data to screen 

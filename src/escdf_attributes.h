@@ -74,7 +74,7 @@ void escdf_attribute_free(escdf_attribute_t *attr);
 
 size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
 
-const unsigned int * escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
+hsize_t *escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
 
 escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, const void *buf);
 
@@ -89,6 +89,14 @@ escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr);
 bool escdf_attribute_is_set(const escdf_attribute_t *attr);
 
 int escdf_attribute_get_specs_id(const escdf_attribute_t *attr);
+
+/**
+ * @brief get the attribute name
+ * 
+ * @param[in] attr 
+ * @return const char* 
+ */
+const char * escdf_attribute_get_name(const escdf_attribute_t *data);
 
 
 #ifdef __cplusplus

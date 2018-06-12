@@ -105,6 +105,11 @@ int escdf_attribute_specs_get_id(const escdf_attribute_specs_t *specs)
     return specs->id;
 }
 
+const char * escdf_attribute_get_name(const escdf_attribute_t *attr)
+{
+    assert(attr!=NULL);
+    return attr->specs->name;
+}
 
 bool escdf_attribute_is_present(const escdf_attribute_t *attr, hid_t loc_id)
 {
@@ -276,7 +281,7 @@ int escdf_attribute_get_specs_id(const escdf_attribute_t *attr)
     return attr->specs->id;
 }
 
-const unsigned int * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
+hsize_t * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
 
     assert( attr != NULL );
 

@@ -874,7 +874,7 @@ escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void*
 
 
 escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data, 
-                                            const hid_t *start, const hid_t *count, const hid_t * stride, void* buf)
+                                            hsize_t *start, hsize_t *count, hsize_t * stride, void* buf)
 {
     escdf_errno_t err;
     assert(data != NULL);
@@ -891,7 +891,7 @@ escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data,
 
 
 escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data, 
-                                            const hid_t *start, const hid_t *count, const hid_t * stride, void *buf)
+                                            hsize_t *start, hsize_t *count, hsize_t * stride, void *buf)
 {
     escdf_errno_t err;
     assert(data != NULL);

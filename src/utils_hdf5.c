@@ -662,8 +662,6 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void
 
     hsize_t ndims, *dims, *maxdims, i;
 
-    printf("utils_hdf5_write_dataset: trying to write %d elements at %d.\n", count[0], start[0]);
-
     err = utils_hdf5_select_slice(dtset_id, &diskspace_id, &memspace_id,
                                   start, count, stride);
     FULFILL_OR_RETURN(err == ESCDF_SUCCESS, err);
@@ -681,11 +679,13 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void
 
     ndims = H5Sget_simple_extent_dims(diskspace_id, dims, maxdims);
 
+    /*
     printf("utils_hdf5_write_dataset: diskspace ndims = %d.\n", ndims);
     for(i=0; i<ndims; i++) {
         printf("utils_hdf5_write_dataset: diskspace dims[%d] = %d.\n", i, dims[i]);
     }
-
+    */
+   
     free(dims);
     free(maxdims);
 

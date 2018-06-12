@@ -391,9 +391,20 @@ escdf_errno_t utils_hdf5_close_dataset(hid_t dtset_id);
 escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id, hid_t *diskspace_id, hid_t *memspace_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride);
 
 
-
+/**
+ * @brief return the HDF5 memory data type for a given ESCDF datatype
+ * 
+ * @param[in] datatype: ESCDF datatype 
+ * @return hid_t HDF5 datatype
+ */
 hid_t utils_hdf5_mem_type(int datatype);
 
+/**
+ * @brief return the HDF5 disk data type for a given ESCDF datatype
+ * 
+ * @param[in] datatype: ESCDF datatype 
+ * @return hid_t HDF5 datatype
+ */
 hid_t utils_hdf5_disk_type(int datatype);
 
 
