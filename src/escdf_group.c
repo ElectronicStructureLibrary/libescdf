@@ -81,19 +81,25 @@ escdf_group_id _escdf_get_group_id(const char* name)
 }
 
 
+/**
+ * @brief escdf_group data structure
+ * 
+ * This struct contains the private data of a group
+ * 
+ */
 struct escdf_group {
     const escdf_handle_t *escdf_handle;
 
-    const escdf_group_specs_t *specs;
+    const escdf_group_specs_t *specs;  /**< Pointer to the group specification */
 
-    char * name;
+    char * name;                       /**< Group name */
 
-    hid_t loc_id; /**< Handle for HDF5 group */
+    hid_t loc_id;                      /**< Handle for HDF5 group */
 
-    escdf_attribute_t **attr;
-    escdf_dataset_t   **datasets;
+    escdf_attribute_t **attr;          /**< List of attributes */
+    escdf_dataset_t   **datasets;      /**< List of datasets */
 
-    bool *datasets_present;
+    bool *datasets_present;            /**< Flag whether datasets are present */
 };
 
 /************************************************************

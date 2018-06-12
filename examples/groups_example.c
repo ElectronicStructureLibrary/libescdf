@@ -137,11 +137,6 @@ int main() {
     error = escdf_group_attribute_set(group_system, "number_of_sites", &num_sites);
     printf("setting 'number_of_sites' results in error = %d \n", error);
 
-    /*
-    error = escdf_group_attribute_set(group_system, "number_of_jokes", &num_species);
-    printf("setting 'number_of_jokes' results in error = %d \n", error);
-    */
-
     error = escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site);
     printf("setting 'number_of_species_at_site' results in error = %d \n", error);
 
@@ -166,10 +161,6 @@ int main() {
 
     escdf_group_dataset_write_simple(dataset_species_names, names);
     escdf_group_dataset_write_simple(dataset_site_pos, coords);
-
-    /*
-    escdf_group_dataset_write_simple(dataset_species_at_site, species_at_site[0]);
-    */
 
 
 

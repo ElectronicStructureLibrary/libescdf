@@ -38,22 +38,31 @@ struct escdf_dataset {
 
     /* bool is_set; */
     bool is_ordered;
+
     bool ordered_flag_set;
 
     bool transfer_on_disk;
+
+
+    /**
+     * @brief effictive nummber of dimensions
+     * 
+     * This can differ from specs->ndims in case of compact storage or sparse datasets,
+     * where the usual value is 1.
+     */
+    hsize_t ndims_effective;
+
 
     /**
      * @brief Dimensions: array holding the number of elements in each dimension.
      * 
      */
-
     hsize_t *dims;
 
 
     /**
      * @brief dims_attr is an array of pointers to the attributes defining the dimensions of the dataset
      */
-
     escdf_attribute_t **dims_attr;
 
 
@@ -61,13 +70,14 @@ struct escdf_dataset {
     /* In case of irregular arrays (only two-dimensional allowed) the data is stored
      * as one dimensional array, and we need the additional index array to map to the array.
      * 
-     * Whether or not this compact storage is used, is determined by specs->compact.
+     * Whether or not this compact storage is used, is determined by compact.
      */
-
     hsize_t *index_array; /* only used for compact storage */
 
-    /* int *reordering_table; */
-
+    /**
+     * @brief re-ordering table
+     * 
+     */
     escdf_datatransfer_t *transfer;
     
     hid_t type_id;
@@ -83,18 +93,18 @@ size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs)
     assert(specs != NULL);
 
     switch (specs->datatype) {
-        case ESCDF_DT_BOOL:
-            return sizeof(bool);
-        case ESCDF_DT_UINT:
-            return sizeof(unsigned int);
-        case ESCDF_DT_INT:
-            return sizeof(int);
-        case ESCDF_DT_DOUBLE:
-            return sizeof(double);
-        case ESCDF_DT_STRING:
-            return specs->stringlength * sizeof(char);
-        default:
-            return 0;
+    case ESCDF_DT_BOOL:
+        return sizeof(bool);
+    case ESCDF_DT_UINT:
+        return sizeof(unsigned int);
+    case ESCDF_DT_INT:
+        return sizeof(int);
+    case ESCDF_DT_DOUBLE:
+        return sizeof(double);
+    case ESCDF_DT_STRING:
+        return specs->stringlength * sizeof(char);
+    default:
+        return 0;
     }
 }
 
@@ -140,14 +150,6 @@ hid_t escdf_dataset_specs_hdf5_mem_type(const escdf_dataset_specs_t *specs)
 }
 */
 
-/**
- * @brief Check whether specifications are present
- * 
- * @param[in] specs 
- * @param[in] loc_id 
- * @return true 
- * @return false 
- */
 bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id)
 {
     assert(specs != NULL);
@@ -155,12 +157,6 @@ bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t lo
     return utils_hdf5_check_present(loc_id, specs->name);
 }
 
-/**
- * @brief get number of dimensions (rank)
- * 
- * @param[in] data 
- * @return unsigned int 
- */
 unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data)
 {
     assert(data != NULL);
@@ -169,12 +165,6 @@ unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data)
 }
 
 
-/**
- * @brief get dimensions (array)
- * 
- * @param[in] data 
- * @return const hsize_t* 
- */
 const hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
 {
     /* this routine assumes regular dimensions of the dataset */
@@ -188,21 +178,21 @@ const hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
 
 bool escdf_dataset_is_disordered_storage_allowed(const escdf_dataset_t *data)
 {
-    assert( data != NULL );
+    assert(data != NULL);
 
     return data->specs->disordered_storage_allowed;
 }
 
 bool escdf_dataset_is_ordered(const escdf_dataset_t *data)
 {
-    assert( data != NULL );
+    assert(data != NULL);
 
     return data->is_ordered;
 }
 
 bool escdf_dataset_is_compact(const escdf_dataset_t *data) {
 
-    assert( data != NULL );
+    assert(data != NULL);
 
     return data->specs->compact;
 }
@@ -221,7 +211,7 @@ escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered)
 
 escdf_datatransfer_t * escdf_dataset_get_datatransfer(const escdf_dataset_t * data)
 {
-    assert( data != NULL );
+    assert(data != NULL);
 
     return data->transfer;
 }
@@ -243,13 +233,6 @@ escdf_errno_t escdf_dataset_set_datatransfer(escdf_dataset_t *data, escdf_datatr
 }
 
 
-/**
- * @brief Create a new dataset, based on specification specs and dimensions defind in the arreibutes attr_dims
- * 
- * @param specs [in]: Specifications for the dataset 
- * @param attr_dims [in]: Attributes defining the dimensions
- * @return escdf_dataset_t* : Pointer to newly created dataset
- */
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims)
 {
     escdf_dataset_t *data = NULL;
@@ -258,7 +241,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     unsigned int dims0;
     hsize_t *dims;
     int  *dims1;
-    hsize_t ndims;
+    hsize_t ndims_effective;
     hsize_t len;
 
  
@@ -270,7 +253,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     printf("escdf_dataset_new: name = %s\n",specs->name); fflush(stdout); 
 
 
-    ndims = specs->ndims; 
+    /* ndims = specs->ndims; */ 
 
     /* Allocate memory */ 
     data = (escdf_dataset_t *) malloc(sizeof(escdf_dataset_t));
@@ -286,7 +269,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     if (specs->compact) {
         /* printf("escdf_dataset_new: name = %s, compact flag set. \n",specs->name); fflush(stdout); */
 
-        if (ndims != 2) { 
+        if (specs->ndims != 2) { 
             /* printf("escdf_dataset_new: name = %s, compact flag set for ndims /= 2. Return NULL!\n",specs->name); fflush(stdout); */
             REGISTER_ERROR(ESCDF_ERROR_DIM); 
 
@@ -310,19 +293,18 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
             printf("escdf_dataset_new: name = %s, sizeof(attr_dims[1]) = %d. \n", specs->name, escdf_attribute_sizeof(attr_dims[1])); fflush(stdout);
             */
 
-            dims =  (hsize_t*) malloc( ndims * sizeof(hsize_t) );
-            dims1 = (int*) malloc( escdf_attribute_sizeof(attr_dims[1]) ); 
+            ndims_effective = 1;
+
+            dims =  (hsize_t*) malloc(ndims_effective * sizeof(hsize_t));
+            dims1 = (int*) malloc(escdf_attribute_sizeof(attr_dims[1])); 
 
             /*
             printf("escdf_dataset_new: name = %s, Second dimension: %s, %d. \n", specs->name, specs->dims_specs[1]->name, specs->dims_specs[1]->ndims); fflush(stdout);
-
             printf("escdf_dataset_new: name = %s, Second dimension: %d, %d. \n", specs->name, escdf_attribute_sizeof(attr_dims[1]), dims0 * escdf_attribute_specs_sizeof(specs->dims_specs[1])); fflush(stdout);
 
             DEFER_FUNC_ERROR(escdf_attribute_get(attr_dims[1], dims1));
 
             */
-
-           
 
             error = escdf_attribute_get(attr_dims[1], dims1);
 
@@ -333,11 +315,10 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
                 printf("escdf_dataset_new: name = %s, dims1[%d] = %d. \n", specs->name, ii, dims1[ii]);
             }
 
-
             printf("escdf_dataset_new: name = %s, before malloc index_array: %d. \n", specs->name, dims0 * sizeof(hsize_t)); fflush(stdout);
             */
 
-            data->index_array = (hsize_t*) malloc( (dims0 * sizeof(hsize_t)) );
+            data->index_array = (hsize_t*) malloc((dims0 * sizeof(hsize_t)));
 
             /* printf("escdf_dataset_new: name = %s, after malloc index_array. \n", specs->name); fflush(stdout); */
 
@@ -346,7 +327,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
                 j += dims1[ii];
             }
             dims[0] = j;
-            dims[1] = 1;
+            /* dims[1] = 0; // was 1! */ 
 
             /* printf("escdf_dataset_new: name = %s, dims set: %d %d \n",specs->name, dims[0], dims[1]); fflush(stdout); */
 
@@ -357,11 +338,13 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
         printf("escdf_dataset_new: created memory for dims for %s\n",specs->name); fflush(stdout); 
         */
 
-        if (ndims > 0) {
-            dims = (hsize_t*) malloc(ndims * sizeof(hsize_t));
+        ndims_effective = specs->ndims;
+
+        if (ndims_effective > 0) {
+            dims = (hsize_t*) malloc(ndims_effective * sizeof(hsize_t));
 
             assert(attr_dims != NULL);
-            for (ii = 0; ii < ndims; ii++) {
+            for (ii = 0; ii < specs->ndims; ii++) {
                 assert(escdf_attribute_is_set(attr_dims[ii]));
                 assert(escdf_attribute_get_specs_id(attr_dims[ii]) == specs->dims_specs[ii]->id);
                 assert(specs->dims_specs[ii]->datatype == ESCDF_DT_UINT);
@@ -381,19 +364,20 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->specs = specs;
 
     /* printf("escdf_dataset_new: will create %d dims for %s\n",ndims, specs->name); fflush(stdout); */
-    data->dims = (hsize_t*) malloc(ndims * sizeof(hsize_t));
+    data->ndims_effective = ndims_effective;
+    data->dims = (hsize_t*) malloc(ndims_effective * sizeof(hsize_t));
     /* printf("escdf_dataset_new: succesfully created %d dims for %s\n",ndims, specs->name); fflush(stdout); */ 
 
     assert(data->dims != NULL);
 
-    for(ii = 0; ii<ndims; ii++) {
+    for(ii = 0; ii<ndims_effective; ii++) {
         data->dims[ii] = dims[ii];  
         /* printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, data->dims[ii]); fflush(stdout); */
     }
     
     free(dims);
 
-    data->dims_attr = (escdf_attribute_t**) malloc( data->specs->ndims * sizeof(escdf_attribute_t*) );
+    data->dims_attr = (escdf_attribute_t**) malloc(data->specs->ndims * sizeof(escdf_attribute_t*));
 
     for(ii=0; ii<data->specs->ndims; ii++) {
         data->dims_attr[ii] = attr_dims[ii];
@@ -430,8 +414,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 {
 
-    int transfer_id;
-    escdf_errno_t err;
+    int transfer_id;         /**< Handle of the data transfer (re-ordering) table */
 
     assert(data != NULL);
 
@@ -441,32 +424,18 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
     */
 
     if(data->dtset_id == ESCDF_UNDEFINED_ID ) {
-
-        err = utils_hdf5_create_dataset(loc_id, data->specs->name, data->type_id, data->dims, data->specs->ndims, &data->dtset_id);
-
-        /* printf("escdf_dataset_create: utils_hdf5_create_dataset returned %d\n", err); */
-
-        SUCCEED_OR_RETURN( err );
+        SUCCEED_OR_RETURN(utils_hdf5_create_dataset(loc_id, data->specs->name, \
+                                        data->type_id, data->dims, data->ndims_effective, &data->dtset_id));
     }
     else {
         RETURN_WITH_ERROR(ESCDF_ERROR);
-
         /* alternatively we could close and reopen the dataset? */
     }
 
-    /* printf("escdf_dataset_create: data->dtset_it =  %d\n", data->dtset_id); */
-
-
-    err = utils_hdf5_write_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &(data->is_ordered));
-
-    /* printf("escdf_dataset_create: utils_hdf5_write_attr_bool returned %d\n", err); */
-
-    SUCCEED_OR_RETURN(err);
+    SUCCEED_OR_RETURN(utils_hdf5_write_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &(data->is_ordered)));
 
 
     /* Flag error if data is not ordered but there is no reordering table */
-
-    /* printf("escdf_dataset_create: is_ordered = %s\n", data->is_ordered?"yes":"no"); */
 
     if( !data->is_ordered || data->transfer!=NULL ) 
         RETURN_WITH_ERROR(ESCDF_ERROR);
@@ -478,7 +447,7 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
     else
         transfer_id = ESCDF_UNDEFINED_ID;
 
-    SUCCEED_OR_RETURN( utils_hdf5_write_attr(data->dtset_id, "transfer", H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_INT, &transfer_id) );
+    SUCCEED_OR_RETURN(utils_hdf5_write_attr(data->dtset_id, "transfer", H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_INT, &transfer_id));
        
     return ESCDF_SUCCESS;
 }
@@ -498,18 +467,11 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 
     if(data->dtset_id == ESCDF_UNDEFINED_ID ) {
 
-        result = utils_hdf5_check_present(loc_id, data->specs->name);
-        /* printf("escdf_dataset_open: check if %s is present: %s.\n", data->specs->name, result?"true":"false" ); */
-    
-        // SUCCEED_OR_RETURN( result==true );
-        /* printf("escdf_dataset_open: %s is present.\n", data->specs->name ); fflush(stdout); */
+        if(utils_hdf5_check_present(loc_id, data->specs->name)==false) RETURN_WITH_ERROR(ESCDF_ERROR);
 
-        err = utils_hdf5_open_dataset(loc_id, data->specs->name, &(dtset_pt));
+        SUCCEED_OR_RETURN(utils_hdf5_open_dataset(loc_id, data->specs->name, &(dtset_pt)));
 
-        /* printf("escdf_dataset_open: open %s returned: %d, %d.\n", data->specs->name, err, dtset_pt ); */
         data->dtset_id = dtset_pt;
-
-        SUCCEED_OR_RETURN( err );
     }
     else {
         /* printf("escdf_dataset_open: %s is is already open with dtset id %d .\n", data->specs->name, data->dtset_id ); */
@@ -520,7 +482,7 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 
     /* printf("escdf_dataset_open: %s attempting to read attribute is_ordered.\n", data->specs->name ); */
  
-    SUCCEED_OR_RETURN( utils_hdf5_read_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &tmp_bool ) );
+    SUCCEED_OR_RETURN(utils_hdf5_read_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &tmp_bool));
 
     /* printf("escdf_dataset_open: %s attribute is_ordered read.\n", data->specs->name ); */
 
@@ -532,7 +494,7 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 
     result = utils_hdf5_check_present_attr(data->dtset_id, "transfer");
 
-    if( result ) {
+    if(result) {
         /* printf("escdf_dataset_open: %s transfer table present.\n", data->specs->name ); */
     }
     else {
@@ -556,7 +518,6 @@ escdf_errno_t escdf_dataset_close(escdf_dataset_t *data)
     if( data->transfer != NULL && data->transfer_on_disk ) {
         /* TODO: need to write transfer table */
     }
-
 
     /* close dataset on disk */
     
@@ -587,11 +548,10 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hs
     char *tmpc;
 
     bool compact;
-    hsize_t start_compact[2];
-    hsize_t count_compact[2];
-    hsize_t stride_compact[2];
+    hsize_t start_compact[1];
+    hsize_t count_compact[1];
+    hsize_t stride_compact[1];
     hsize_t *start_ptr, *count_ptr, *stride_ptr;
-
 
     assert(data != NULL);
     assert(buf != NULL);
@@ -603,17 +563,14 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hs
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
-
-    /* printf("escdf_dataset_read_simple: attempting to read from %s.\n", data->specs->name); fflush(stdout); */
-
     /* check whether we need to re-order on read */
 
     /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
 
     if(!data->is_ordered) {
-        /* printf("escdf_dataset_read_simple: %s is not stored in normal order.\n", data->specs->name); fflush(stdout); */
+        printf("escdf_dataset_read_simple: %s is not stored in normal order.\n", data->specs->name); 
+        fflush(stdout);
         if(data->transfer == NULL) RETURN_WITH_ERROR(ESCDF_ERROR);
-
     }
 
     compact = escdf_dataset_is_compact(data);
@@ -622,15 +579,9 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hs
 
     if(compact)  {
 
-
         start_compact[0] = data->index_array[start[0]];
-        start_compact[1] = 0;
-
-        count_compact[0] = count[1];
-        count_compact[1] = 1;
-
+        count_compact[0] = count[1];    
         stride_compact[0] = 1;
-        stride_compact[1] = 1;
 
         start_ptr = start_compact;
         count_ptr = count_compact;
@@ -644,7 +595,6 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hs
         stride_ptr = stride;
 
     }
-
 
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
 
@@ -708,13 +658,11 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
         count[i] = data->dims[i];
         stride[i] = 1;
     }
-   
     
     utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
 
     return ESCDF_SUCCESS;
 }
-
 
 
 
@@ -757,8 +705,6 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
 
     if(data->specs->compact) {
 
-        
-
         printf("escdf_dataset_write_simple: unsupported for compact storage.\n");
 
         /* The question here is what data structure we expect in *buf? */
@@ -770,7 +716,6 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
 
     } 
     else {
-
     
 	    for(i=0; i<data->specs->ndims; i++) {
     	    start[i] = 0;
@@ -778,11 +723,9 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
     	    stride[i] = 1;
     	}
 
-
     	/* printf("escdf_datasets_write_simple: data-type = %d\n",data->specs->datatype ); */
 
     	mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
-
 
     	if(mem_type_id == H5T_C_S1) {
     	    /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */
@@ -796,8 +739,6 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
         
     }
 
-
-
     return ESCDF_SUCCESS;
 }
 
@@ -810,18 +751,15 @@ escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t
     unsigned int i, len=1;
     hid_t type_id;
     hid_t *attr_ptr;
-
     hid_t mem_type_id;
 
     bool compact;
-    hsize_t start_compact[2];
-    hsize_t count_compact[2];
-    hsize_t stride_compact[2];
+    hsize_t start_compact[1];
+    hsize_t count_compact[1];
+    hsize_t stride_compact[1];
     hsize_t *start_ptr, *count_ptr, *stride_ptr;
 
     assert(data != NULL);
-
-    /* check that the dataset in the file is open */
 
     if(data->dtset_id == ESCDF_UNDEFINED_ID) {
         printf("dataset not opened.");
@@ -835,21 +773,13 @@ escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t
 
     compact = escdf_dataset_is_compact(data);
 
-    
-
     /* we need to re-shape the data in case of comact storage */
 
     if(compact)  {
 
-
         start_compact[0] = data->index_array[start[0]];
-        start_compact[1] = 0;
-
         count_compact[0] = count[1];
-        count_compact[1] = 1;
-
         stride_compact[0] = 1;
-        stride_compact[1] = 1;
 
         start_ptr = start_compact;
         count_ptr = count_compact;
@@ -864,13 +794,9 @@ escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t
 
     }
 
-    /* printf("escdf_datasets_write_simple: data-type = %d\n",data->specs->datatype ); */
-
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
 
-
     if(mem_type_id == H5T_C_S1) {
-        /* printf("escdf_datasets_write_simple: resizing string to = %d\n",data->specs->stringlength ); */
 
         mem_type_id = H5Tcopy(H5T_C_S1);
         H5Tset_size(mem_type_id, data->specs->stringlength);
@@ -878,9 +804,7 @@ escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t
 
     }
 
-
     err = utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start_ptr, count_ptr, stride_ptr);
-
 
     return ESCDF_SUCCESS;
 }
@@ -907,28 +831,25 @@ size_t escdf_dataset_sizeof(const escdf_dataset_t* data)
 }
 
 
-hid_t escdf_dataset_get_id(escdf_dataset_t *data)
+hid_t escdf_dataset_get_id(const escdf_dataset_t *data)
 {
     assert(data!=NULL);
-
     return data->specs->id;
 }
 
-hid_t escdf_dataset_get_dtset_id(escdf_dataset_t *data)
+hid_t escdf_dataset_get_dtset_id(const escdf_dataset_t *data)
 {
     assert(data!=NULL);
-
     return data->dtset_id;
 }
 
 const char * escdf_dataset_get_name(const escdf_dataset_t *data)
 {
     assert(data!=NULL);
-
     return data->specs->name;
 }
 
-escdf_errno_t escdf_dataset_print(escdf_dataset_t *data)
+escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data)
 {
     unsigned int i, j;
     escdf_errno_t error;
@@ -975,14 +896,6 @@ escdf_errno_t escdf_dataset_print(escdf_dataset_t *data)
                 break;
             }
 
-            /*
-            if (data->is_set)
-                strcpy(isSet,"True");
-            else
-                strcpy(isSet,"False");
-            */
-      
-
             printf("Dataset dump for: %s with ID = %i \n", data->specs->name, data->specs->id);
             printf("  Data type = %s (%i) \n", datatype_name, data->specs->datatype );
 
@@ -1010,7 +923,7 @@ escdf_errno_t escdf_dataset_print(escdf_dataset_t *data)
                 if(dims_from_specs) {
                     for(j=0; j<dims_from_specs[0]; j++) {
 
-                        printf(" %i, ", dims[j] );
+                        printf(" %i, ", dims[j]);
                     }
                 }    
 
@@ -1018,14 +931,11 @@ escdf_errno_t escdf_dataset_print(escdf_dataset_t *data)
                 printf("\n");
             }
 
-            
             printf("  Number of Dimensions = %i \n", data->specs->ndims );
             for(i = 0; i < data->specs->ndims; i++) {
 	            printf("  Dimensions (%i) = %i \n", i, (int) data->dims[i] );
 
             }
-            
-
             
             if(data->specs->compact) {
 
@@ -1034,15 +944,10 @@ escdf_errno_t escdf_dataset_print(escdf_dataset_t *data)
                     assert(data->index_array);
 
                     for(i=0; i<dims_from_specs[0]; i++) {
-
                         printf("index[%i] = %i \n", i, data->index_array[i]);
                     }
-
-
-
             }
             
-            /* Get dimentions */
 
             printf("\n");
             fflush(stdout);

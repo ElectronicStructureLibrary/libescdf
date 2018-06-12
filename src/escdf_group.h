@@ -36,15 +36,21 @@ extern "C" {
  * Data structures                                                            *
  ******************************************************************************/
 
+/**
+ * @brief Group specifications:
+ * 
+ * This struct contains the public information about the group.
+ * 
+ */
 struct escdf_group_specs {
-    int group_id;
-    const char * root;
+    int group_id;                                  /**< ESCDF group ID */
+    const char * root;                             /**< Root location of the group */
 
-    unsigned int nattributes;
-    const escdf_attribute_specs_t **attr_specs;
+    unsigned int nattributes;                      /**< Number of attributes in the group */
+    const escdf_attribute_specs_t **attr_specs;    /**< List of attribute specifications */
 
-    unsigned int ndatasets;
-    const escdf_dataset_specs_t **data_specs;
+    unsigned int ndatasets;                        /**< Number of datasets in the group */
+    const escdf_dataset_specs_t **data_specs;      /**< List of dataset specifications */
 };
 
 typedef struct escdf_group_specs escdf_group_specs_t;
@@ -53,7 +59,15 @@ typedef struct escdf_group escdf_group_t;
 
 typedef int escdf_group_id;
 
+/**
+ * @brief register the group specifications
+ * 
+ * @param[in] specs 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
+
+
 /* void escdf_register_all_group_specs(); */
 
 
@@ -67,6 +81,7 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
  * allocating the corresponding memory. It also initializes all its contents to
  * the default values.
  *
+ * @param[in] group_id
  * @return instance of the group.
  */
 escdf_group_t * escdf_group_new(escdf_group_id group_id);
@@ -182,8 +197,23 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group);
  */
 bool escdf_group_query_attribute(const escdf_group_t *group, const char *name); /* unused */
 
+/**
+ * @brief get pointer to attribute_specs from name
+ * 
+ * @param group 
+ * @param[in] name 
+ * @return const escdf_attribute_specs_t* 
+ */
 const escdf_attribute_specs_t * escdf_group_get_attribute_specs(escdf_group_t *group, const char *name);
 
+
+/**
+ * @brief get pointer to dataset_specs from name
+ * 
+ * @param group 
+ * @param[in] name 
+ * @return const escdf_dataset_specs_t* 
+ */
 const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group, const char *name);
 
 
@@ -202,7 +232,7 @@ const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group
  * @param[in] group: pointer to the group in which to look for the attribute
  * @param[in] attribute_name: attribute name
  * @param[in] buf: data to be written
- * @return: error number
+ * @return error code
  */
 escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attribute_name, void* buf);
 
@@ -212,7 +242,7 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attrib
  * @param[in] group: pointer to the group in which to look for the attribute
  * @param[in] attribute_nam: attribute name
  * @param[in] buf: data to be written
- * @return: error number
+ * @return error code
  */
 escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attribute_name, void* buf);
 
@@ -227,25 +257,78 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
  * High level routines for accessing datasets in a group    *
  ************************************************************/
 
+
+/**
+ * @brief Create new dataset in a group
+ * 
+ * @param group 
+ * @param[in] name 
+ * @return escdf_dataset_t* 
+ */
 escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *name);
 
+/**
+ * @brief Open dataset in a group
+ * 
+ * @param group 
+ * @param[in] name 
+ * @return escdf_dataset_t* 
+ */
 escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name);
  
+/**
+ * @brief Close dataset in a group
+ * 
+ * @param group 
+ * @param[in] name 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name);
 
 
 
-
+/**
+ * @brief write complete dataset
+ * 
+ * @param data 
+ * @param buf 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf);
 
+/**
+ * @brief read complete dataset
+ * 
+ * @param[in] data 
+ * @param buf 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void *buf);
 
-
+/**
+ * @brief Write a section of a dataset
+ * 
+ * @param data: pointer to dataset being written to 
+ * @param[in] start: 
+ * @param[in] count:
+ * @param[in] stride: 
+ * @param[in] buf: 
+ * @return escdf_errno_t: return 0 on success. 
+ */
 escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void* buf);
 
 
-
+/**
+ * @brief Read a section of a dataset
+ * 
+ * @param[in] data: pointer to dataset being written to 
+ * @param[in] start: 
+ * @param[in] count:
+ * @param[in] stride: 
+ * @param[out] buf: 
+ * @return escdf_errno_t: return 0 on success. 
+ */
 escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data, 
                                             const hid_t *start, const hid_t *count, const hid_t * stride, void *buf);
 

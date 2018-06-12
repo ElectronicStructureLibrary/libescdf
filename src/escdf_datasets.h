@@ -40,19 +40,31 @@ struct escdf_dataset_specs {
     int datatype;
 
     unsigned int stringlength;
+
+    /**
+     * @brief Number of dimensions
+     * 
+     * ndims refers to the logical number of dimensions, and defines the necessary number
+     * of dims_specs attributes (see below).
+     * 
+     * Note that the number of dimensions of the physical dataset in the file might differ,
+     * e.g. in case of compact storage or for sparse datasets.
+     */
     unsigned int ndims;
 
     bool disordered_storage_allowed;
 
-    /* If the specifications indicate a non-regular shape for a dataset,
+    /**
+     * @brief Flag whether compact storage is used:
+     * 
      * e.g. species_at_site, we will store it as an effective one-dimensional array.
      *
      * This is currently allowed only for irregular 2D arrays.
      * 
-     * The bool 'compact' indicates whether a dataset is stored that way.
      */
 
     bool compact;
+
 
     const escdf_attribute_specs_t **dims_specs;
 
@@ -65,6 +77,14 @@ struct escdf_dataset_specs {
     
 };
 
+/**
+ * @brief Check whether specifications are present
+ * 
+ * @param[in] specs 
+ * @param[in] loc_id 
+ * @return true 
+ * @return false 
+ */
 
 bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id);
 
@@ -87,59 +107,111 @@ hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs) {};
 typedef struct escdf_dataset escdf_dataset_t;
 
 /**
- * Create a new dataset:
+ * @brief Create a new dataset, based on specification specs and dimensions defind in the arreibutes attr_dims
  * 
- * This routine only creates the structure in memory and sets the dimensions. It does not create the dataset in the file
+ * @param specs [in]: Specifications for the dataset 
+ * @param attr_dims [in]: Attributes defining the dimensions
+ * @return escdf_dataset_t* : Pointer to newly created dataset
  */
-
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims);
 
 
 /**
- * @brief Access dimensions of a dataset
+ * @brief get number of dimensions (rank)
+ * 
+ * @param[in] data 
+ * @return unsigned int 
  */
-
 unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data);
 
+/**
+ * @brief get dimensions (array)
+ * 
+ * @param[in] data 
+ * @return const hsize_t* 
+ */
 const hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
 
 
+/**
+ * @brief query whether disordered storage is allowed
+ * 
+ * @param[in] data 
+ * @return true 
+ * @return false 
+ */
 bool escdf_dataset_is_disordered_storage_allowed(const escdf_dataset_t *data);
 
+/**
+ * @brief query whether data is stored in order
+ * 
+ * @param[in] data 
+ * @return true 
+ * @return false 
+ */
 bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
 
 /**
  * @brief return whether compact storage is used.
  * 
- * @param data 
+ * @param[in] data 
  * @return true 
  * @return false 
  */
 bool escdf_dataset_is_compact(const escdf_dataset_t *data);
 
+
+/**
+ * @brief set ordered flag
+ * 
+ * @param[inout] data 
+ * @param[in] ordered 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered);
 
 /**
  * @brief Get pointer to the dataset holding the reordering table.
  * 
- * @param data
+ * @param[in] data
  * 
  * If the table is not set, this will return a NULL pointer.
  */
-
 int * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
+
 
 /**
  * @brief Set pointer to the dataset holding the reordering table.
  * 
+ * @param[inout] data
+ * @param[in] table: pointer to the reordering table
  * This will also set is_ordered to false.
  */
-
 escdf_errno_t escdf_dataset_set_reordering_table(escdf_dataset_t *data, int *table);
 
-hid_t escdf_dataset_get_id(escdf_dataset_t *data);
-hid_t escdf_dataset_get_dtset_id(escdf_dataset_t *data);
+/**
+ * @brief get the dataset ID 
+ * 
+ * @param[in] data 
+ * @return hid_t 
+ */
+hid_t escdf_dataset_get_id(const escdf_dataset_t *data);
 
+/**
+ * @brief get the HDF5 dtset_id connected to the dataset
+ * 
+ * @param[in] data 
+ * @return hid_t 
+ */
+hid_t escdf_dataset_get_dtset_id(const escdf_dataset_t *data);
+
+
+/**
+ * @brief get the dataset name
+ * 
+ * @param[in] data 
+ * @return const char* 
+ */
 const char * escdf_dataset_get_name(const escdf_dataset_t *data);
 
 /**
@@ -147,7 +219,6 @@ const char * escdf_dataset_get_name(const escdf_dataset_t *data);
  * 
  * @param data 
  */
-
 void escdf_dataset_free(escdf_dataset_t *data);
 
 
@@ -157,10 +228,31 @@ void escdf_dataset_free(escdf_dataset_t *data);
  * This routine creates the dataset in the file and also writes the reordering table if necessary.
  */
 
+
+/**
+ * @brief create a dataset
+ * 
+ * @param data 
+ * @param loc_id 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id);
 
+/**
+ * @brief open a dataset
+ * 
+ * @param data 
+ * @param loc_id 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id);
 
+/**
+ * @brief close a dataset
+ * 
+ * @param data 
+ * @return escdf_errno_t 
+ */
 escdf_errno_t escdf_dataset_close(escdf_dataset_t *data);
 
 
@@ -193,7 +285,13 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hs
  */
 escdf_errno_t escdf_dataset_write(escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf);
 
-escdf_errno_t escdf_dataset_print(escdf_dataset_t *data);
+/**
+ * @brief dump basic data to screen 
+ * 
+ * @param[in] data 
+ * @return escdf_errno_t 
+ */
+escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data);
 
 
 #ifdef __cplusplus

@@ -64,7 +64,8 @@ escdf_core_hdrs = \
 # Internal C headers - keep this in alphabetical order
 escdf_hidden_hdrs = \
   utils.h \
-  utils_hdf5.h
+  utils_hdf5.h \
+  escdf_lookuptable.h
 
                     # ------------------------------------ #
 

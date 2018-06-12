@@ -73,6 +73,7 @@ void group_file_setup(const char *file, const char *path)
     file_id = H5Fcreate(file, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     file_root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
     group_root_id = H5Gcreate(file_root_id, group_specs.root, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
     if (path == NULL) {
         group_path_id = H5Gopen(group_root_id, ".", H5P_DEFAULT);
     } else {
