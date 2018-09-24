@@ -33,7 +33,9 @@ extern "C" {
 
 typedef struct escdf_dataset_specs escdf_dataset_specs_t;
 
-
+/**
+ * @brief definition of the escdf dataset specifications
+ */
 struct escdf_dataset_specs {
     int id;
     char * name;
@@ -52,6 +54,10 @@ struct escdf_dataset_specs {
      */
     unsigned int ndims;
 
+    /**
+     * @brief Flag whether disordered storage is used:
+     * 
+     */
     bool disordered_storage_allowed;
 
     /**
@@ -62,7 +68,6 @@ struct escdf_dataset_specs {
      * This is currently allowed only for irregular 2D arrays.
      * 
      */
-
     bool compact;
 
 
@@ -107,7 +112,7 @@ hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs) {};
 typedef struct escdf_dataset escdf_dataset_t;
 
 /**
- * @brief Create a new dataset, based on specification specs and dimensions defind in the arreibutes attr_dims
+ * @brief Create a new dataset, based on specification specs and dimensions defind in the attributes attr_dims
  * 
  * @param specs [in]: Specifications for the dataset 
  * @param attr_dims [in]: Attributes defining the dimensions

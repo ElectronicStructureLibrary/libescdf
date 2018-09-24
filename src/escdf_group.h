@@ -77,6 +77,8 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
  ******************************************************************************/
 
 /**
+ * @brief Create new group
+ * 
  * This function takes care of creating an instance of escdf_group_t by
  * allocating the corresponding memory. It also initializes all its contents to
  * the default values.
@@ -87,13 +89,15 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
 escdf_group_t * escdf_group_new(escdf_group_id group_id);
 
 /**
- * Free all memory associated with the group.
+ * @brief Free all memory associated with the group.
  *
  * @param[in,out] group: the group.
  */
 void escdf_group_free(escdf_group_t *group);
 
 /**
+ * brief Open group location
+ * 
  * Opens a location where to access the group data. If a name is given, the
  * location path will be 'group_root/name', where 'group_root' is defined in
  * the group specifications. If name is NULL, the location path is simply
@@ -107,6 +111,8 @@ void escdf_group_free(escdf_group_t *group);
 escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle_t *handle, const char *name);
 
 /**
+ * @brief Create new location
+ * 
  * Creates a new location to store the group data. If a name is given, the
  * location path will be 'group_root/name', where 'group_root' is defined in
  * the group specifications. If name is NULL, the location path is simply
@@ -121,7 +127,7 @@ escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle
 escdf_errno_t escdf_group_create_location(escdf_group_t *group, const escdf_handle_t *handle, const char *name);
 
 /**
- * Closes the location associated with the group.
+ * @brief Closes the location associated with the group.
  *
  * @param[in,out] group: the group.
  * @return Error code.
@@ -134,6 +140,8 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group);
  ******************************************************************************/
 
 /**
+ * @brief Open a group
+ * 
  * This function takes care of the following tasks:
  * - call escdf_group_new to create an instance of the structure.
  * - call escdf_group_open_location. Note that this function will return an
@@ -150,6 +158,8 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group);
 escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char *group_name, const char *instance_name);
 
 /**
+ * @brief Create a group
+ * 
  * This function performs the following tasks:
  * - call escdf_group_new to create an instance of the structure.
  * - call escdf_group_create_group.
@@ -165,6 +175,8 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char *group
 escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *group_name, const char *instance_name);
 
 /**
+ * @brief Close a group
+ * 
  * This function performs the following tasks:
  * - call escdf_group_close_group to close the group.
  * - call escdf_group_free to free all memory.
@@ -180,6 +192,8 @@ escdf_errno_t escdf_group_close(escdf_group_t *group);
  ******************************************************************************/
 
 /**
+ * @brief Read group attributes
+ * 
  * This routine reads all the metadata stored in the group, and stores
  * the information in the group data type.
  *
@@ -189,6 +203,8 @@ escdf_errno_t escdf_group_close(escdf_group_t *group);
 escdf_errno_t escdf_group_read_attributes(escdf_group_t *group);
 
 /**
+ * @brief Query group attributes
+ * 
  * This routine queries whether a named attribute is present in the group.
  *
  * @param[in] group: pointer to the instance of the group group.
@@ -224,7 +240,8 @@ const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group
 
 
 /**
- * This routine sets the value of an attribute by IDs.
+ * @brief This routine sets the value of an attribute by name.
+ * 
  * This routine stores the value in the data structure, and writes it to disk.
  *
  * If the attribute does not exist, it the routine will create it.
@@ -237,7 +254,7 @@ const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group
 escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attribute_name, void* buf);
 
 /**
- * This routine sets the value of an attribute by name.
+ * @brief This routine gets the value of an attribute by name.
  *
  * @param[in] group: pointer to the group in which to look for the attribute
  * @param[in] attribute_nam: attribute name
@@ -249,6 +266,7 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attrib
 /************************************************************
  * Low level routines for accessing datasets in a group     *
  ************************************************************/
+
 
 escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
 

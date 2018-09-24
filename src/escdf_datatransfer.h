@@ -30,7 +30,10 @@ extern "C" {
 #include <stdbool.h>
 
 
-
+/**
+ * @brief the escdf_datatransfer_t type will contain the information on how data is written to disk.
+ *        This can include a reordering of data.
+ */
 typedef struct escdf_datatransfer escdf_datatransfer_t;
 
 
