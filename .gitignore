@@ -72,3 +72,6 @@ examples/.libs/groups_example
 src/escdf_attributes_specs.h
 src/escdf_datasets_specs.h
 src/escdf_groups_specs.h
+src/escdf_groups_ID.h
+src/escdf_datasets_ID.h
+src/escdf_attributes_ID.h

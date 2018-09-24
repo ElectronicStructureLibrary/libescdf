@@ -201,7 +201,11 @@
       ]
    },
    { "Name" : "density",
-    "Attributes" : [],
+    "Attributes" : [
+      "number_of_physical_dimensions",
+      "dimension_type",
+      "lattice_vectors"
+    ],
     "Datasets" : []
   }
  ] 
