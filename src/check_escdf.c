@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+/* Copyright (C) 2016-2018 Damien Caliste <dcaliste@free.fr>
  *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
  *                         Yann Pouillon <devops@materialsevolution.es>
  *
@@ -37,8 +37,8 @@ int main(void)
     srunner_add_suite(sr, make_utils_hdf5_suite());
     srunner_add_suite(sr, make_handle_suite());
     srunner_add_suite(sr, make_attributes_suite());
+    srunner_add_suite(sr, make_datasets_suite());
     srunner_add_suite(sr, make_group_suite());
-    /*  srunner_add_suite(sr, make_system_suite()); */
     /*  srunner_add_suite(sr, make_grid_scalarfield_suite()); */
 
     srunner_run_all(sr, CK_VERBOSE);
@@ -46,4 +46,3 @@ int main(void)
     srunner_free(sr);
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
