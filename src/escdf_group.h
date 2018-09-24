@@ -77,7 +77,7 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
  ******************************************************************************/
 
 /**
- * @brief Create new group
+ * @brief Create new group (low level routine)
  * 
  * This function takes care of creating an instance of escdf_group_t by
  * allocating the corresponding memory. It also initializes all its contents to
@@ -89,14 +89,14 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
 escdf_group_t * escdf_group_new(escdf_group_id group_id);
 
 /**
- * @brief Free all memory associated with the group.
+ * @brief Free all memory associated with the group (low level routine)
  *
- * @param[in,out] group: the group.
+ * @param[in,out] group: the group (low level routine)
  */
 void escdf_group_free(escdf_group_t *group);
 
 /**
- * brief Open group location
+ * @brief Open group location (low level routine)
  * 
  * Opens a location where to access the group data. If a name is given, the
  * location path will be 'group_root/name', where 'group_root' is defined in
@@ -111,7 +111,7 @@ void escdf_group_free(escdf_group_t *group);
 escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle_t *handle, const char *name);
 
 /**
- * @brief Create new location
+ * @brief Create new location (low level routine)
  * 
  * Creates a new location to store the group data. If a name is given, the
  * location path will be 'group_root/name', where 'group_root' is defined in
@@ -140,7 +140,7 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group);
  ******************************************************************************/
 
 /**
- * @brief Open a group
+ * @brief Open a group (high level routine)
  * 
  * This function takes care of the following tasks:
  * - call escdf_group_new to create an instance of the structure.
@@ -158,7 +158,7 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group);
 escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char *group_name, const char *instance_name);
 
 /**
- * @brief Create a group
+ * @brief Create a group (high level routine)
  * 
  * This function performs the following tasks:
  * - call escdf_group_new to create an instance of the structure.

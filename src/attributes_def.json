@@ -199,6 +199,10 @@
        "chemical_symbols", 
        "atomic_numbers" 
       ]
-   }
+   },
+   { "Name" : "density",
+    "Attributes" : [],
+    "Datasets" : []
+  }
  ] 
 }

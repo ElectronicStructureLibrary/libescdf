@@ -35,7 +35,9 @@ Suite *make_utils_hdf5_suite(void);
 Suite *make_handle_suite(void);
 Suite *make_attributes_suite(void);
 Suite *make_group_suite(void);
+/*
 Suite *make_system_suite(void);
 Suite *make_grid_scalarfield_suite(void);
+*/
 
 #endif
