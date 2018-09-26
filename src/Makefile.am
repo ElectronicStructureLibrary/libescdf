@@ -112,6 +112,7 @@ check_escdf_SOURCES = \
   check_escdf.h \
   check_escdf.c \
   check_escdf_attributes.c \
+  check_escdf_datasets.c \
   check_escdf_error.c \
   check_escdf_grid_scalarfields.c \
   check_escdf_group.c \
