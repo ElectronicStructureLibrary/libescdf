@@ -36,22 +36,22 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
 {
     htri_t bool_id;
 
-    /* printf("utils_hdf5_check_present: %s\n", name); */
+    printf("utils_hdf5_check_present: %s\n", name); fflush(stdout);
 
     if ((bool_id = H5Lexists(loc_id, name, H5P_DEFAULT)) < 0 || !bool_id) {
-        /* printf("utils_hdf5_check_present: link to %s NOT found\n", name); */
+        printf("utils_hdf5_check_present: link to %s NOT found\n", name); fflush(stdout);
         return false;
     }
     else {
-        /* printf("utils_hdf5_check_present: link to %s found\n", name); */
+        printf("utils_hdf5_check_present: link to %s found\n", name); fflush(stdout);
     }
 
     if ((bool_id = H5Oexists_by_name(loc_id, name, H5P_DEFAULT)) < 0 || !bool_id) {
-        /* printf("utils_hdf5_check_present: object %s NOT found\n", name); */
+        printf("utils_hdf5_check_present: object %s NOT found\n", name); fflush(stdout);
         return false;
     } 
     else {
-        /* printf("utils_hdf5_check_present: object %s found\n", name); */
+        printf("utils_hdf5_check_present: object %s found\n", name); fflush(stdout);
     }
 
 
@@ -551,34 +551,57 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
 {
     int i;
     hid_t dtset_id, dtspace_id;
+    herr_t error;
 
     /* Create space dimensions. */
 
-    /*
-    printf("utils_hdf5_create_datasets: ndims = %d \n ", ndims);
+    
+    printf("utils_hdf5_create_datasets: ndims = %d \n", ndims);
     for(i=0; i<ndims; i++) {
         printf("utils_hdf5_create_datasets: dims[%d]= %d \n", i, (int) dims[i]);
     }
-    */
+    fflush(stdout);
 
+ 
     if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
+        printf("utils_hdf5_create_datasets: H5Screate_simple failed. dtspace_id = %d.\n",dtspace_id);fflush(stdout);
         RETURN_WITH_ERROR(dtspace_id);
     }
+    printf("utils_hdf5_create_datasets: H5Screate_simple successful.\n"); fflush(stdout);
+    
+    printf("utils_hdf5_create_datasets: Attempt H5Dcreate with: \n"); fflush(stdout);
+    printf("  loc_id = %lld,\n  name = %s,\n  type_id = %lld,\n  dtspace_id = %lld. \n", loc_id, name, type_id, dtspace_id); 
+    fflush(stdout);
 
     if ((dtset_id = H5Dcreate(loc_id, name, type_id, dtspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        printf("utils_hdf5_create_datasets: H5Dcreate failed.\n"); fflush(stdout);
         DEFER_FUNC_ERROR(dtset_id);
         goto cleanup_dtspace;
     }
+    printf("utils_hdf5_create_datasets: H5Dcreate sucessful.\n"); fflush(stdout);
 
-    H5Sclose(dtspace_id);
+    error = H5Sclose(dtspace_id);
+    if(error) {
+        printf("utils_hdf5_create_datasets: H5Sclose failed. Returning ESCDF_ERROR.\n"); fflush(stdout);
+        return ESCDF_ERROR;
+    }
+
     if (dtset_pt)
         *dtset_pt = dtset_id;
-    else
-        H5Dclose(dtset_id);
+    else {
+        error = H5Dclose(dtset_id);
+        if(error) {
+            printf("utils_hdf5_create_datasets: H5Dclose failed. Returning ESCDF_ERROR.\n"); fflush(stdout);
+            return ESCDF_ERROR;
+        }
+
+    }
+    printf("utils_hdf5_create_datasets: returning SUCCESS.\n"); fflush(stdout);
     return ESCDF_SUCCESS;
 
     cleanup_dtspace:
     H5Sclose(dtspace_id);
+    printf("utils_hdf5_create_datasets: returning ESCDF_ERROR.\n"); fflush(stdout);
     return ESCDF_ERROR;
 }
 

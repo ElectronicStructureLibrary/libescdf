@@ -357,6 +357,9 @@ escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data,
  * Helper routines for groups                               *
  ************************************************************/
 
+void escdf_group_print_info(const escdf_group_t* group);
+
+
 /**
  * This routine returns the pointer to a group attribute.
  *

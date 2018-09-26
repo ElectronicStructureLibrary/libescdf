@@ -52,10 +52,15 @@ const escdf_group_specs_t group_specs = {
     GROUP_TEST, "test", 1, group_attributes
 };
 
+static escdf_handle_t *escdf_handle;
 static escdf_handle_t *handle_e = NULL, *handle_r = NULL, *handle_p = NULL;
 static escdf_group_t *group = NULL;
 static escdf_group_t *group_system = NULL;
 static escdf_group_t *group_density = NULL;
+
+    
+
+
 
 static double alat[3][3] = {{1.0, 0.0, 0.0},{0.0, 1.0, 0.0},{0.0, 0.0, 1.0}};
 static char*  name="system_name";
@@ -126,19 +131,23 @@ void setters_setup(void)
 {
     group_file_setup(FILE_ROOT, NULL);
     group_file_setup(FILE_PATH, GROUP_NAME);
+
     handle_r = escdf_open(FILE_ROOT, NULL);
     handle_p = escdf_open(FILE_PATH, NULL);
     handle_e = escdf_create(FILE_EMPTY, NULL);
 
+    ck_assert( handle_r != NULL );
+
     escdf_register_all_group_specs();
+
+    ck_assert( handle_r != NULL );
 
     /*
     escdf_group_free(group_system);
     escdf_group_free(group_density);
     */
 
-   
-    ck_assert( handle_r != NULL );
+
 
     /* obsolete API
     group_system  = escdf_group_create(system_specs.group_id, handle_r, "system");
@@ -154,9 +163,9 @@ void setters_setup(void)
 
 void setters_teardown(void)
 {
-  escdf_group_free(group_system);
-  escdf_group_free(group_density);
-  group = NULL;
+    escdf_group_free(group_system);
+    escdf_group_free(group_density);
+    group = NULL;
 
     escdf_close(handle_r);
     escdf_close(handle_p);
@@ -164,9 +173,31 @@ void setters_teardown(void)
     //unlink(FILE_ROOT);
     //unlink(FILE_PATH);
     //unlink(FILE_EMPTY);
+}
+
+void dataset_setup(void) 
+{
+
+    escdf_handle = escdf_create("test.h5", NULL);
+    ck_assert(escdf_handle != NULL);
+
+    escdf_register_all_group_specs();
+
+
+    group_system = escdf_group_create(escdf_handle, "system", NULL);
+    ck_assert(group_system != NULL);
+
+
 
 }
 
+void dataset_teardown(void)
+{
+
+    ck_assert( escdf_group_close(group_system) == ESCDF_SUCCESS );
+
+    ck_assert( escdf_close(escdf_handle) == ESCDF_SUCCESS );
+}
 /******************************************************************************
  * Tests                                                                      *
  ******************************************************************************/
@@ -259,10 +290,13 @@ START_TEST(test_group_attribute_system)
 
   strcpy(name, "test-string");
 
-  printf("start set test:  \n");
+  printf("************************************************************\n");
+  printf("start set test:  \n"); fflush(stdout);
 
   ck_assert( group_system != NULL );
   ck_assert( group_density != NULL );
+
+  escdf_group_print_info(group_system);
 
   ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
   dim = 0;
@@ -289,11 +323,69 @@ START_TEST(test_group_attribute_system)
 END_TEST 
 
 
+START_TEST(test_group_datasets_system)
+{
+    escdf_errno_t error;
+    char  name[80];
+    char  value_string[80];
+
+    unsigned int dim = 3, i, j, num_species = 5;
+    unsigned int num;
+
+    double values[3][3] = {{99.0, 99.0, 99.0},{99.0, 99.0, 99.0},{99.0, 99.0, 99.0}};
+
+    char names[5][80];
+    char read_names[5][80];
+
+    strcpy(names[0], "Copper");
+    strcpy(names[1], "Oxygen");
+    strcpy(names[2], "Oxygen 2");
+    strcpy(names[3], "Nickel");
+    strcpy(names[4], "Empty");
+
+
+
+    strcpy(name, "test-string");
+
+    printf("************************************************************\n");
+    printf("************************************************************\n");
+
+    printf("start dataset test:  \n"); fflush(stdout);
+
+    if( group_system == NULL ) printf("group_system is invalid!! \n"); fflush(stdout);
+    ck_assert( group_system != NULL );
+
+    printf("going to print group info:\n"); fflush(stdout);
+
+    escdf_group_print_info(group_system);
+
+    ck_assert( escdf_group_attribute_set(group_system, "number_of_species", (void*) &num_species) == ESCDF_SUCCESS);
+    num = 0;
+    ck_assert( escdf_group_attribute_get(group_system, "number_of_species", (void*) &num) == ESCDF_SUCCESS);
+    ck_assert( num == num_species );
+
+
+    escdf_dataset_t* dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
+    printf("finished creating dataset species_names.\n"); fflush(stdout);
+    
+    ck_assert( dataset_species_names != NULL);
+    
+
+    ck_assert( escdf_group_dataset_write_simple(dataset_species_names, (void*) &names ) == ESCDF_SUCCESS);
+    printf("finished writing species names.\n"); fflush(stdout);
+
+    ck_assert( escdf_group_dataset_read_simple(dataset_species_names, (void*) &read_names ) == ESCDF_SUCCESS);
+    printf("finished reading species names.\n"); fflush(stdout);
+
+}
+END_TEST 
+
+
 
 Suite * make_group_suite(void)
 {
     Suite *s;
-    TCase *tc_group_new, *tc_group_location, *tc_group_high_level, *tc_group_setters;
+    TCase *tc_group_new, *tc_group_location, *tc_group_high_level, *tc_group_setters, *tc_group_datasets;
 
     s = suite_create("Groups");
 
@@ -324,6 +416,11 @@ Suite * make_group_suite(void)
     tcase_add_checked_fixture(tc_group_setters, setters_setup, setters_teardown);
     tcase_add_test(tc_group_setters, test_group_attribute_system);
     suite_add_tcase(s, tc_group_setters);
+
+    tc_group_datasets = tcase_create("Group attributes write/read");
+    tcase_add_checked_fixture(tc_group_datasets, dataset_setup, dataset_teardown);
+    tcase_add_test(tc_group_datasets, test_group_datasets_system);
+    suite_add_tcase(s, tc_group_datasets);
 
     return s;
 }

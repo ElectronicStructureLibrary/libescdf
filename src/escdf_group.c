@@ -267,26 +267,31 @@ escdf_group_t * escdf_group_new(escdf_group_id group_id)
         }
     }
     if (group->specs == NULL) {
+        printf("escdf_group_new: No specifications found! \n"); fflush(stdout);
         free(group);
         return NULL;
     }
 
     group->loc_id = ESCDF_UNDEFINED_ID; /* was -1 */
 
-    group->attr = (escdf_attribute_t **) malloc(group->specs->nattributes * sizeof(escdf_attribute_t *));
-    if (group->attr == NULL) {
-        free(group);
-    } else {
-        for (ii=0; ii<group->specs->nattributes; ii++)
-            group->attr[ii] = NULL;
+    if(group->specs->nattributes>0) {
+        group->attr = (escdf_attribute_t **) malloc(group->specs->nattributes * sizeof(escdf_attribute_t *));
+        if (group->attr == NULL) {
+            free(group);
+        } else {
+            for (ii=0; ii<group->specs->nattributes; ii++)
+                group->attr[ii] = NULL;
+        }
     }
 
-    group->datasets = (escdf_dataset_t **) malloc(group->specs->ndatasets * sizeof(escdf_dataset_t *));
-    if (group->datasets == NULL) {
-        free(group);
-    } else {
-        for (ii=0; ii<group->specs->ndatasets; ii++)
-            group->datasets[ii] = NULL;
+    if(group->specs->ndatasets>0) {
+        group->datasets = (escdf_dataset_t **) malloc(group->specs->ndatasets * sizeof(escdf_dataset_t *));
+        if (group->datasets == NULL) {
+            free(group);
+        } else {
+            for (ii=0; ii<group->specs->ndatasets; ii++)
+                group->datasets[ii] = NULL;
+        }
     }
 
 
@@ -443,15 +448,22 @@ escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *gro
 
     /* create new escdf_group instance */
 
-    if ((group = escdf_group_new(group_id)) == NULL)
+    if ((group = escdf_group_new(group_id)) == NULL) {
+        printf("escdf_group_create: escdf_group_new failed!\n");
         return NULL;
-
+    }
     /* create group in the file */
 
     if (escdf_group_create_location(group, handle, instance_name) != ESCDF_SUCCESS) {
+        printf("escdf_group_create: escdf_group_create_location failed!\n");
         escdf_group_free(group);
         return NULL;
     }
+
+    group->name = (char*) malloc( strlen(group_name) );
+    strcpy(group->name, group_name);
+
+    group->escdf_handle = handle;
 
     return group;
 }
@@ -637,6 +649,8 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 
     /* determine the dimensions from linked dimension attributes */
     
+    if(group->datasets == NULL) printf("_escdf_group_dataset_new: group->datasets==NULL!!\n");
+
     FULFILL_OR_EXIT(group->datasets != NULL, ESCDF_EVALUE);
 
     ndims = group->specs->data_specs[idata]->ndims;
@@ -647,11 +661,16 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
     if( ndims > 0 ) {
         
         dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
-      
+
+        if(dims == NULL) printf("_escdf_group_dataset_new: dims==NULL!!\n");
+
         FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
       
         for(i = 0; i<ndims; i++) {
 	
+            if(group->specs->data_specs[idata] == NULL) printf("_escdf_group_dataset_new: group->specs->data_specs[%d]==NULL!!\n", idata);
+            if(group->specs->data_specs[idata]->dims_specs[i] == NULL) printf("_escdf_group_dataset_new: group->specs->data_specs[%d]->dims_specs[%d]==NULL!!\n", idata, i);
+
 	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata] != NULL, ESCDF_EVALUE, dims );
 	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata]->dims_specs[i] != NULL, ESCDF_EVALUE, dims );
 	
@@ -694,6 +713,9 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
     group->datasets[idata] = escdf_dataset_new(group->specs->data_specs[idata], dims);
 
     if(dims != NULL) free(dims);
+
+    printf("_escdf_group_dataset_new: done. \n"); fflush(stdout);
+
 
     return ESCDF_SUCCESS;
 
@@ -748,13 +770,14 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
     dataset_name = escdf_dataset_get_name(dataset);
 
     
-    printf("escdf_group_dataset_create: name = %s, dataset->specs->id = %d, %s\n", name, id, dataset_name);
-    
+    printf("escdf_group_dataset_create: name = %s, dataset->specs->id = %d, %s, loc_id = %lld\n", name, id, dataset_name, group->loc_id);
+    fflush(stdout);
+
     /* create dataset in file */
 
     err = escdf_dataset_create(dataset, group->loc_id); 
 
-    printf("escdf_dataset_create resulted %d\n",err); 
+    printf("escdf_dataset_create resulted %d\n",err); fflush(stdout);
 
     if( err != ESCDF_SUCCESS ) {
         escdf_dataset_close(dataset);
@@ -904,3 +927,29 @@ escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data,
 
 }
 
+void escdf_group_print_info(const escdf_group_t* group) 
+{
+
+    assert(group!=NULL);
+    assert(group->name!=NULL);
+    assert(group->specs!=NULL);
+    assert(group->escdf_handle!=NULL);
+
+
+    printf("Group Information for group %s:\n\n", group->name);
+    printf(" Information from the specifications:\n\n");
+    printf("  group ID   = %d\n", group->specs->group_id);
+    printf("  group root = %s\n", group->specs->root);
+    printf("  Number of attributes = %d\n", group->specs->nattributes);
+    printf("  Number of datasets   = %d\n", group->specs->ndatasets);
+    printf("\n");
+    printf(" Information from the group:\n\n");
+    printf("  Group loc_id = %lld \n", group->loc_id);
+    printf("  Group name = %s\n", group->name);
+    printf("  ESCDF handle:\n");
+    printf("    file_id  = %lld \n", group->escdf_handle->file_id);
+    printf("    group_id = %lld \n", group->escdf_handle->group_id);
+    printf("    transfer_mode = %lld \n", group->escdf_handle->transfer_mode);
+    printf("\n\n");
+
+};
