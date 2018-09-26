@@ -35,7 +35,8 @@ static escdf_handle_t *handle_r = NULL, *handle_w = NULL;
  * Setup and teardown                                                         *
  ******************************************************************************/
 
-void file_setup(void)
+
+void file_setup_datasets(void)
 {
     hid_t file_id, root_id;
 
@@ -51,7 +52,7 @@ void file_setup(void)
     handle_w = escdf_create(FILE_W, NULL);
 }
 
-void file_teardown(void)
+void file_teardown_datasets(void)
 {
     escdf_close(handle_r);
     escdf_close(handle_w);

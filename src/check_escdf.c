@@ -37,15 +37,10 @@ int main(void)
     srunner_add_suite(sr, make_utils_hdf5_suite());
     srunner_add_suite(sr, make_handle_suite());
     srunner_add_suite(sr, make_attributes_suite());
-<<<<<<< HEAD
     
     /* srunner_add_suite(sr, make_group_suite()); */
     
     /*  srunner_add_suite(sr, make_system_suite()); */
-=======
-    srunner_add_suite(sr, make_datasets_suite());
-    srunner_add_suite(sr, make_group_suite());
->>>>>>> c28ca5d656f92ce866a39530583ec7acbecab1fe
     /*  srunner_add_suite(sr, make_grid_scalarfield_suite()); */
 
     srunner_run_all(sr, CK_VERBOSE);
