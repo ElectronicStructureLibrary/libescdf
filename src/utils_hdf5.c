@@ -553,12 +553,16 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
     hid_t dtset_id, dtspace_id;
     herr_t error;
 
+    hsize_t ndims_check;
+    hsize_t *dims_check, *maxdims_check;
+
+
     /* Create space dimensions. */
 
     
     printf("utils_hdf5_create_datasets: ndims = %d \n", ndims);
     for(i=0; i<ndims; i++) {
-        printf("utils_hdf5_create_datasets: dims[%d]= %d \n", i, (int) dims[i]);
+        printf("utils_hdf5_create_datasets: dims[%d]= %lld \n", i, dims[i]);
     }
     fflush(stdout);
 
@@ -569,6 +573,18 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
     }
     printf("utils_hdf5_create_datasets: H5Screate_simple successful.\n"); fflush(stdout);
     
+
+    ndims_check = H5Sget_simple_extent_ndims(dtspace_id);
+
+    dims_check = malloc(ndims_check * sizeof(hsize_t));
+    maxdims_check = malloc(ndims_check * sizeof(hsize_t));
+
+    H5Sget_simple_extent_dims(dtspace_id, dims_check, maxdims_check);
+
+    for(i=0; i<ndims_check; i++) {
+        printf("utils_hdf5_create_datasets: check  dims[%lld] = %lld %lld \n",i, dims_check[i], maxdims_check[i]);
+    }
+
     printf("utils_hdf5_create_datasets: Attempt H5Dcreate with: \n"); fflush(stdout);
     printf("  loc_id = %lld,\n  name = %s,\n  type_id = %lld,\n  dtspace_id = %lld. \n", loc_id, name, type_id, dtspace_id); 
     fflush(stdout);

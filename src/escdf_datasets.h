@@ -135,7 +135,7 @@ unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data)
  * @param[in] data 
  * @return const hsize_t* 
  */
-const hsize_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
+const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
 
 
 /**
@@ -209,6 +209,14 @@ hid_t escdf_dataset_get_id(const escdf_dataset_t *data);
  * @return hid_t 
  */
 hid_t escdf_dataset_get_dtset_id(const escdf_dataset_t *data);
+
+/**
+ * brief get HF5 type ID connected to that dataset
+ * 
+ * @param[in] data
+ * @return hid_t
+ */
+hid_t escdf_dataset_get_type_id(const escdf_dataset_t *data);
 
 
 /**

@@ -648,6 +648,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
     escdf_attribute_t **dims = NULL;
     escdf_errno_t error;
 
+    hsize_t *dims_check;
 
     /* determine the dimensions from linked dimension attributes */
     
@@ -698,6 +699,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
             FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
 	        if(group->attr[dim_ID] == NULL) {
+                printf("_escdf_group_dataset_new for %s: group->attrib[%d] = NULL!\n", group->specs->data_specs[idata]->name, idim );
 	            if (dims != NULL) free(dims);
 	            return ESCDF_ERROR_DIM;
 	        }
@@ -708,15 +710,25 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
         }
       
     }
-    else { 
+    else { /* ndims == 0 case */
       dims = NULL;
     }
 
     group->datasets[idata] = escdf_dataset_new(group->specs->data_specs[idata], dims);
 
+    dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
+
+    for(i=0; i<ndims; i++) {
+        printf("_escdf_group_dataset_new:  Dims[%d] = %lld\n",i,dims_check[i]);
+    }
+
+
     if(dims != NULL) free(dims);
 
-    printf("_escdf_group_dataset_new: done. \n"); fflush(stdout);
+    printf("_escdf_group_dataset_new: done. \n");
+    printf( "type_id = %lld; from specs: %lld\n\n", escdf_dataset_get_type_id(group->datasets[idata]), \
+        utils_hdf5_disk_type(group->specs->data_specs[idata]->datatype) ); 
+    fflush(stdout);
 
 
     return ESCDF_SUCCESS;
@@ -756,26 +768,36 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
     /* get dataset ID */
 
     dataset_number = _escdf_group_get_dataset_number_from_name(group, name);
-
     
     printf("escdf_group_dataset_create: name = %s, dataset_number = %d\n",name, dataset_number);
     
     if(dataset_number == ESCDF_UNDEFINED_ID)  return NULL;
     
+
     /* create dataset structure */
 
     FULFILL_OR_RETURN_VAL(_escdf_group_dataset_new(group, dataset_number) == ESCDF_SUCCESS, ESCDF_ERROR, NULL);
 
     dataset = group->datasets[dataset_number];
 
+    /* print for checks */
+
     id = escdf_dataset_get_id(dataset);
     dataset_name = escdf_dataset_get_name(dataset);
 
-    
     printf("escdf_group_dataset_create: name = %s, dataset->specs->id = %d, %s, loc_id = %lld\n", name, id, dataset_name, group->loc_id);
     fflush(stdout);
 
     /* create dataset in file */
+
+    hsize_t *dims_check;
+
+    dims_check = escdf_dataset_get_dimensions(dataset);
+
+    printf("escdf_group_dataset_create: Number of Dimensions = %lld.\n", escdf_dataset_get_number_of_dimensions(dataset) );
+    for(int i=0; i<escdf_dataset_get_number_of_dimensions(dataset); i++) {
+        printf("escdf_group_dataset_create: Dims check dims[%d] = %lld.\n", i, dims_check[i]);
+    }
 
     err = escdf_dataset_create(dataset, group->loc_id); 
 

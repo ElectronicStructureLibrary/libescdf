@@ -496,7 +496,7 @@ START_TEST(test_group_attributes)
     double values[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
 
     const char* name = "Test system";
-    char *value_string;
+    char value_string[80];
 
     printf("----------------------------------\n");
     printf("TEST_GROUP_ATTRIBUTES\n");
@@ -520,7 +520,7 @@ START_TEST(test_group_attributes)
     }
 
     ck_assert( escdf_group_attribute_set(group_system, "system_name", (void*) name) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_attribute_get(group_system, "system_name", (void*) value_string) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, "system_name", &value_string) == ESCDF_SUCCESS);
     ck_assert( strcmp( name, value_string ) == 0 );
 
     strcpy(value_string, "    ");
@@ -556,33 +556,50 @@ START_TEST(test_group_datasets)
 
     ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", &num_dims) == ESCDF_SUCCESS);
 
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_species", (void*) &num_species) == ESCDF_SUCCESS);
+    printf("----------------------------------\n");
+
+    ck_assert( escdf_group_attribute_set(group_system, "number_of_species", &num_species) == ESCDF_SUCCESS);
+
+    printf("----------------------------------\n");
+
     num = 0;
-    ck_assert( escdf_group_attribute_get(group_system, "number_of_species", (void*) &num) == ESCDF_SUCCESS);
+
+
+    ck_assert( escdf_group_attribute_get(group_system, "number_of_species", &num) == ESCDF_SUCCESS);
     ck_assert( num == num_species );
 
+    printf("----------------------------------\n");
 
+
+    escdf_group_print_info(group_system);
+
+    printf("----------------------------------\n");
 
 
     ck_assert( escdf_group_attribute_set(group_system, "number_of_sites", &num_sites) == ESCDF_SUCCESS);
 
-    /* ck_assert( escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site) == ESCDF_SUCCESS); */
+    printf("----------------------------------\n");
 
+    /* 
+    ck_assert( escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site) == ESCDF_SUCCESS);
+    */
 
+    
     dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
+    ck_assert( dataset_species_names != NULL);
+
     printf("finished creating dataset species_names.\n"); fflush(stdout);
     
-    ck_assert( dataset_species_names != NULL);
-    
 
+    escdf_dataset_print(dataset_species_names);
+
+    
     ck_assert( escdf_group_dataset_write_simple(dataset_species_names, (void*) &names ) == ESCDF_SUCCESS);
     printf("finished writing species names.\n"); fflush(stdout);
 
     ck_assert( escdf_group_dataset_read_simple(dataset_species_names, (void*) &read_names ) == ESCDF_SUCCESS);
     printf("finished reading species names.\n"); fflush(stdout);
-
-
-
+    
 }
 END_TEST
 

@@ -194,6 +194,7 @@ escdf_errno_t escdf_attribute_set(escdf_attribute_t *attr, const void *buf)
 
 escdf_errno_t escdf_attribute_get(const escdf_attribute_t *attr, void *buf)
 {
+    assert(buf != NULL);
     assert(attr != NULL);
     assert(attr->is_set);
 
