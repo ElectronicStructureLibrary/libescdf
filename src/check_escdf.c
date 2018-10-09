@@ -32,19 +32,22 @@ int main(void)
     SRunner *sr;
 
     sr = srunner_create(make_info_suite());
-    /* srunner_add_suite(sr, make_error_suite()); 
+    srunner_add_suite(sr, make_error_suite()); 
     srunner_add_suite(sr, make_utils_suite());
     srunner_add_suite(sr, make_utils_hdf5_suite());
     srunner_add_suite(sr, make_handle_suite());
     srunner_add_suite(sr, make_attributes_suite());
-    */
 
-    /* srunner_add_suite(sr, make_group_suite()); */
+    /* 
+    srunner_add_suite(sr, make_group_suite()); 
+    */
     
     srunner_add_suite(sr, make_new_group_suite()); 
     
-    /*  srunner_add_suite(sr, make_system_suite()); */
-    /*  srunner_add_suite(sr, make_grid_scalarfield_suite()); */
+    /*
+    srunner_add_suite(sr, make_system_suite());
+    srunner_add_suite(sr, make_grid_scalarfield_suite());
+    */
 
     srunner_run_all(sr, CK_VERBOSE);
     number_failed = srunner_ntests_failed(sr);

@@ -533,7 +533,7 @@ START_TEST(test_group_datasets)
     unsigned int num_sites = 3;
     unsigned int num_species = 5;
 
-    unsigned int num;
+    unsigned int num, i;
 
     char names[5][80];
     char read_names[5][80];
@@ -544,8 +544,6 @@ START_TEST(test_group_datasets)
     printf("TEST_GROUP_DATASETS\n");
     printf("----------------------------------\n\n");
     
-
-
     strcpy(names[0], "Copper");
     strcpy(names[1], "Oxygen");
     strcpy(names[2], "Oxygen 2");
@@ -555,30 +553,20 @@ START_TEST(test_group_datasets)
     ck_assert(group_system!=NULL);
 
     ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", &num_dims) == ESCDF_SUCCESS);
-
-    printf("----------------------------------\n");
-
     ck_assert( escdf_group_attribute_set(group_system, "number_of_species", &num_species) == ESCDF_SUCCESS);
 
-    printf("----------------------------------\n");
-
     num = 0;
-
 
     ck_assert( escdf_group_attribute_get(group_system, "number_of_species", &num) == ESCDF_SUCCESS);
     ck_assert( num == num_species );
 
+    /*
     printf("----------------------------------\n");
-
-
     escdf_group_print_info(group_system);
-
     printf("----------------------------------\n");
-
+    */
 
     ck_assert( escdf_group_attribute_set(group_system, "number_of_sites", &num_sites) == ESCDF_SUCCESS);
-
-    printf("----------------------------------\n");
 
     /* 
     ck_assert( escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site) == ESCDF_SUCCESS);
@@ -588,19 +576,28 @@ START_TEST(test_group_datasets)
     dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
     ck_assert( dataset_species_names != NULL);
 
+    /*
     printf("finished creating dataset species_names.\n"); fflush(stdout);
-    
-
     escdf_dataset_print(dataset_species_names);
-
+    */
     
     ck_assert( escdf_group_dataset_write_simple(dataset_species_names, (void*) &names ) == ESCDF_SUCCESS);
     printf("finished writing species names.\n"); fflush(stdout);
 
     ck_assert( escdf_group_dataset_read_simple(dataset_species_names, (void*) &read_names ) == ESCDF_SUCCESS);
     printf("finished reading species names.\n"); fflush(stdout);
-    
+
+    printf("Number of species = %d \n", num_species); 
+
+    for(i=0; i<num_species; i++) {
+        /* printf("%d: \n", i); fflush(stdout); */
+        printf("orig: %s, read %s\n", names[i], read_names[i] );
+        ck_assert(strcmp(names[i],read_names[i])==0);
+    }
+
+    printf("Done!\n"); fflush(stdout);
 }
+
 END_TEST
 
 Suite *make_new_group_suite(void)
