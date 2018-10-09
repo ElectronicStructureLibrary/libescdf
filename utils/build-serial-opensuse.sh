@@ -8,3 +8,4 @@ module load gnu/7  hdf5/1.10.1
 ./autogen.sh
 CC=gcc CFLAGS="-O3" ./configure --without-mpi
 make -j4
+make check
