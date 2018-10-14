@@ -274,9 +274,9 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     /* Check whether dimensions are regular shaped */
 
     if (specs->compact) {
-        /*
+        
         printf("escdf_dataset_new: name = %s, compact flag set. \n",specs->name); fflush(stdout); 
-        */
+        
 
         if (specs->ndims == 2) {
 
@@ -336,9 +336,9 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
         }
         else { 
-            /* 
+             
             printf("escdf_dataset_new: name = %s, compact flag set for ndims /= 2. Return NULL!\n",specs->name); fflush(stdout);
-            */
+            
             REGISTER_ERROR(ESCDF_ERROR_DIM); 
 
             return NULL;
@@ -363,9 +363,9 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
                 SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], &(dims[ii])));
 
-                /*
+                
                 printf("escdf_dataset_new: read dim[%d] for %s. dim[%d] = %d.\n", ii, specs->name, ii, dims[ii] ); fflush(stdout); 
-                */
+                
             }
         }
 
@@ -383,7 +383,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     for(ii = 0; ii<ndims_effective; ii++) {
         data->dims[ii] = dims[ii];  
-        /* printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, data->dims[ii]); fflush(stdout); */
+        printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, data->dims[ii]); fflush(stdout); 
     }
     
     free(dims);

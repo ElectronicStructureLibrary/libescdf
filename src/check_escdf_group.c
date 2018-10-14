@@ -445,6 +445,17 @@ Suite * make_group_suite(void)
 static escdf_handle_t *escdf_handle = NULL;
 static escdf_group_t *group_system = NULL;
 
+bool vec_equal(double *a, double *b){
+
+    int i = 0;
+    double x = 0.0;
+
+    for(i=0; i<3; i++) x = x + (a[i]-b[i])*(a[i]-b[i]);
+
+    if(x < 0.0000001) return true;
+    else return false;
+};
+
 void new_handle_setup(void)
 {
     escdf_register_all_group_specs();
@@ -492,6 +503,9 @@ END_TEST
 START_TEST(test_group_attributes)
 {
     int dim=3;
+
+    bool embedded = false, embedded_read;
+
     double alat[3][3] = {{1.0, 0.0, 0.0},{0.0, 1.0, 0.0},{0.0, 0.0, 1.0}};
     double values[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
 
@@ -501,15 +515,31 @@ START_TEST(test_group_attributes)
     printf("----------------------------------\n");
     printf("TEST_GROUP_ATTRIBUTES\n");
     printf("----------------------------------\n\n");
-    
+    fflush(stdout);
 
     escdf_group_print_info(group_system);
 
+    /* Bool */
+
+    printf("Testing Bool: ");fflush(stdout);
+    ck_assert( escdf_group_attribute_set(group_system, "embedded_system", (void*) &embedded) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, "embedded_system", (void*) &embedded_read) == ESCDF_SUCCESS);
+    ck_assert( embedded == embedded_read );
+    printf("OK.\n"); fflush(stdout);
+
+    /* Simple Integer */
+
+    printf("Testing Integer: ");fflush(stdout);
     ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
     dim = 0;
     ck_assert( escdf_group_attribute_get(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
     ck_assert( dim == 3 );
+    printf("OK.\n"); fflush(stdout);
 
+
+    /* Integer array */
+
+    printf("Testing Integer Array: ");fflush(stdout);
     ck_assert( escdf_group_attribute_set(group_system, "lattice_vectors", (void*) alat) == ESCDF_SUCCESS );
     ck_assert( escdf_group_attribute_get(group_system, "lattice_vectors", (void*) values) == ESCDF_SUCCESS ); 
 
@@ -518,12 +548,16 @@ START_TEST(test_group_attributes)
             ck_assert( alat[i][j] == values[i][j] );
         }
     }
+    printf("OK.\n"); fflush(stdout);
 
+    /* Simple string */
+
+    printf("Testing String: ");fflush(stdout);
     ck_assert( escdf_group_attribute_set(group_system, "system_name", (void*) name) == ESCDF_SUCCESS);
     ck_assert( escdf_group_attribute_get(group_system, "system_name", &value_string) == ESCDF_SUCCESS);
     ck_assert( strcmp( name, value_string ) == 0 );
+    printf("OK.\n"); fflush(stdout);
 
-    strcpy(value_string, "    ");
 }
 END_TEST
 
@@ -533,12 +567,16 @@ START_TEST(test_group_datasets)
     unsigned int num_sites = 3;
     unsigned int num_species = 5;
 
+    double positions[3][3];
+    double read_positions[3][3];
+
     unsigned int num, i;
 
     char names[5][80];
     char read_names[5][80];
 
     escdf_dataset_t* dataset_species_names = NULL;
+    escdf_dataset_t* dataset_fractional_site_positions = NULL;
 
     printf("----------------------------------\n");
     printf("TEST_GROUP_DATASETS\n");
@@ -550,15 +588,35 @@ START_TEST(test_group_datasets)
     strcpy(names[3], "Nickel");
     strcpy(names[4], "Empty");
 
+    positions[0][0] = 0.0;
+    positions[0][1] = 0.0;
+    positions[0][2] = 0.0;
+
+    positions[1][0] = 0.0;
+    positions[1][1] = 0.5;
+    positions[1][2] = 0.3333333;
+
+    positions[2][0] = 0.5;
+    positions[2][1] = 0.0;
+    positions[2][2] = 0.6666667;
+
     ck_assert(group_system!=NULL);
 
+    printf("Setting Integer Dimensions (Attributes): ");fflush(stdout);
     ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", &num_dims) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, "number_of_physical_dimensions", &num) == ESCDF_SUCCESS);
+    ck_assert( num == num_dims );
+
+
     ck_assert( escdf_group_attribute_set(group_system, "number_of_species", &num_species) == ESCDF_SUCCESS);
-
-    num = 0;
-
     ck_assert( escdf_group_attribute_get(group_system, "number_of_species", &num) == ESCDF_SUCCESS);
     ck_assert( num == num_species );
+
+    ck_assert( escdf_group_attribute_set(group_system, "number_of_sites", &num_sites) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, "number_of_sites", &num) == ESCDF_SUCCESS);
+    ck_assert( num == num_sites );
+
+    printf("Done.\n"); fflush(stdout);
 
     /*
     printf("----------------------------------\n");
@@ -566,20 +624,46 @@ START_TEST(test_group_datasets)
     printf("----------------------------------\n");
     */
 
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_sites", &num_sites) == ESCDF_SUCCESS);
 
     /* 
     ck_assert( escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site) == ESCDF_SUCCESS);
     */
 
-    
-    dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
-    ck_assert( dataset_species_names != NULL);
-
     /*
     printf("finished creating dataset species_names.\n"); fflush(stdout);
     escdf_dataset_print(dataset_species_names);
     */
+
+    /* Double Array Dataset */
+
+    printf("Retrieve dataset handle: \n"); fflush(stdout);
+
+    dataset_fractional_site_positions = escdf_group_dataset_create(group_system, "fractional_site_positions");
+    ck_assert( dataset_fractional_site_positions != NULL);
+    printf("OK.\n");
+
+    ck_assert( escdf_group_dataset_write_simple(dataset_fractional_site_positions, positions ) == ESCDF_SUCCESS);
+    /* ck_assert( escdf_group_dataset_read_simple(dataset_fractional_site_positions, read_positions ) == ESCDF_SUCCESS); */
+
+    for(i=0; i<num_sites; i++) {
+        printf("positions[%d]      = (%7.3f, %7.3f, %7.3f); \n", positions[i][0], positions[i][1], positions[i][2]);
+        /* 
+        printf("read_positions[%d] = (%7.3f, %7.3f, %7.3f); \n", read_positions[i][0], read_positions[i][1], read_positions[i][2]);
+        ck_assert( vec_equal(positions[i], read_positions[i] ) );
+        */
+    }
+
+
+
+    /* String Array Dataset */
+
+    printf("Retrieve dataset handle: \n"); fflush(stdout);
+    dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
+    ck_assert( dataset_species_names != NULL);
+    printf("OK.\n");
+
+
+
     
     ck_assert( escdf_group_dataset_write_simple(dataset_species_names, (void*) &names ) == ESCDF_SUCCESS);
     printf("finished writing species names.\n"); fflush(stdout);

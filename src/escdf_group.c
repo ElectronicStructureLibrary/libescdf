@@ -688,13 +688,13 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 	            if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; found=true;}
 	        }
 
-            /*
+            
             printf("_escdf_group_dataset_new for %s, found %s with %d dimensions.\n", 
                 group->specs->data_specs[idata]->name, 
                 group->specs->attr_specs[idim]->name,
                 group->specs->attr_specs[idim]->ndims); 
             fflush(stdout);
-            */
+            
 
             FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
@@ -714,12 +714,18 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
       dims = NULL;
     }
 
+    for(i=0; i<ndims; i++) {
+        unsigned int d;
+        ck_assert(escdf_attribute_get(dims[i], &d) == ESCDF_SUCCESS);
+        printf("_escdf_group_dataset_new:  dims[%d] = %lld\n",i,d);
+    }
+
     group->datasets[idata] = escdf_dataset_new(group->specs->data_specs[idata], dims);
 
     dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
 
     for(i=0; i<ndims; i++) {
-        printf("_escdf_group_dataset_new:  Dims[%d] = %lld\n",i,dims_check[i]);
+        printf("_escdf_group_dataset_new:  Dims_check[%d] = %lld\n",i,dims_check[i]);
     }
 
 

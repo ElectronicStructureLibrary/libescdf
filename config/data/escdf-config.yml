@@ -1,7 +1,7 @@
 %YAML 1.1
 ---
 
-timestamp: "20180508T142711+0100"
+timestamp: "20181012T132757+0100"
 
 target:
     cpu: "x86_64"
@@ -29,7 +29,7 @@ defaults:
 options:
     enable_debug: ""
     with_hdf5: ""
-    with_mpi: ""
+    with_mpi: "no"
 
 triggers:
     debug_enable: "no"
@@ -39,14 +39,14 @@ triggers:
 inits:
     debug: "def"
     hdf5: "def"
-    mpi: "def"
+    mpi: "yon"
 
 deps:
     hdf5_incs: ""
     hdf5_libs: "-lhdf5"
 
 mpi_internals:
-    cc_set: "no"
-    cc_wrap: "no"
+    cc_set: ""
+    cc_wrap: ""
 
 ...
