@@ -51,6 +51,8 @@ extern "C" {
 
 #define ESCDF_UNDEFINED_ID -999
 
+
+
 /**
  * Error codes
  *

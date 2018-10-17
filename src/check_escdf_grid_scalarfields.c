@@ -48,12 +48,18 @@ static hid_t array_id, dataset_id;
 void grid_scalarfield_setup(void)
 {
     /* Dimensions: d3_1 = 1D length 3, d3_2 = 2D, length (3,3) */
+    /* OLD:
     hsize_t d1_1[1] = {1};
     hsize_t d3_1[1] = {3};
     hsize_t d3_2[2] = {3, 3};
+    */
+    unsigned int d1_1[1] = {1};
+    unsigned int d3_1[1] = {3};
+    unsigned int d3_2[2] = {3, 3};
+
 
     /* Attributes */
-    hsize_t dt[3] = {0, 1, 0};
+    unsigned int dt[3] = {0, 1, 0};
     double lv[3][3] = {{5.0, 0.0, 0.0}, {0.0, 10.0, 0.0}, {0.0, 0.0, 15.0}};
     hsize_t nc = 2;
     hsize_t ng[3] = {2, 3, 9};
@@ -61,7 +67,7 @@ void grid_scalarfield_setup(void)
     hsize_t rc = 1;
 
     /* Dataset */
-    hsize_t adims[3] = {2, 54, 1};
+    unsigned int adims[3] = {2, 54, 1};
     double array[2][54][1];
 
     /* Internal variables */
@@ -100,7 +106,9 @@ void grid_scalarfield_setup(void)
     ierr = utils_hdf5_write_attr(subgroup_id, "real_or_complex", H5T_NATIVE_HSIZE, d1_1, 1, H5T_NATIVE_HSIZE, &rc);
 
     /* Use default ordering */
+    /*
     ierr = utils_hdf5_write_bool_old(subgroup_id, "use_default_ordering", true);
+    */
 
     /* Values on grid */
     ierr = utils_hdf5_create_dataset(subgroup_id, "values_on_grid", H5T_NATIVE_DOUBLE, adims, 3, &array_id);

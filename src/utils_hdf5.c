@@ -36,22 +36,22 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
 {
     htri_t bool_id;
 
-    printf("utils_hdf5_check_present: %s\n", name); fflush(stdout);
+    /* printf("utils_hdf5_check_present: %s\n", name); fflush(stdout); */
 
     if ((bool_id = H5Lexists(loc_id, name, H5P_DEFAULT)) < 0 || !bool_id) {
-        printf("utils_hdf5_check_present: link to %s NOT found\n", name); fflush(stdout);
+        /* printf("utils_hdf5_check_present: link to %s NOT found\n", name); fflush(stdout); */
         return false;
     }
     else {
-        printf("utils_hdf5_check_present: link to %s found\n", name); fflush(stdout);
+        /* printf("utils_hdf5_check_present: link to %s found\n", name); fflush(stdout); */
     }
 
     if ((bool_id = H5Oexists_by_name(loc_id, name, H5P_DEFAULT)) < 0 || !bool_id) {
-        printf("utils_hdf5_check_present: object %s NOT found\n", name); fflush(stdout);
+        /* printf("utils_hdf5_check_present: object %s NOT found\n", name); fflush(stdout); */
         return false;
     } 
     else {
-        printf("utils_hdf5_check_present: object %s found\n", name); fflush(stdout);
+        /* printf("utils_hdf5_check_present: object %s found\n", name); fflush(stdout); */
     }
 
 
@@ -93,7 +93,7 @@ bool utils_hdf5_check_present_attr(hid_t loc_id, const char *name)
     return true;
 }
 
-escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, const hsize_t *dims, unsigned int ndims)
+escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, const unsigned int *dims, unsigned int ndims)
 {
     H5S_class_t type_id;
     int ndims_id;
@@ -142,7 +142,7 @@ escdf_errno_t utils_hdf5_check_shape(hid_t dtspace_id, const hsize_t *dims, unsi
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_check_attr(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims, hid_t *attr_pt)
+escdf_errno_t utils_hdf5_check_attr(hid_t loc_id, const char *name, const unsigned int *dims, unsigned int ndims, hid_t *attr_pt)
 {
     hid_t attr_id, dtspace_id;
 
@@ -171,7 +171,7 @@ escdf_errno_t utils_hdf5_check_attr(hid_t loc_id, const char *name, const hsize_
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_check_dataset(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims, hid_t *dtset_pt)
+escdf_errno_t utils_hdf5_check_dataset(hid_t loc_id, const char *name, const unsigned int *dims, unsigned int ndims, hid_t *dtset_pt)
 {
     hid_t dtset_id, dtspace_id;
 
@@ -205,7 +205,7 @@ escdf_errno_t utils_hdf5_check_dataset(hid_t loc_id, const char *name, const hsi
  * read methods                                                               *
  ******************************************************************************/
 
-escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name, hid_t mem_type_id, const hsize_t *dims, unsigned int ndims, void *buf)
+escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name, hid_t mem_type_id, const unsigned int *dims, unsigned int ndims, void *buf)
 {
     escdf_errno_t err;
 
@@ -227,7 +227,7 @@ escdf_errno_t utils_hdf5_read_attr(hid_t loc_id, const char *name, hid_t mem_typ
     return err;
 }
 
-escdf_errno_t utils_hdf5_read_attr_string(hid_t loc_id, const char *name, hsize_t len, const hsize_t *dims,
+escdf_errno_t utils_hdf5_read_attr_string(hid_t loc_id, const char *name, hsize_t len, const unsigned int *dims,
                                           unsigned int ndims, void *buf)
 {
     escdf_errno_t err;
@@ -247,7 +247,7 @@ escdf_errno_t utils_hdf5_read_attr_string(hid_t loc_id, const char *name, hsize_
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_attr_bool(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims,
+escdf_errno_t utils_hdf5_read_attr_bool(hid_t loc_id, const char *name, const unsigned int *dims, unsigned int ndims,
                                         void *buf)
 {
     escdf_errno_t err;
@@ -318,7 +318,7 @@ escdf_errno_t utils_hdf5_read_int(hid_t loc_id, const char *name, _int_set_t *sc
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name, unsigned int **array, const hsize_t *dims, unsigned int ndims, unsigned int range[2])
+escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name, unsigned int **array, const unsigned int *dims, unsigned int ndims, unsigned int range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -344,7 +344,7 @@ escdf_errno_t utils_hdf5_read_uint_array(hid_t loc_id, const char *name, unsigne
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_int_array(hid_t loc_id, const char *name, int **array, const hsize_t *dims, unsigned int ndims, int range[2])
+escdf_errno_t utils_hdf5_read_int_array(hid_t loc_id, const char *name, int **array, const unsigned int *dims, unsigned int ndims, int range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -370,7 +370,7 @@ escdf_errno_t utils_hdf5_read_int_array(hid_t loc_id, const char *name, int **ar
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name, double **array, const hsize_t *dims, unsigned int ndims, double range[2])
+escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name, double **array, const unsigned int *dims, unsigned int ndims, double range[2])
 {
     escdf_errno_t err;
     unsigned int i;
@@ -396,7 +396,7 @@ escdf_errno_t utils_hdf5_read_dbl_array(hid_t loc_id, const char *name, double *
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id, hid_t xfer_id, void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
+escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id, hid_t xfer_id, void *buf, hid_t mem_type_id, const unsigned int *start, const unsigned int *count, const unsigned int *stride)
 {
     escdf_errno_t err;
     hid_t memspace_id, diskspace_id;
@@ -429,20 +429,35 @@ escdf_errno_t utils_hdf5_read_dataset(hid_t dtset_id, hid_t xfer_id, void *buf, 
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id, hid_t xfer_id, void *buf, hid_t mem_type_id, hsize_t num_points, const hsize_t *coord)
+escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id, hid_t xfer_id, void *buf, hid_t mem_type_id, unsigned int num_points, const unsigned int *coord)
 {
     hid_t memspace_id, diskspace_id;
     herr_t err_id;
     hsize_t len;
+    hsize_t coord_[2*num_points];
+    int i;
+
+    if(num_points > 0 && coord==NULL) {
+        printf("utils_hdf5_read_dataset_at: *coord == NULL!\n"); fflush(stdout);
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+    }   
 
     /* disk use the start, count and stride. */
     if ((diskspace_id = H5Dget_space(dtset_id)) < 0) {
+        printf("utils_hdf5_read_dataset_at: H5Dget_space failed!! \n"); fflush(stdout);
         RETURN_WITH_ERROR(diskspace_id);
     }
 
+
+    for(i=0; i< 2*num_points; i++) {
+        coord_[i] = coord[i];
+    }
+
+
     if (num_points) {
         if ((err_id = H5Sselect_elements(diskspace_id, H5S_SELECT_SET,
-                                         num_points, coord)) < 0) {
+                                         num_points, coord_)) < 0) {
+            printf("utils_hdf5_read_dataset_at: H5Sselect_elements failed!! \n"); fflush(stdout);
             H5Sclose(diskspace_id);
             RETURN_WITH_ERROR(err_id);
         }
@@ -451,12 +466,15 @@ escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id, hid_t xfer_id, void *bu
         memspace_id = H5Screate_simple(1, &len, NULL);
     } else {
         if ((err_id = H5Sselect_none(diskspace_id)) < 0) {
+            printf("utils_hdf5_read_dataset_at: H5Sselect_none failed!! \n"); fflush(stdout);
             H5Sclose(diskspace_id);
             RETURN_WITH_ERROR(err_id);
         }
         memspace_id = H5Screate(H5S_NULL);
     }
+
     if (memspace_id < 0) {
+        printf("utils_hdf5_read_dataset_at: memspace_id invalid!! \n"); fflush(stdout);    
         H5Sclose(diskspace_id);
         RETURN_WITH_ERROR(memspace_id);
     }
@@ -464,6 +482,7 @@ escdf_errno_t utils_hdf5_read_dataset_at(hid_t dtset_id, hid_t xfer_id, void *bu
     /* Read */
     if ((err_id = H5Dread(dtset_id, mem_type_id, memspace_id,
                           diskspace_id, xfer_id, buf)) < 0) {
+        printf("utils_hdf5_read_dataset_at: H5D_read failed with %d!! \n", err_id); fflush(stdout);
         H5Sclose(diskspace_id);
         H5Sclose(memspace_id);
         RETURN_WITH_ERROR(err_id);
@@ -514,9 +533,11 @@ escdf_errno_t utils_hdf5_create_group(hid_t loc_id, const char *path, hid_t *gro
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, unsigned int ndims, hid_t *attr_pt)
+escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_id, const unsigned int *dims, unsigned int ndims, hid_t *attr_pt)
 {
     hid_t attr_id, dtspace_id;
+    hsize_t dims_[ndims];
+    int i;
 
     /* Create space dimensions. */
     if (!dims || !ndims) {
@@ -524,7 +545,8 @@ escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_
             RETURN_WITH_ERROR(dtspace_id);
         }
     } else {
-        if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
+        for(i=0; i<ndims; i++) dims_[i] = dims[i];
+        if ((dtspace_id = H5Screate_simple(ndims, dims_, NULL)) < 0) {
             RETURN_WITH_ERROR(dtspace_id);
         }
     }
@@ -547,11 +569,12 @@ escdf_errno_t utils_hdf5_create_attr(hid_t loc_id, const char *name, hid_t type_
     return ESCDF_ERROR;
 }
 
-escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t type_id, const hsize_t *dims, unsigned int ndims, hid_t *dtset_pt)
+escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t type_id, const unsigned int *dims, unsigned int ndims, hid_t *dtset_pt)
 {
     int i;
     hid_t dtset_id, dtspace_id;
     herr_t error;
+    hsize_t dims_[ndims];
 
     hsize_t ndims_check;
     hsize_t *dims_check, *maxdims_check;
@@ -560,20 +583,21 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
     /* Create space dimensions. */
 
     
-    printf("utils_hdf5_create_datasets: ndims = %d \n", ndims);
+    /* printf("utils_hdf5_create_datasets: ndims = %d \n", ndims); */
     for(i=0; i<ndims; i++) {
-        printf("utils_hdf5_create_datasets: dims[%d]= %lld \n", i, dims[i]);
+        dims_[i] = dims[i];
+        /* printf("utils_hdf5_create_datasets: dims[%d]= %lld \n", i, dims[i]); */
     }
-    fflush(stdout);
+    /* fflush(stdout); */
 
  
-    if ((dtspace_id = H5Screate_simple(ndims, dims, NULL)) < 0) {
+    if ((dtspace_id = H5Screate_simple(ndims, dims_, NULL)) < 0) {
         printf("utils_hdf5_create_datasets: H5Screate_simple failed. dtspace_id = %d.\n",dtspace_id);fflush(stdout);
         RETURN_WITH_ERROR(dtspace_id);
     }
-    printf("utils_hdf5_create_datasets: H5Screate_simple successful.\n"); fflush(stdout);
+    /* printf("utils_hdf5_create_datasets: H5Screate_simple successful.\n"); fflush(stdout); */
     
-
+    /*
     ndims_check = H5Sget_simple_extent_ndims(dtspace_id);
 
     dims_check = malloc(ndims_check * sizeof(hsize_t));
@@ -589,12 +613,16 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
     printf("  loc_id = %lld,\n  name = %s,\n  type_id = %lld,\n  dtspace_id = %lld. \n", loc_id, name, type_id, dtspace_id); 
     fflush(stdout);
 
+    free(dims_check);
+    free(maxdims_check);
+    */
+
     if ((dtset_id = H5Dcreate(loc_id, name, type_id, dtspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
         printf("utils_hdf5_create_datasets: H5Dcreate failed.\n"); fflush(stdout);
         DEFER_FUNC_ERROR(dtset_id);
         goto cleanup_dtspace;
     }
-    printf("utils_hdf5_create_datasets: H5Dcreate sucessful.\n"); fflush(stdout);
+    /* printf("utils_hdf5_create_datasets: H5Dcreate sucessful.\n"); fflush(stdout); */
 
     error = H5Sclose(dtspace_id);
     if(error) {
@@ -612,7 +640,7 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
         }
 
     }
-    printf("utils_hdf5_create_datasets: returning SUCCESS.\n"); fflush(stdout);
+    /* printf("utils_hdf5_create_datasets: returning SUCCESS.\n"); fflush(stdout); */
     return ESCDF_SUCCESS;
 
     cleanup_dtspace:
@@ -626,7 +654,7 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
  * write methods                                                              *
  ******************************************************************************/
 
-escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_type_id, const hsize_t *dims, unsigned int ndims, hid_t mem_type_id, const void *buf)
+escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_type_id, const unsigned int *dims, unsigned int ndims, hid_t mem_type_id, const void *buf)
 {
     escdf_errno_t err;
 
@@ -655,7 +683,7 @@ escdf_errno_t utils_hdf5_write_attr(hid_t loc_id, const char *name, hid_t disk_t
     return err;
 }
 
-escdf_errno_t utils_hdf5_write_attr_string(hid_t loc_id, const char *name, hsize_t len, const hsize_t *dims,
+escdf_errno_t utils_hdf5_write_attr_string(hid_t loc_id, const char *name, hsize_t len, const unsigned int *dims,
                                            unsigned int ndims, const void *buf)
 {
     escdf_errno_t err;
@@ -670,7 +698,7 @@ escdf_errno_t utils_hdf5_write_attr_string(hid_t loc_id, const char *name, hsize
     return err;
 }
 
-escdf_errno_t utils_hdf5_write_attr_bool(hid_t loc_id, const char *name, const hsize_t *dims, unsigned int ndims,
+escdf_errno_t utils_hdf5_write_attr_bool(hid_t loc_id, const char *name, const unsigned int *dims, unsigned int ndims,
                                          const void *buf)
 {
     escdf_errno_t err;
@@ -693,7 +721,7 @@ escdf_errno_t utils_hdf5_write_attr_bool(hid_t loc_id, const char *name, const h
     return err;
 }
 
-escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void *buf, hid_t mem_type_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
+escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void *buf, hid_t mem_type_id, const unsigned int *start, const unsigned int *count, const unsigned int *stride)
 {
     escdf_errno_t err;
     hid_t memspace_id, diskspace_id, xfer_plist;
@@ -710,6 +738,9 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void
     else
         xfer_plist = H5P_DEFAULT;
 
+
+    
+    /*
     ndims = H5Sget_simple_extent_ndims(diskspace_id);
 
     dims = malloc(sizeof(hsize_t) * ndims);
@@ -718,29 +749,35 @@ escdf_errno_t utils_hdf5_write_dataset(hid_t dtset_id, hid_t xfer_id, const void
 
     ndims = H5Sget_simple_extent_dims(diskspace_id, dims, maxdims);
 
-    /*
+    
     printf("utils_hdf5_write_dataset: diskspace ndims = %d.\n", ndims);
     for(i=0; i<ndims; i++) {
         printf("utils_hdf5_write_dataset: diskspace dims[%d] = %d.\n", i, dims[i]);
     }
-    */
-   
+    
     free(dims);
     free(maxdims);
+    */
+
 
     /* Write */
     if ((err_id = H5Dwrite(dtset_id, mem_type_id, memspace_id,
                            diskspace_id, xfer_plist, buf)) < 0) {
+        printf("utils_hdf5_write_dataset: write failed!!! \n"); fflush(stdout);
+
         H5Sclose(diskspace_id);
         H5Sclose(memspace_id);
         RETURN_WITH_ERROR(err_id);
     }
+
 
     H5Sclose(diskspace_id);
     H5Sclose(memspace_id);
 
     return ESCDF_SUCCESS;
 }
+
+/*
 
 escdf_errno_t utils_hdf5_write_bool_old(hid_t loc_id, const char *name, const bool value)
 {
@@ -760,6 +797,8 @@ escdf_errno_t utils_hdf5_write_string_old(hid_t loc_id, const char *name, const 
     H5Tclose(str_id);
     return err;
 }
+
+*/
 
 
 /******************************************************************************
@@ -815,24 +854,51 @@ escdf_errno_t utils_hdf5_close_group(hid_t group_id)
  * misc methods                                                               *
  ******************************************************************************/
 
-escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id, hid_t *diskspace_id, hid_t *memspace_id, const hsize_t *start, const hsize_t *count, const hsize_t *stride)
+escdf_errno_t utils_hdf5_select_slice(hid_t dtset_id, hid_t *diskspace_id, hid_t *memspace_id, const unsigned int *start, const unsigned int *count, const unsigned int *stride)
 {
     herr_t err_id;
     hssize_t len;
     hsize_t len_;
+
+    hsize_t *start_ = NULL;
+    hsize_t *count_ = NULL;
+    hsize_t *stride_ = NULL;
+
+    unsigned int i, ndims;
 
     /* disk use the start, count and stride. */
     if ((*diskspace_id = H5Dget_space(dtset_id)) < 0) {
         RETURN_WITH_ERROR(*diskspace_id);
     }
 
+
+
+
     /* create dataspace for memory and disk. */
     if (start && count) {
+
+        ndims = H5Sget_simple_extent_ndims(*diskspace_id);
+
+        start_ = (hsize_t*) malloc(ndims*sizeof(hsize_t));
+        count_ = (hsize_t*) malloc(ndims*sizeof(hsize_t));
+        if(stride!=NULL)  stride_ = (hsize_t*) malloc(ndims*sizeof(hsize_t));
+
+        for(i=0; i<ndims; i++) {
+            start_[i] = start[i];
+            count_[i] = count[i];
+            if(stride!=NULL) stride_[i] = stride[i];
+        }
+
         if ((err_id = H5Sselect_hyperslab(*diskspace_id, H5S_SELECT_SET,
-                                          start, stride, count, NULL)) < 0) {
+                                          start_, stride_, count_, NULL)) < 0) {
             H5Sclose(*diskspace_id);
             RETURN_WITH_ERROR(err_id);
         }
+
+        free(start_);
+        free(count_);
+        if(stride!=NULL) free(stride_);
+
     } else {
         if ((err_id = H5Sselect_all(*diskspace_id)) < 0) {
             H5Sclose(*diskspace_id);

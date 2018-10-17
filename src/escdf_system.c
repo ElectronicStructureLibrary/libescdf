@@ -371,8 +371,10 @@ escdf_errno_t escdf_system_set_system_name(
 {
     herr_t err;
 
+    /*
     if ((err = utils_hdf5_write_string_old(system->group_id, "system_name", system_name, 80)) != ESCDF_SUCCESS)
         return err;
+    */
 
     free(system->system_name);
     system->system_name = (char *)malloc(80*sizeof(char));
@@ -452,12 +454,13 @@ escdf_errno_t escdf_system_set_embedded_system(
     escdf_system_t *system, bool embedded_system)
 {
     herr_t err;
+    /*
     if ((err = utils_hdf5_write_bool_old(system->group_id, "embedded_system",
                                          embedded_system)) != ESCDF_SUCCESS)
         return err;
 
     system->embedded_system = _bool_set(embedded_system);
-
+    */
     return ESCDF_SUCCESS;
 }
 
@@ -602,11 +605,12 @@ escdf_errno_t escdf_system_set_symmorphic(
     escdf_system_t *system, bool symmorphic)
 {
     herr_t err;
+    /*
     if ((err = utils_hdf5_write_bool_old(system->group_id, "symmorphic", symmorphic)) != ESCDF_SUCCESS)
         return err;
 
     system->symmorphic = _bool_set(symmorphic);
-
+    */
     return ESCDF_SUCCESS;
 }
 
@@ -624,12 +628,13 @@ escdf_errno_t escdf_system_set_time_reversal_symmetry(
     escdf_system_t *system, bool time_reversal_symmetry)
 {
     herr_t err;
+    /*
     if ((err = utils_hdf5_write_bool_old(system->group_id, "time_reversal_symmetry",
                                          time_reversal_symmetry)) != ESCDF_SUCCESS)
         return err;
 
     system->time_reversal_symmetry = _bool_set(time_reversal_symmetry);
-
+    */
     return ESCDF_SUCCESS;
 }
 

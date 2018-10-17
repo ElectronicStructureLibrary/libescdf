@@ -112,9 +112,9 @@ size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
  * @brief obtain actual dimensions of a attribute
  * 
  * @param[in] const escdf_attribute_t *attr :  pointer to attribute
- * @return *hsize_t : array of dimensions (rank defined in specs)
+ * @return *unsigned int : array of dimensions (rank defined in specs)
  */
-hsize_t *escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
+const unsigned int *escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
 
 /**
  * @brief set the attribute to a value given in the buffer

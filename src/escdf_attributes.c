@@ -26,7 +26,7 @@
 struct escdf_attribute {
     const escdf_attribute_specs_t *specs;
     bool is_set;
-    hsize_t *dims;
+    unsigned int *dims;
     void *buf;
 };
 
@@ -149,7 +149,7 @@ escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, es
 
     /* Get the size of the attribute and allocate buffer memory */
     if (attr->specs->ndims > 0) {
-        attr->dims = (hsize_t *) malloc(attr->specs->ndims * sizeof(hsize_t));
+        attr->dims = (unsigned int *) malloc(attr->specs->ndims * sizeof(unsigned int));
         if (attr->dims == NULL) {
             free(attr);
             return NULL;
@@ -282,7 +282,7 @@ int escdf_attribute_get_specs_id(const escdf_attribute_t *attr)
     return attr->specs->id;
 }
 
-hsize_t * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
+const unsigned int * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
 
     assert( attr != NULL );
 

@@ -465,7 +465,7 @@ void new_handle_setup(void)
 void new_handle_teardown(void)
 {
     escdf_close(escdf_handle);
-    unlink(TEST_FILE);
+    /* unlink(TEST_FILE); */
 }
 
 void new_group_setup(void)
@@ -567,6 +567,8 @@ START_TEST(test_group_datasets)
     unsigned int num_sites = 3;
     unsigned int num_species = 5;
 
+    unsigned int num_species_at_site[num_sites];
+
     double positions[3][3];
     double read_positions[3][3];
 
@@ -582,6 +584,11 @@ START_TEST(test_group_datasets)
     printf("TEST_GROUP_DATASETS\n");
     printf("----------------------------------\n\n");
     
+    num_species_at_site[0] = 2;
+    num_species_at_site[1] = 1;
+    num_species_at_site[2] = 2;
+
+
     strcpy(names[0], "Copper");
     strcpy(names[1], "Oxygen");
     strcpy(names[2], "Oxygen 2");
@@ -624,44 +631,50 @@ START_TEST(test_group_datasets)
     printf("----------------------------------\n");
     */
 
-
-    /* 
+    
     ck_assert( escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site) == ESCDF_SUCCESS);
-    */
+    
 
-    /*
-    printf("finished creating dataset species_names.\n"); fflush(stdout);
-    escdf_dataset_print(dataset_species_names);
-    */
-
+    
+    
     /* Double Array Dataset */
 
+    
     printf("Retrieve dataset handle: \n"); fflush(stdout);
 
     dataset_fractional_site_positions = escdf_group_dataset_create(group_system, "fractional_site_positions");
     ck_assert( dataset_fractional_site_positions != NULL);
     printf("OK.\n");
+    
 
+
+    
     ck_assert( escdf_group_dataset_write_simple(dataset_fractional_site_positions, positions ) == ESCDF_SUCCESS);
-    /* ck_assert( escdf_group_dataset_read_simple(dataset_fractional_site_positions, read_positions ) == ESCDF_SUCCESS); */
+    ck_assert( escdf_group_dataset_read_simple(dataset_fractional_site_positions, read_positions ) == ESCDF_SUCCESS); 
+    
 
     for(i=0; i<num_sites; i++) {
+        
         printf("positions[%d]      = (%7.3f, %7.3f, %7.3f); \n", positions[i][0], positions[i][1], positions[i][2]);
-        /* 
         printf("read_positions[%d] = (%7.3f, %7.3f, %7.3f); \n", read_positions[i][0], read_positions[i][1], read_positions[i][2]);
+        
         ck_assert( vec_equal(positions[i], read_positions[i] ) );
-        */
+        
     }
 
 
 
     /* String Array Dataset */
 
+    
     printf("Retrieve dataset handle: \n"); fflush(stdout);
     dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
     ck_assert( dataset_species_names != NULL);
     printf("OK.\n");
+    printf("finished creating dataset species_names.\n"); fflush(stdout);
+    escdf_dataset_print(dataset_species_names);
 
+    
 
 
     
@@ -674,11 +687,11 @@ START_TEST(test_group_datasets)
     printf("Number of species = %d \n", num_species); 
 
     for(i=0; i<num_species; i++) {
-        /* printf("%d: \n", i); fflush(stdout); */
+        printf("%d: \n", i); fflush(stdout);
         printf("orig: %s, read %s\n", names[i], read_names[i] );
         ck_assert(strcmp(names[i],read_names[i])==0);
     }
-
+    
     printf("Done!\n"); fflush(stdout);
 }
 

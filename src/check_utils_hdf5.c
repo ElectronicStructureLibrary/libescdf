@@ -53,7 +53,7 @@ static int int_scalar = -1;
 static double dbl_scalar = 10.0;
 static char string_scalar[] = "this is a string";
 
-static hsize_t dims[2] = {3, 2};
+static unsigned int dims[2] = {3, 2};
 static bool bool_array[3][2] = {{false, true},
                                 {true, false},
                                 {false, false}};
@@ -75,6 +75,7 @@ void utils_hdf5_setup(void)
     static char bool_str_scalar[4];
     char bool_str_array[3][2][4];
     int i, j;
+    hsize_t dims_[2] = {3, 2};
 
     if (bool_scalar)
         strcpy(bool_str_scalar, "yes");
@@ -96,7 +97,7 @@ void utils_hdf5_setup(void)
     subgroup_id = H5Gcreate(group_id, SUBGROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     space_scalar_id = H5Screate(H5S_SCALAR);
-    space_array_id = H5Screate_simple(2, dims, NULL);
+    space_array_id = H5Screate_simple(2, dims_, NULL);
     space_null_id = H5Screate(H5S_NULL);
 
     string_len_4 = H5Tcopy(H5T_C_S1);
@@ -155,7 +156,7 @@ void utils_hdf5_teardown(void)
     H5Gclose(subgroup_id);
     H5Gclose(root_id);
     H5Fclose(file_id);
-    unlink(CHKFILE);
+    /* unlink(CHKFILE); */
 }
 
 /* check_present */
@@ -206,21 +207,21 @@ END_TEST
 
 START_TEST(test_utils_hdf5_check_shape_array_correct)
 {
-    hsize_t dims[2] = {3, 2};
+    unsigned int dims[2] = {3, 2};
     ck_assert(utils_hdf5_check_shape(space_array_id, dims, 2) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_shape_scalar_wrong_args)
 {
-    hsize_t dims[1] = {2};
+    unsigned int dims[1] = {2};
     ck_assert(utils_hdf5_check_shape(space_scalar_id, dims, 1) == ESCDF_ERROR);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_shape_array_wrong_args)
 {
-    hsize_t dims[1] = {2};
+    unsigned int dims[1] = {2};
     ck_assert(utils_hdf5_check_shape(space_array_id, dims, 1) == ESCDF_ERROR_DIM);
 
 }
@@ -253,7 +254,7 @@ END_TEST
 
 START_TEST(test_utils_hdf5_check_attr_array_wrong)
 {
-    hsize_t wrong_dims[2] = {1, 3};
+    unsigned int wrong_dims[2] = {1, 3};
     ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_A, wrong_dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
@@ -276,7 +277,7 @@ END_TEST
 
 START_TEST(test_utils_hdf5_check_dataset_wrong)
 {
-    hsize_t wrong_dims[2] = {1, 3};
+    unsigned int wrong_dims[2] = {1, 3};
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, wrong_dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
@@ -444,8 +445,8 @@ START_TEST(test_utils_hdf5_read_dataset_sliced)
 {
     hid_t dtset_id = 0;
     double values[3];
-    hsize_t start[2] = {0, 0};
-    hsize_t count[2] = {3, 1};
+    unsigned int start[2] = {0, 0};
+    unsigned int count[2] = {3, 1};
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
     ck_assert(values[0] == 1.0);
@@ -458,23 +459,28 @@ END_TEST
 /* read_dataset_at */
 START_TEST(test_utils_hdf5_read_dataset_at)
 {
+
+    escdf_errno_t error;
     hid_t dtset_id = 0;
-    hsize_t number_of_points = 6;
-    hsize_t coordinates[12] = {0, 0,
+    unsigned int number_of_points = 6;
+    unsigned int coordinates[12] = {0, 0,
                                1, 0,
                                2, 0,
                                0, 1,
                                1, 1,
                                2, 1};
     double values[6];
+
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
+    
     ck_assert(values[0] == 1.0);
     ck_assert(values[1] == 3.0);
     ck_assert(values[2] == 5.0);
     ck_assert(values[3] == 2.0);
     ck_assert(values[4] == 4.0);
     ck_assert(values[5] == 6.0);
+    
     H5Dclose(dtset_id);
 }
 END_TEST
@@ -482,9 +488,9 @@ END_TEST
 START_TEST(test_utils_hdf5_read_dataset_at_empty)
 {
     hid_t dtset_id = 0;
-    hsize_t number_of_points = 0;
+    unsigned int number_of_points = 0;
     double *values = NULL;
-    hsize_t *coordinates = NULL;
+    unsigned int *coordinates = NULL;
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
     ck_assert_ptr_eq(values, NULL);
@@ -677,8 +683,8 @@ START_TEST(test_utils_hdf5_write_dataset_slice)
     hid_t dtset_id;
     double array[3] = {1.0, 2.0, 3.0};
     double values[3];
-    hsize_t start[2] = {0, 0};
-    hsize_t count[2] = {3, 1};
+    unsigned int start[2] = {0, 0};
+    unsigned int count[2] = {3, 1};
     ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_write_dataset(dtset_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);

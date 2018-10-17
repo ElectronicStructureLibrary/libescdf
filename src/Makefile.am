@@ -40,13 +40,14 @@ escdf_core_srcs = \
   escdf_datasets.c \
   escdf_lookuptable.c \
   escdf_error.c \
-  escdf_grid_scalarfields.c \
   escdf_group.c \
   escdf_handle.c \
   escdf_info.c \
-  escdf_system.c \
   utils.c \
   utils_hdf5.c
+
+#  escdf_grid_scalarfields.c 
+#  escdf_system.c 
 
 # Exported C headers - keep this in alphabetical order
 escdf_core_hdrs = \
@@ -55,11 +56,12 @@ escdf_core_hdrs = \
   escdf_common.h \
   escdf_datatransfer.h \
   escdf_error.h \
-  escdf_grid_scalarfields.h \
   escdf_group.h \
   escdf_handle.h \
-  escdf_info.h \
-  escdf_system.h
+  escdf_info.h 
+
+#  escdf_grid_scalarfields.h 
+#  escdf_system.h
 
 # Internal C headers - keep this in alphabetical order
 escdf_hidden_hdrs = \
@@ -114,13 +116,15 @@ check_escdf_SOURCES = \
   check_escdf_attributes.c \
   check_escdf_datasets.c \
   check_escdf_error.c \
-  check_escdf_grid_scalarfields.c \
   check_escdf_group.c \
   check_escdf_handle.c \
   check_escdf_info.c \
-  check_escdf_system.c \
   check_utils.c \
   check_utils_hdf5.c
+
+#  check_escdf_grid_scalarfields.c 
+#  check_escdf_system.c
+
 
 check_escdf_CPPFLAGS = -I$(top_srcdir)/src @escdf_check_incs@
 check_escdf_CFLAGS = @escdf_check_cflags@

@@ -72,7 +72,7 @@ struct escdf_dataset {
      * 
      * Whether or not this compact storage is used, is determined by compact.
      */
-    hsize_t *index_array; /* only used for compact storage */
+    unsigned int *index_array; /* only used for compact storage */
 
     /**
      * @brief re-ordering table
@@ -170,7 +170,11 @@ const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
     /* this routine assumes regular dimensions of the dataset */
 
     assert(data != NULL);
-
+    /*
+    for(int i=0; i< data->specs->ndims ; i++) {
+        printf("escdf_dataset_get_dimensions: dim[%d] = %d \n", i, data->dims[i]); fflush(stdout);
+    }
+    */
     return data->dims;
 }
 
@@ -364,7 +368,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
                 SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], &(dims[ii])));
 
                 
-                printf("escdf_dataset_new: read dim[%d] for %s. dim[%d] = %d.\n", ii, specs->name, ii, dims[ii] ); fflush(stdout); 
+                /* printf("escdf_dataset_new: read dim[%d] for %s. dim[%d] = %d.\n", ii, specs->name, ii, dims[ii] ); fflush(stdout); */
                 
             }
         }
@@ -383,7 +387,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     for(ii = 0; ii<ndims_effective; ii++) {
         data->dims[ii] = dims[ii];  
-        printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, data->dims[ii]); fflush(stdout); 
+        /* printf("escdf_dataset_new: created dims for %s: dim[%d] = %d \n",specs->name, ii, data->dims[ii]); fflush(stdout); */
     }
     
     free(dims);
@@ -586,7 +590,7 @@ void escdf_dataset_free(escdf_dataset_t *data)
 }
 
 
-escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf)
+escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, unsigned int *start, unsigned int *count, unsigned int *stride, void *buf)
 {
     escdf_errno_t err;
     _bool_set_t tmpb;
@@ -598,10 +602,10 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, hsize_t *start, hs
     char *tmpc;
 
     bool compact;
-    hsize_t start_compact[1];
-    hsize_t count_compact[1];
-    hsize_t stride_compact[1];
-    hsize_t *start_ptr, *count_ptr, *stride_ptr;
+    unsigned int start_compact[1];
+    unsigned int count_compact[1];
+    unsigned int stride_compact[1];
+    unsigned int *start_ptr, *count_ptr, *stride_ptr;
 
     assert(data != NULL);
     assert(buf != NULL);
@@ -670,7 +674,7 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
     unsigned int i;
 
     hid_t mem_type_id;
-    hsize_t *start, *count, *stride;
+    unsigned int *start, *count, *stride;
 
     char *tmpc;
 
@@ -699,9 +703,9 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
         H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
     }
 
-    start = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
-    count = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
-    stride = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    start = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
+    count = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
+    stride = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
     
     for(i=0; i<data->specs->ndims; i++) {
         start[i] = 0;
@@ -726,36 +730,33 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
     hid_t *attr_ptr;
 
     hid_t mem_type_id;
-    hsize_t *start, *count, *stride;
+    unsigned int *start, *count, *stride;
 
     assert(data != NULL);
 
     /* check that the dataset in the file is open */
 
+    /*
+    printf("escdf_dataset_write_simple: %s, ndims = %d, %s \n", data->specs->name, data->specs->ndims, data->specs->compact?"compact":"not compact"); fflush(stdout);
+    */
+
     if(data->dtset_id == ESCDF_UNDEFINED_ID) {
-        printf("dataset not opened.");
+        printf("dataset not opened."); fflush(stdout);
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
     if(!data->is_ordered) {
-        printf("disordered write not permitted in write_simple.");
+        printf("disordered write not permitted in write_simple."); fflush(stdout);
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
-    printf("escdf_dataset_write_simple: %s, ndims = %d, %s \n", data->specs->name, data->specs->ndims, data->specs->compact?"compact":"");
-
-    for(i=0; i<data->specs->ndims; i++) {
-
-        printf("dim[%d] = %d\n", i, data->dims[i]);
-    }
-
-    start =  (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
-	count =  (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
-   	stride = (hsize_t *) malloc(data->specs->ndims * sizeof(hsize_t));
+    start =  (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
+	count =  (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
+   	stride = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
 
     if(data->specs->compact) {
 
-        printf("escdf_dataset_write_simple: unsupported for compact storage.\n");
+        printf("escdf_dataset_write_simple: unsupported for compact storage.\n"); fflush(stdout);
 
         /* The question here is what data structure we expect in *buf? */
         /*
@@ -768,10 +769,14 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
     else {
     
 	    for(i=0; i<data->specs->ndims; i++) {
+
+            /* printf("escdf_datasets_write_simple: dims[%d] = %d\n",i, data->dims[i] ); */
+
     	    start[i] = 0;
     	    count[i] = data->dims[i];
     	    stride[i] = 1;
     	}
+        fflush(stdout);
 
     	/* printf("escdf_datasets_write_simple: data-type = %d\n",data->specs->datatype ); */
 
@@ -793,7 +798,7 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
 }
 
 
-escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, hsize_t *start, hsize_t *count, hsize_t *stride, void *buf)
+escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, unsigned int *start, unsigned int *count, unsigned int *stride, void *buf)
 {
     escdf_errno_t err;
     herr_t h5err;
@@ -804,10 +809,10 @@ escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, hsize_t *start, h
     hid_t mem_type_id;
 
     bool compact;
-    hsize_t start_compact[1];
-    hsize_t count_compact[1];
-    hsize_t stride_compact[1];
-    hsize_t *start_ptr, *count_ptr, *stride_ptr;
+    unsigned int start_compact[1];
+    unsigned int count_compact[1];
+    unsigned int stride_compact[1];
+    unsigned int *start_ptr, *count_ptr, *stride_ptr;
 
     assert(data != NULL);
 
@@ -913,7 +918,7 @@ escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data)
     char datatype_name[20], isSet[6];
 
     unsigned int *dims;
-    unsigned int *dims_from_specs;
+    const unsigned int *dims_from_specs;
 
     if( data == NULL ) {
 

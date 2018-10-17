@@ -105,7 +105,7 @@ static unsigned int scalar_uint = 1;
 static int scalar_int = 2;
 static double scalar_double = 3.0;
 static char scalar_string[30] = "test-string";
-static hsize_t dims[] = {2, 3};
+static unsigned int dims[] = {2, 3};
 static bool array_bool[2][3] = {{true, false, false},
                                 {false, true, true}};
 static unsigned int array_uint[2][3] = {{1, 2, 3},
