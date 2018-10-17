@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+ulimit s unlimited
 
 source /etc/profile.d/lmod.sh
 module load gnu/7  hdf5/1.10.1
