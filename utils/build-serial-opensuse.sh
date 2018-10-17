@@ -3,7 +3,7 @@
 ulimit s unlimited
 
 source /etc/profile.d/lmod.sh
-module load gnu/7  hdf5/1.10.1
+module load gnu/8  hdf5/1.10.3
    # Prepare source tree
 ./wipeout.sh
 ./autogen.sh
