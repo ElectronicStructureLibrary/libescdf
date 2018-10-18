@@ -465,7 +465,7 @@ void new_handle_setup(void)
 void new_handle_teardown(void)
 {
     escdf_close(escdf_handle);
-    /* unlink(TEST_FILE); */
+    unlink(TEST_FILE);
 }
 
 void new_group_setup(void)
@@ -479,6 +479,7 @@ void new_group_teardown(void)
 {
     escdf_group_free(group_system);
     group_system = NULL;
+    ck_assert(escdf_handle!=NULL);
     new_handle_teardown();
 }
 
@@ -516,6 +517,8 @@ START_TEST(test_group_attributes)
     printf("TEST_GROUP_ATTRIBUTES\n");
     printf("----------------------------------\n\n");
     fflush(stdout);
+    
+    ck_assert(group_system!=NULL);
 
     escdf_group_print_info(group_system);
 
