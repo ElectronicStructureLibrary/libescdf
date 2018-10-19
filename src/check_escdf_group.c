@@ -479,7 +479,6 @@ void new_group_teardown(void)
 {
     escdf_group_free(group_system);
     group_system = NULL;
-    ck_assert(escdf_handle!=NULL);
     new_handle_teardown();
 }
 

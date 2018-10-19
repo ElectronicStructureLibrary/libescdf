@@ -51,6 +51,11 @@ int main(void)
     srunner_add_suite(sr, make_grid_scalarfield_suite());
     */
 
+    /* dirty workaround for debian test suite */
+
+    void srunner_set_fork_status (sr, CK_NOFORK);
+
+    
     srunner_run_all(sr, CK_VERBOSE);
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
