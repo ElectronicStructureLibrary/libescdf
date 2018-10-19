@@ -53,7 +53,7 @@ int main(void)
 
     /* dirty workaround for debian test suite */
 
-    void srunner_set_fork_status (sr, CK_NOFORK);
+    srunner_set_fork_status (sr, CK_NOFORK);
 
     
     srunner_run_all(sr, CK_VERBOSE);
