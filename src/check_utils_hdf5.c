@@ -91,18 +91,9 @@ void utils_hdf5_setup(void)
         }
     }
 
-    /* printf("utils_hdf5_setup: create file:"); fflush(stdout); */
     file_id = H5Fcreate(CHKFILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    /* printf(" done.\n"); fflush(stdout); */
-
-    /* printf("utils_hdf5_setup: opening file:"); fflush(stdout); */
-    root_id = H5Gopen(file_id, ".", H5P_DEFAULT);
-    /* printf(" done.\n"); fflush(stdout); */
-    
-    /* printf("utils_hdf5_setup: create group:"); fflush(stdout); */
-    group_id = H5Gcreate(root_id, GROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    /* printf(" done.\n"); fflush(stdout); */
-    
+    root_id = H5Gopen(file_id, ".", H5P_DEFAULT);    
+    group_id = H5Gcreate(root_id, GROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);    
     subgroup_id = H5Gcreate(group_id, SUBGROUP, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     space_scalar_id = H5Screate(H5S_SCALAR);
@@ -171,15 +162,12 @@ void utils_hdf5_teardown(void)
 /* check_present */
 START_TEST(test_utils_hdf5_check_present_true)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_present_true.\n"); fflush(stdout);
-
     ck_assert(utils_hdf5_check_present(root_id, GROUP));
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_present_false)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_present_false.\n"); fflush(stdout);
     ck_assert(!utils_hdf5_check_present(root_id, "not_present"));
 }
 END_TEST
@@ -187,14 +175,12 @@ END_TEST
 /* check_present_recursive */
 START_TEST(test_utils_hdf5_check_present_recursive_true)
 {
-   printf("utils_hdf5_setup: test_utils_hdf5_check_present_recursive_true.\n"); fflush(stdout);
    ck_assert(utils_hdf5_check_present_recursive(root_id, GROUP"/"SUBGROUP));
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_present_recursive_false)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_present_recursive_false.\n"); fflush(stdout);
     ck_assert(!utils_hdf5_check_present_recursive(root_id, GROUP"/not_present"));
 }
 END_TEST
@@ -202,14 +188,12 @@ END_TEST
 /* check_present_attr */
 START_TEST(test_utils_hdf5_check_present_attr_true)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_present_attr_true.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_present_attr(group_id, ATTRIBUTE_DBL_S));
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_present_attr_false)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_present_attr_false.\n"); fflush(stdout);
     ck_assert(!utils_hdf5_check_present_attr(group_id, "not_present"));
 }
 END_TEST
@@ -217,7 +201,6 @@ END_TEST
 /* check_shape */
 START_TEST(test_utils_hdf5_check_shape_scalar_correct)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_shape_scalar_correct.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_shape(space_scalar_id, NULL, 0) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -225,7 +208,7 @@ END_TEST
 START_TEST(test_utils_hdf5_check_shape_array_correct)
 {
     unsigned int dims[2] = {3, 2};
-    printf("utils_hdf5_setup: test_utils_hdf5_check_shape_array_correct.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_shape(space_array_id, dims, 2) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -233,7 +216,7 @@ END_TEST
 START_TEST(test_utils_hdf5_check_shape_scalar_wrong_args)
 {
     unsigned int dims[1] = {2};
-    printf("utils_hdf5_setup: test_utils_hdf5_check_shape_scalar_wrong_args.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_shape(space_scalar_id, dims, 1) == ESCDF_ERROR);
 }
 END_TEST
@@ -241,7 +224,7 @@ END_TEST
 START_TEST(test_utils_hdf5_check_shape_array_wrong_args)
 {
     unsigned int dims[1] = {2};
-    printf("utils_hdf5_setup: test_utils_hdf5_check_shape_array_wrong_args.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_shape(space_array_id, dims, 1) == ESCDF_ERROR_DIM);
 
 }
@@ -249,14 +232,12 @@ END_TEST
 
 START_TEST(test_utils_hdf5_check_shape_no_class)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_shape_no_class.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_shape(group_id, NULL, 0) == ESCDF_ERROR_ARGS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_shape_wrong_class)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_shape_wrong_class.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_shape(space_null_id, NULL, 0) == ESCDF_ERROR_DIM);
 }
 END_TEST
@@ -264,14 +245,12 @@ END_TEST
 /* check_attr */
 START_TEST(test_utils_hdf5_check_attr_scalar)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_attr_scalar.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_S, NULL, 0, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_check_attr_array)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_attr_array.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_A, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -279,7 +258,7 @@ END_TEST
 START_TEST(test_utils_hdf5_check_attr_array_wrong)
 {
     unsigned int wrong_dims[2] = {1, 3};
-    printf("utils_hdf5_setup: test_utils_hdf5_check_attr_array_wrong.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_A, wrong_dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
@@ -287,7 +266,7 @@ END_TEST
 START_TEST(test_utils_hdf5_check_attr_ptr)
 {
     hid_t attr_id = 0;
-    printf("utils_hdf5_setup: test_utils_hdf5_check_attr_ptr.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_attr(group_id, ATTRIBUTE_DBL_S, NULL, 0, &attr_id) == ESCDF_SUCCESS);
     ck_assert(attr_id != 0);
     H5Aclose(attr_id);
@@ -297,7 +276,6 @@ END_TEST
 /* check_dataset */
 START_TEST(test_utils_hdf5_check_dataset)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_check_dataset.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -305,7 +283,7 @@ END_TEST
 START_TEST(test_utils_hdf5_check_dataset_wrong)
 {
     unsigned int wrong_dims[2] = {1, 3};
-    printf("utils_hdf5_setup: test_utils_hdf5_check_dataset_wrong.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, wrong_dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
@@ -313,7 +291,7 @@ END_TEST
 START_TEST(test_utils_hdf5_check_dataset_ptr)
 {
     hid_t dtset_id = 0;
-    printf("utils_hdf5_setup: test_utils_hdf5_check_dataset_ptr.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(dtset_id != 0);
     H5Dclose(dtset_id);
@@ -324,7 +302,7 @@ END_TEST
 START_TEST(test_utils_hdf5_read_attr_scalar)
 {
     double value = 0.0;
-    printf("utils_hdf5_setup: test_utils_hdf5_read_attr_scalar.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_attr(group_id, ATTRIBUTE_DBL_S, H5T_NATIVE_DOUBLE, NULL, 0, &value) == ESCDF_SUCCESS);
     ck_assert(value == dbl_scalar);
 }
@@ -333,7 +311,7 @@ END_TEST
 START_TEST(test_utils_hdf5_read_attr_string_scalar)
 {
     char string[20] = "";
-    printf("utils_hdf5_setup: test_utils_hdf5_read_attr_string_scalar.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_attr_string(group_id, ATTRIBUTE_STRING_S, 20, NULL, 0, string) == ESCDF_SUCCESS);
     ck_assert_str_eq(string, string_scalar);
 }
@@ -342,7 +320,7 @@ END_TEST
 START_TEST(test_utils_hdf5_read_attr_bool_scalar)
 {
     bool value = !bool_scalar;
-    printf("utils_hdf5_setup: test_utils_hdf5_read_attr_bool_scalar.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_attr_bool(group_id, ATTRIBUTE_BOOL_S, NULL, 0, &value) == ESCDF_SUCCESS);
     ck_assert(value == bool_scalar);
 }
@@ -352,7 +330,7 @@ START_TEST(test_utils_hdf5_read_uint)
 {
     _uint_set_t var;
     unsigned int range[] = {0,10};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_uint.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_uint(group_id, ATTRIBUTE_UINT_S, &var, range) == ESCDF_SUCCESS);
     ck_assert(var.is_set);
     ck_assert(var.value == uint_scalar);
@@ -363,7 +341,7 @@ START_TEST(test_utils_hdf5_read_int)
 {
     _int_set_t var;
     int range[] = {-10,10};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_int.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_int(group_id, ATTRIBUTE_INT_S, &var, range) == ESCDF_SUCCESS);
     ck_assert(var.is_set);
     ck_assert(var.value == int_scalar);
@@ -375,7 +353,7 @@ START_TEST(test_utils_hdf5_read_attr_array)
     double values[3][2] = {{0.0, 0.0},
                            {0.0, 0.0},
                            {0.0, 0.0}};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_attr_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_attr(group_id, ATTRIBUTE_DBL_A, H5T_NATIVE_DOUBLE, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert(values[0][0] == dbl_array[0][0]);
     ck_assert(values[0][1] == dbl_array[0][1]);
@@ -391,7 +369,7 @@ START_TEST(test_utils_hdf5_read_attr_string_array)
     char values[3][2][20] = {{"", ""},
                              {"", ""},
                              {"", ""}};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_attr_string_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_attr_string(group_id, ATTRIBUTE_STRING_A, 20, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert_str_eq(values[0][0], string_array[0][0]);
     ck_assert_str_eq(values[0][1], string_array[0][1]);
@@ -407,7 +385,7 @@ START_TEST(test_utils_hdf5_read_attr_bool_array)
     bool values[3][2]= {{true,  false},
                         {false, true},
                         {true,  true}};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_attr_bool_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_attr_bool(group_id, ATTRIBUTE_BOOL_A, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert(values[0][0] == bool_array[0][0]);
     ck_assert(values[0][1] == bool_array[0][1]);
@@ -422,7 +400,7 @@ START_TEST(test_utils_hdf5_read_uint_array)
 {
     unsigned int *values;
     unsigned int range[] = {0, 6};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_uint_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_uint_array(group_id, ATTRIBUTE_UINT_A, &values, dims, 2, range) == ESCDF_SUCCESS);
     ck_assert(values[0] == 1);
     ck_assert(values[1] == 2);
@@ -437,7 +415,7 @@ START_TEST(test_utils_hdf5_read_int_array)
 {
     int *values;
     int range[] = {-6, 6};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_int_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_int_array(group_id, ATTRIBUTE_INT_A, &values, dims, 2, range) == ESCDF_SUCCESS);
     ck_assert(values[0] == -1);
     ck_assert(values[1] ==  2);
@@ -452,7 +430,7 @@ START_TEST(test_utils_hdf5_read_dbl_array)
 {
     double *values;
     double range[] = {0.0, 7.0};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_dbl_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_read_dbl_array(group_id, ATTRIBUTE_DBL_A, &values, dims, 2, range) == ESCDF_SUCCESS);
     ck_assert(values[0] == 1.0);
     ck_assert(values[1] == 2.0);
@@ -469,7 +447,7 @@ START_TEST(test_utils_hdf5_read_dataset)
 {
     hid_t dtset_id = 0;
     double values[3][2];
-    printf("utils_hdf5_setup: test_utils_hdf5_read_dataset.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
     ck_assert(values[0][0] == 1.0);
@@ -488,7 +466,7 @@ START_TEST(test_utils_hdf5_read_dataset_sliced)
     double values[3];
     unsigned int start[2] = {0, 0};
     unsigned int count[2] = {3, 1};
-    printf("utils_hdf5_setup: test_utils_hdf5_read_dataset_sliced.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
     ck_assert(values[0] == 1.0);
@@ -506,14 +484,13 @@ START_TEST(test_utils_hdf5_read_dataset_at)
     hid_t dtset_id = 0;
     unsigned int number_of_points = 6;
     unsigned int coordinates[12] = {0, 0,
-                               1, 0,
-                               2, 0,
-                               0, 1,
-                               1, 1,
-                               2, 1};
+				    1, 0,
+				    2, 0,
+				    0, 1,
+				    1, 1,
+				    2, 1};
     double values[6];
 
-    printf("utils_hdf5_setup: test_utils_hdf5_read_dataset_at.\n"); fflush(stdout);
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
     
@@ -534,7 +511,7 @@ START_TEST(test_utils_hdf5_read_dataset_at_empty)
     unsigned int number_of_points = 0;
     double *values = NULL;
     unsigned int *coordinates = NULL;
-    printf("utils_hdf5_setup: test_utils_hdf5_read_dataset_at_empty.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_check_dataset(group_id, DATASET, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset_at(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, number_of_points, coordinates) == ESCDF_SUCCESS);
     ck_assert_ptr_eq(values, NULL);
@@ -545,7 +522,6 @@ END_TEST
 /* create_group */
 START_TEST(test_utils_hdf5_create_group)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_group.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_group(file_id, "somegroup", NULL) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -553,7 +529,7 @@ END_TEST
 START_TEST(test_utils_hdf5_create_group_ptr)
 {
     hid_t tmp_id = 0;
-    printf("utils_hdf5_setup: test_utils_hdf5_create_group_ptr.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_create_group(file_id, "somegroup", &tmp_id) == ESCDF_SUCCESS);
     ck_assert(tmp_id != 0);
     H5Gclose(tmp_id);
@@ -561,21 +537,18 @@ START_TEST(test_utils_hdf5_create_group_ptr)
 
 START_TEST(test_utils_hdf5_create_group_overwrite)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_group_overwrite.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_group(file_id, GROUP, NULL) == ESCDF_ERROR_ARGS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_create_group_existing_path)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_group_existing_path.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_group(file_id, "mygroup/somegroup", NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_create_group_non_existing_path)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_group_non_existing_path.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_group(file_id, "somegroup1/somegroup2", NULL) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -583,14 +556,12 @@ END_TEST
 /* create_attribute */
 START_TEST(test_utils_hdf5_create_attribute_scalar)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_attribute_scalar.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
 
 START_TEST(test_utils_hdf5_create_attribute_array)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_attribute_array.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -598,7 +569,7 @@ END_TEST
 START_TEST(test_utils_hdf5_create_attribute_ptr)
 {
     hid_t attr_id = 0;
-    printf("utils_hdf5_setup: test_utils_hdf5_create_attribute_ptr.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_create_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, &attr_id) == ESCDF_SUCCESS);
     ck_assert(attr_id != 0);
     H5Aclose(attr_id);
@@ -607,7 +578,6 @@ END_TEST
 
 START_TEST(test_utils_hdf5_create_attribute_existing)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_attribute_existing.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_attr(group_id, ATTRIBUTE_DBL_S, H5T_NATIVE_DOUBLE, NULL, 0, NULL) == ESCDF_ERROR);
 }
 END_TEST
@@ -615,7 +585,6 @@ END_TEST
 /* create_dataset */
 START_TEST(test_utils_hdf5_create_dataset)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_dataset.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, NULL) == ESCDF_SUCCESS);
 }
 END_TEST
@@ -623,7 +592,7 @@ END_TEST
 START_TEST(test_utils_hdf5_create_dataset_ptr)
 {
     hid_t dtset_id = 0;
-    printf("utils_hdf5_setup: test_utils_hdf5_create_dataset_ptr.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(dtset_id != 0);
     H5Dclose(dtset_id);
@@ -632,7 +601,6 @@ END_TEST
 
 START_TEST(test_utils_hdf5_create_dataset_existing)
 {
-    printf("utils_hdf5_setup: test_utils_hdf5_create_dataset_existing.\n"); fflush(stdout);
     ck_assert(utils_hdf5_create_dataset(group_id, DATASET, H5T_NATIVE_DOUBLE, dims, 2, NULL) == ESCDF_ERROR);
 }
 END_TEST
@@ -641,7 +609,7 @@ END_TEST
 START_TEST(test_utils_hdf5_write_attr_scalar)
 {
     double value = 0.;
-    printf("utils_hdf5_setup: test_utils_hdf5_write_attr_scalar.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, H5T_NATIVE_DOUBLE, &dbl_scalar) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, NULL, 0, &value) == ESCDF_SUCCESS);
     ck_assert(dbl_scalar == value);
@@ -651,7 +619,7 @@ END_TEST
 START_TEST(test_utils_hdf5_write_attr_bool_scalar)
 {
     bool value = !bool_scalar;
-    printf("utils_hdf5_setup: test_utils_hdf5_write_attr_bool_scalar.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_write_attr_bool(group_id, "someattribute", NULL, 0, &bool_scalar) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr_bool(group_id, "someattribute", NULL, 0, &value) == ESCDF_SUCCESS);
     ck_assert(value == bool_scalar);
@@ -661,7 +629,7 @@ END_TEST
 START_TEST(test_utils_hdf5_write_attr_string_scalar)
 {
     char string[20] = "";
-    printf("utils_hdf5_setup: test_utils_hdf5_write_attr_string_scalar.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_write_attr_string(group_id, "someattribute", 20, NULL, 0, string_scalar) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr_string(group_id, "someattribute", 20, NULL, 0, string) == ESCDF_SUCCESS);
     ck_assert_str_eq(string, string_scalar);
@@ -673,7 +641,7 @@ START_TEST(test_utils_hdf5_write_attr_array)
     double values[3][2] = {{0.0, 0.0},
                            {0.0, 0.0},
                            {0.0, 0.0}};
-    printf("utils_hdf5_setup: test_utils_hdf5_write_attr_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_write_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, H5T_NATIVE_DOUBLE, &dbl_array) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr(group_id, "someattribute", H5T_NATIVE_DOUBLE, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert(dbl_array[0][0] == values[0][0]);
@@ -691,7 +659,7 @@ START_TEST(test_utils_hdf5_write_attr_string_array)
     char values[3][2][20] = {{"", ""},
                              {"", ""},
                              {"", ""}};
-    printf("utils_hdf5_setup: test_utils_hdf5_write_attr_string_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_write_attr_string(group_id, "someattribute", 20, dims, 2, &string_array) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr_string(group_id, "someattribute", 20, dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert_str_eq(string_array[0][0], values[0][0]);
@@ -708,7 +676,7 @@ START_TEST(test_utils_hdf5_write_attr_bool_array)
     bool values[3][2]= {{true,  false},
                         {false, true},
                         {true,  true}};
-    printf("utils_hdf5_setup: test_utils_hdf5_write_attr_bool_array.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_write_attr_bool(group_id, "someattribute", dims, 2, &bool_array) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_attr_bool(group_id, "someattribute", dims, 2, &values) == ESCDF_SUCCESS);
     ck_assert(bool_array[0][0] == values[0][0]);
@@ -728,19 +696,10 @@ START_TEST(test_utils_hdf5_write_dataset)
                           {3.0, 4.0},
                           {5.0, 6.0}};
     double values[3][2];
-    fprintf(stderr,"utils_hdf5_setup: test_utils_hdf5_write_dataset.\n"); fflush(stdout);
-    fprintf(stderr, "   - create dataset: "); fflush(stdout);
+
     ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, &dtset_id) == ESCDF_SUCCESS);
-    fprintf(stderr,"done.\n"); fflush(stderr); fflush(stdout); 
-
-    fprintf(stderr,"   - write dataset: "); fflush(stdout);
     ck_assert(utils_hdf5_write_dataset(dtset_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
-    fprintf(stderr,"done.\n"); fflush(stderr); fflush(stdout); 
-
-    fprintf(stderr,"   - read dataset: "); fflush(stdout);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, NULL, NULL, NULL) == ESCDF_SUCCESS);
-    fprintf(stderr,"done.\n"); fflush(stderr); fflush(stdout); 
-
     ck_assert(array[0][0] == values[0][0]);
     ck_assert(array[0][1] == values[0][1]);
     ck_assert(array[1][0] == values[1][0]);
@@ -757,7 +716,7 @@ START_TEST(test_utils_hdf5_write_dataset_slice)
     double values[3];
     unsigned int start[2] = {0, 0};
     unsigned int count[2] = {3, 1};
-    printf("utils_hdf5_setup: test_utils_hdf5_write_dataset_slice.\n"); fflush(stdout);
+
     ck_assert(utils_hdf5_create_dataset(group_id, "somedataset", H5T_NATIVE_DOUBLE, dims, 2, &dtset_id) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_write_dataset(dtset_id, H5P_DEFAULT, &array, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
     ck_assert(utils_hdf5_read_dataset(dtset_id, H5P_DEFAULT, &values, H5T_NATIVE_DOUBLE, start, count, NULL) == ESCDF_SUCCESS);
