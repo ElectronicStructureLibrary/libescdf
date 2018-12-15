@@ -36,8 +36,6 @@ bool utils_hdf5_check_present(hid_t loc_id, const char *name)
 {
     htri_t bool_id;
 
-    /* printf("utils_hdf5_check_present: %s\n", name); fflush(stdout); */
-
     if ((bool_id = H5Lexists(loc_id, name, H5P_DEFAULT)) < 0 || !bool_id)
         return false;
 

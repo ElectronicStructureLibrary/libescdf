@@ -45,58 +45,58 @@
 #define ARRAY_STRING  13
 
 
-const escdf_attribute_specs_t specs_none = {
+static const escdf_attribute_specs_t specs_none = {
   NONE, "none", ESCDF_DT_NONE, 0, 0, NULL
 };
 
-const escdf_attribute_specs_t specs_scalar_bool = {
+static const escdf_attribute_specs_t specs_scalar_bool = {
   SCALAR_BOOL, "scalar_bool", ESCDF_DT_BOOL, 0, 0, NULL
 };
 
-const escdf_attribute_specs_t specs_scalar_uint = {
+static const escdf_attribute_specs_t specs_scalar_uint = {
   SCALAR_UINT, "scalar_uint", ESCDF_DT_UINT, 0, 0, NULL
 };
 
-const escdf_attribute_specs_t specs_scalar_int = {
+static const escdf_attribute_specs_t specs_scalar_int = {
   SCALAR_INT, "scalar_int", ESCDF_DT_INT, 0, 0, NULL
 };
 
-const escdf_attribute_specs_t specs_scalar_double = {
+static const escdf_attribute_specs_t specs_scalar_double = {
   SCALAR_DOUBLE, "scalar_double", ESCDF_DT_DOUBLE, 0, 0, NULL
 };
 
-const escdf_attribute_specs_t specs_scalar_string = {
+static const escdf_attribute_specs_t specs_scalar_string = {
   SCALAR_STRING, "scalar_string", ESCDF_DT_STRING, 30, 0, NULL
 };
 
 
-const escdf_attribute_specs_t specs_dim1 = {
+static const escdf_attribute_specs_t specs_dim1 = {
   DIM1, "dim1", ESCDF_DT_UINT, 0, 0, NULL
 };
 
-const escdf_attribute_specs_t specs_dim2 = {
+static const escdf_attribute_specs_t specs_dim2 = {
   DIM2, "dim2", ESCDF_DT_UINT, 0, 0, NULL
 };
 
-const escdf_attribute_specs_t *array_dims[] = {&specs_dim1, &specs_dim2};
+static const escdf_attribute_specs_t *array_dims[] = {&specs_dim1, &specs_dim2};
 
-const escdf_attribute_specs_t specs_array_bool = {
+static const escdf_attribute_specs_t specs_array_bool = {
   ARRAY_BOOL, "array_bool", ESCDF_DT_BOOL, 0, 2, array_dims
 };
 
-const escdf_attribute_specs_t specs_array_uint = {
+static const escdf_attribute_specs_t specs_array_uint = {
   ARRAY_UINT, "array_uint", ESCDF_DT_UINT, 0, 2, array_dims
 };
 
-const escdf_attribute_specs_t specs_array_int = {
+static const escdf_attribute_specs_t specs_array_int = {
   ARRAY_INT, "array_int", ESCDF_DT_INT, 0, 2, array_dims
 };
 
-const escdf_attribute_specs_t specs_array_double = {
+static const escdf_attribute_specs_t specs_array_double = {
   ARRAY_DOUBLE, "array_double", ESCDF_DT_DOUBLE, 0, 2, array_dims
 };
 
-const escdf_attribute_specs_t specs_array_string = {
+static const escdf_attribute_specs_t specs_array_string = {
   ARRAY_STRING, "array_string", ESCDF_DT_STRING, 30, 2, array_dims
 };
 
@@ -126,7 +126,7 @@ static escdf_attribute_t *attr = NULL;
  * Setup and teardown                                                         *
  ******************************************************************************/
 
-void file_setup(void)
+static void file_setup(void)
 {
     hid_t file_id, root_id;
 
@@ -152,14 +152,16 @@ void file_setup(void)
     utils_hdf5_write_attr_string(root_id, specs_array_string.name, specs_scalar_string.stringlength, dims, 2,
                                  array_string);
 
+    /* close file */
     H5Gclose(root_id);
     H5Fclose(file_id);
 
+    /* create handles */
     handle_r = escdf_open(FILE_R, NULL);
     handle_w = escdf_create(FILE_W, NULL);
 }
 
-void file_teardown(void)
+static void file_teardown(void)
 {
     escdf_close(handle_r);
     escdf_close(handle_w);
