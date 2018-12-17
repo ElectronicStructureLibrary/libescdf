@@ -157,14 +157,6 @@ bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t lo
     return utils_hdf5_check_present(loc_id, specs->name);
 }
 
-unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data)
-{
-    assert(data != NULL);
-
-    return data->specs->ndims;
-}
-
-
 const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
 {
     /* this routine assumes regular dimensions of the dataset */

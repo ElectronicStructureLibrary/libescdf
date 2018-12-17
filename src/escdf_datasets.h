@@ -120,15 +120,6 @@ typedef struct escdf_dataset escdf_dataset_t;
  */
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims);
 
-
-/**
- * @brief get number of dimensions (rank)
- * 
- * @param[in] data 
- * @return unsigned int 
- */
-unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data);
-
 /**
  * @brief get dimensions (array)
  * 
@@ -136,7 +127,6 @@ unsigned int escdf_dataset_get_number_of_dimensions(const escdf_dataset_t *data)
  * @return const hsize_t* 
  */
 const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
-
 
 /**
  * @brief query whether disordered storage is allowed
