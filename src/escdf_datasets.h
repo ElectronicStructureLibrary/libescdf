@@ -77,10 +77,11 @@ struct escdf_dataset_specs {
      * the reordering table specs are not necessary in the dataset_specs.
      * 
      *  const escdf_dataset_specs_t *reordering_table_specs;
-     */
-
-    
+     */    
 };
+
+size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
+
 
 /**
  * @brief Check whether specifications are present
@@ -90,26 +91,39 @@ struct escdf_dataset_specs {
  * @return true 
  * @return false 
  */
-
 bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id);
 
-size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
-
+/**
+ * @brief query whether disordered storage is allowed
+ * 
+ * @param[in] specs
+ * @return true 
+ * @return false 
+ */
+bool escdf_dataset_specs_disordered_storage_allowed(const escdf_dataset_specs_t *specs);
 
 /**
- *  The next two functions will be superceeded by 
- *  utils_hdf5_mem_type and utils_hdf5_disk_type. 
- **/
+ * @brief return whether compact storage is used.
+ * 
+ * @param[in] specs
+ * @return true 
+ * @return false 
+ */
+bool escdf_dataset_specs_is_compact(const escdf_dataset_specs_t *specs);
 
 
-/*
-hid_t escdf_dataset_specs_hdf5_mem_type(const escdf_dataset_specs_t *specs) {};
-
-hid_t escdf_dataset_specs_hdf5_disk_type(const escdf_dataset_specs_t *specs) {};
-*/
 
 
 typedef struct escdf_dataset escdf_dataset_t;
+
+/**
+ * @brief query whether data is stored in order
+ * 
+ * @param[in] data 
+ * @return true 
+ * @return false 
+ */
+bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
 
 /**
  * @brief Create a new dataset, based on specification specs and dimensions defind in the attributes attr_dims
@@ -129,34 +143,6 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
 
 /**
- * @brief query whether disordered storage is allowed
- * 
- * @param[in] data 
- * @return true 
- * @return false 
- */
-bool escdf_dataset_is_disordered_storage_allowed(const escdf_dataset_t *data);
-
-/**
- * @brief query whether data is stored in order
- * 
- * @param[in] data 
- * @return true 
- * @return false 
- */
-bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
-
-/**
- * @brief return whether compact storage is used.
- * 
- * @param[in] data 
- * @return true 
- * @return false 
- */
-bool escdf_dataset_is_compact(const escdf_dataset_t *data);
-
-
-/**
  * @brief set ordered flag
  * 
  * @param[inout] data 
@@ -173,7 +159,6 @@ escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered);
  * If the table is not set, this will return a NULL pointer.
  */
 int * escdf_dataset_get_reordering_table(const escdf_dataset_t *data);
-
 
 /**
  * @brief Set pointer to the dataset holding the reordering table.
@@ -208,7 +193,6 @@ hid_t escdf_dataset_get_dtset_id(const escdf_dataset_t *data);
  */
 hid_t escdf_dataset_get_type_id(const escdf_dataset_t *data);
 
-
 /**
  * @brief get the dataset name
  * 
@@ -224,13 +208,11 @@ const char * escdf_dataset_get_name(const escdf_dataset_t *data);
  */
 void escdf_dataset_free(escdf_dataset_t *data);
 
-
 /**
  * Create a dataset in the file:
  * 
  * This routine creates the dataset in the file and also writes the reordering table if necessary.
  */
-
 
 /**
  * @brief create a dataset
@@ -258,11 +240,9 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id);
  */
 escdf_errno_t escdf_dataset_close(escdf_dataset_t *data);
 
-
 escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf);
 
 escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf);
-
 
 /**
  * @brief read from dataset *data
