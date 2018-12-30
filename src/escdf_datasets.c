@@ -228,7 +228,6 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
             assert(attr_dims != NULL);
             for (ii = 0; ii < specs->ndims; ii++) {
                 assert(escdf_attribute_is_set(attr_dims[ii]));
-                assert(escdf_attribute_get_specs_id(attr_dims[ii]) == specs->dims_specs[ii]->id);
                 assert(specs->dims_specs[ii]->datatype == ESCDF_DT_UINT);
 
                 SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], &(dims[ii])));
@@ -653,7 +652,7 @@ escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data)
             
             for (i = 0; i < data->specs->ndims; i++) {
 
-		printf("  Dimensions (%i) = %s %s \n", i,  data->specs->dims_specs[i]->name, escdf_attribute_get_name(data->dims_attr[i]) );
+		printf("  Dimensions (%i) = %s \n", i,  data->specs->dims_specs[i]->name );
 
                 dims_from_specs = escdf_attribute_get_dimensions(data->dims_attr[i]);
 

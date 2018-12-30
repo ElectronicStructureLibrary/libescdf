@@ -75,15 +75,6 @@ hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs)
 typedef struct escdf_attribute escdf_attribute_t;
 
 /**
- * @brief check whether the attribute is present in a given location
- * 
- * @param[in]  escdf_attribute_t *, hid_t
- * @return bool 
- */
-bool escdf_attribute_is_present(const escdf_attribute_t *attr, hid_t loc_id);
-
-
-/**
  * @brief create a new attribute according to the specifications with given dimensions
  * 
  * @param[in]  escdf_attribute_specs_t *specs :  specifications
@@ -175,14 +166,6 @@ bool escdf_attribute_is_set(const escdf_attribute_t *attr);
  * @return int
  */
 int escdf_attribute_get_specs_id(const escdf_attribute_t *attr);
-
-/**
- * @brief get the attribute name
- * 
- * @param[in] attr 
- * @return const char* 
- */
-const char * escdf_attribute_get_name(const escdf_attribute_t *data);
 
 
 #ifdef __cplusplus

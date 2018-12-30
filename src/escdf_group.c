@@ -499,7 +499,7 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group)
 	        SUCCEED_OR_RETURN(escdf_group_attribute_new(group, iattr));
         }
 
-        if(escdf_attribute_is_present(group->attr[iattr], group->loc_id)) {       
+        if(escdf_attribute_specs_is_present(group->specs->attr_specs[iattr], group->loc_id)) {       
 	
 	        if (!escdf_attribute_is_set(group->attr[iattr])) {
 	            SUCCEED_OR_RETURN(escdf_attribute_read(group->attr[iattr], group->loc_id));

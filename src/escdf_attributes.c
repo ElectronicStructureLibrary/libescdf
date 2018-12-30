@@ -105,21 +105,6 @@ int escdf_attribute_specs_get_id(const escdf_attribute_specs_t *specs)
     return specs->id;
 }
 
-const char * escdf_attribute_get_name(const escdf_attribute_t *attr)
-{
-    assert(attr!=NULL);
-    return attr->specs->name;
-}
-
-bool escdf_attribute_is_present(const escdf_attribute_t *attr, hid_t loc_id)
-{
-    assert(attr != NULL);
-    assert(attr->specs != NULL);
-
-    return utils_hdf5_check_present_attr(loc_id, attr->specs->name);
-}
-
-
 
 escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, escdf_attribute_t **attr_dims)
 {
@@ -232,7 +217,6 @@ escdf_errno_t escdf_attribute_read(escdf_attribute_t *attr, hid_t loc_id)
 escdf_errno_t escdf_attribute_write(escdf_attribute_t *attr, hid_t loc_id)
 {
     escdf_errno_t err;
-    unsigned int i;
 
     assert(attr != NULL);
     assert(attr->is_set);
@@ -273,13 +257,6 @@ bool escdf_attribute_is_set(const escdf_attribute_t *attr)
   assert( attr != NULL );
 
   return attr->is_set;
-}
-
-int escdf_attribute_get_specs_id(const escdf_attribute_t *attr)
-{
-    assert( attr != NULL );
-
-    return attr->specs->id;
 }
 
 const unsigned int * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
