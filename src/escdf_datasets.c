@@ -120,52 +120,6 @@ bool escdf_dataset_specs_is_compact(const escdf_dataset_specs_t *specs) {
 }
 
 
-const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
-{
-    /* this routine assumes regular dimensions of the dataset */
-    assert(data != NULL);
-
-    return data->dims;
-}
-
-bool escdf_dataset_is_ordered(const escdf_dataset_t *data)
-{
-    assert(data != NULL);
-
-    return data->is_ordered;
-}
-
-escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered)
-{
-    if( !data->specs->disordered_storage_allowed && !ordered ) 
-        RETURN_WITH_ERROR(ESCDF_ERROR);
-
-    data->is_ordered = ordered;
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_datatransfer_t * escdf_dataset_get_datatransfer(const escdf_dataset_t * data)
-{
-    assert(data != NULL);
-
-    return data->transfer;
-}
-
-escdf_errno_t escdf_dataset_set_datatransfer(escdf_dataset_t *data, escdf_datatransfer_t *transfer)
-{
-    assert(data != NULL);
-
-    if(!data->specs->disordered_storage_allowed)
-        RETURN_WITH_ERROR(ESCDF_ERROR);
-
-    data->transfer = transfer;
-
-    data->is_ordered = false;
-
-    return ESCDF_SUCCESS;
-}
-
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims)
 {
     escdf_dataset_t *data = NULL;
@@ -242,7 +196,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     assert(data->dims != NULL);
 
-    for(ii = 0; ii<ndims_effective; ii++) {
+    for (ii = 0; ii<ndims_effective; ii++) {
         data->dims[ii] = dims[ii];  
     }
     
@@ -250,7 +204,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     data->dims_attr = (escdf_attribute_t**) malloc(data->specs->ndims * sizeof(escdf_attribute_t*));
 
-    for(ii=0; ii<data->specs->ndims; ii++) {
+    for (ii=0; ii<data->specs->ndims; ii++) {
         data->dims_attr[ii] = attr_dims[ii];
     }    
 
@@ -271,6 +225,63 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->xfer_id = ESCDF_UNDEFINED_ID;
    
     return data;
+}
+
+void escdf_dataset_free(escdf_dataset_t *data)
+{
+    if (data != NULL) {
+        free(data->dims);
+        free(data);
+    }
+}
+
+
+
+
+const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
+{
+    /* this routine assumes regular dimensions of the dataset */
+    assert(data != NULL);
+
+    return data->dims;
+}
+
+bool escdf_dataset_is_ordered(const escdf_dataset_t *data)
+{
+    assert(data != NULL);
+
+    return data->is_ordered;
+}
+
+escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered)
+{
+    if( !data->specs->disordered_storage_allowed && !ordered ) 
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+
+    data->is_ordered = ordered;
+
+    return ESCDF_SUCCESS;
+}
+
+escdf_datatransfer_t * escdf_dataset_get_datatransfer(const escdf_dataset_t * data)
+{
+    assert(data != NULL);
+
+    return data->transfer;
+}
+
+escdf_errno_t escdf_dataset_set_datatransfer(escdf_dataset_t *data, escdf_datatransfer_t *transfer)
+{
+    assert(data != NULL);
+
+    if(!data->specs->disordered_storage_allowed)
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+
+    data->transfer = transfer;
+
+    data->is_ordered = false;
+
+    return ESCDF_SUCCESS;
 }
 
 escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
@@ -349,14 +360,6 @@ escdf_errno_t escdf_dataset_close(escdf_dataset_t *data)
     FULFILL_OR_RETURN(utils_hdf5_close_dataset(data->dtset_id)==ESCDF_SUCCESS, ESCDF_ERROR);
 
     return ESCDF_SUCCESS;
-}
-
-void escdf_dataset_free(escdf_dataset_t *data)
-{
-    if (data != NULL) {
-        free(data->dims);
-        free(data);
-    }
 }
 
 escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, unsigned int *start, unsigned int *count, unsigned int *stride, void *buf)

@@ -135,6 +135,14 @@ bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims);
 
 /**
+ * @brief Free the memory of the dataset
+ * 
+ * @param data 
+ */
+void escdf_dataset_free(escdf_dataset_t *data);
+
+    
+/**
  * @brief get dimensions (array)
  * 
  * @param[in] data 
@@ -200,13 +208,6 @@ hid_t escdf_dataset_get_type_id(const escdf_dataset_t *data);
  * @return const char* 
  */
 const char * escdf_dataset_get_name(const escdf_dataset_t *data);
-
-/**
- * @brief Free the memory of the dataset
- * 
- * @param data 
- */
-void escdf_dataset_free(escdf_dataset_t *data);
 
 /**
  * Create a dataset in the file:
