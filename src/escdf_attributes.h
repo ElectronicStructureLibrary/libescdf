@@ -49,15 +49,16 @@ struct escdf_attribute_specs {
 /**
  * @brief get attribute size according to the specifications
  * 
- * @param[in]  escdf_attribute_specs_t *
- * @return const char* 
+ * @param[in]  const escdf_attribute_specs_t *
+ * @return size_t  
  */
 size_t escdf_attribute_specs_sizeof(const escdf_attribute_specs_t *specs);
 
 /**
  * @brief check whether the attribute specifications are present in a given location
  * 
- * @param[in]  escdf_attribute_specs_t *, hid_t
+ * @param[in]  const escdf_attribute_specs_t *specs : attribute specifications 
+ * @param[in]  hid_t loc_id: context
  * @return bool 
  */
 bool escdf_attribute_specs_is_present(const escdf_attribute_specs_t *specs, hid_t loc_id);
@@ -77,7 +78,7 @@ typedef struct escdf_attribute escdf_attribute_t;
 /**
  * @brief create a new attribute according to the specifications with given dimensions
  * 
- * @param[in]  escdf_attribute_specs_t *specs :  specifications
+ * @param[in]  const escdf_attribute_specs_t *specs :  specifications
  * @param[in]  escdf_attribute_t **attr_dims :   given dimensions
  * @return escdf_attribute_t * : pointer to new attribute
  */

@@ -24,6 +24,8 @@
 #include "../src/escdf_group.h"
 #include "../src/escdf_groups_specs.h"
 
+/* Comments: The above includes should be moved into the escdf.h header */
+
 
 int main() {
 
@@ -120,7 +122,9 @@ int main() {
 
 /********************************************************************/
 
-    escdf_register_all_group_specs();
+
+    /* Should this be moved into the escdf_create() call? */
+    escdf_register_all_group_specs(); 
 
     escdf_file = escdf_create("escdf-test.h5", NULL);
 
@@ -128,6 +132,8 @@ int main() {
 
     if(group_system == NULL) printf("Null pointer for group !!\n");
 
+
+    /* Should the setters and getters be more 'symmetric' in terms of handle and name parameters? */
     error = escdf_group_attribute_set(group_system, "number_of_physical_dimensions", &num_dims);
     printf("setting 'number_of_phycical dimensions' results in error = %d \n", error);
 
