@@ -104,7 +104,9 @@ escdf_gcov_post_tests = \
 escdf_memprof_tests = \
   test_memory
 
+if HAVE_CHECK
 check_PROGRAMS = $(escdf_basic_tests)
+endif
 nodist_check_SCRIPTS = \
   $(escdf_gcov_pre_tests) \
   $(escdf_gcov_post_tests) \
@@ -132,11 +134,13 @@ check_escdf_LDFLAGS = @escdf_check_ldflags@
 check_escdf_LDADD = -lescdf $(LIBS_COVERAGE) @escdf_check_libs@
 check_escdf_DEPENDENCIES = libescdf.la
 
+if HAVE_CHECK
 TESTS = \
   $(escdf_gcov_pre_tests) \
   $(escdf_basic_tests) \
   $(escdf_gcov_post_tests) \
   $(escdf_memprof_tests)
+endif
 
                     # ------------------------------------ #
 
@@ -147,7 +151,6 @@ TESTS = \
 -include gcov-tests-deps.mf
 
                     # ------------------------------------ #
-
 #
 # Clean targets
 #

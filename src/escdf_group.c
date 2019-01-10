@@ -22,7 +22,9 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#ifdef HAVE_CHECK_H
 #include <check.h>
+#endif
 
 #include "escdf_group.h"
 /* #include "escdf_groups_specs.h" */
@@ -717,7 +719,9 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 
     for(i=0; i<ndims; i++) {
         unsigned int d;
+#ifdef HAVE_CHECK_H
         ck_assert(escdf_attribute_get(dims[i], &d) == ESCDF_SUCCESS);
+#endif
         /* printf("_escdf_group_dataset_new:  dims[%d] = %lld\n",i,d); */
     }
 

@@ -132,4 +132,5 @@ AC_DEFUN([ESCDF_SEARCH_CHECK],[
   AC_SUBST(escdf_check_incs)
   AC_SUBST(escdf_check_ldflags)
   AC_SUBST(escdf_check_libs)
+  AM_CONDITIONAL([HAVE_CHECK], [test x$escdf_check_has_hdrs == xyes])
 ]) # ESCDF_SEARCH_CHECK
