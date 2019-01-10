@@ -190,11 +190,15 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
                 assert(specs->dims_specs[ii]->datatype == ESCDF_DT_UINT);
 
                 if (specs->dims_specs[ii]->ndims) {
-                    unsigned int *at_dims = (unsigned int*) malloc(specs->dims_specs[ii]->ndims * sizeof(unsigned int));
+                    size_t attr_size = escdf_attribute_sizeof(attr_dims[ii]);
+                    unsigned int *at_dims = (unsigned int*) malloc(attr_size);
                     SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], at_dims));
+                    /* In the 1D attribute case, we currently implement only
+                       the product of values, but later on we may need to
+                       introduce more reductions like summation or maximum. */
                     dims[ii] = 1;
-                    for (j = 0; j < specs->dims_specs[ii]->ndims; j++)
-                        dims[ii] += at_dims[j];
+                    for (j = 0; j < attr_size / sizeof(unsigned int); j++)
+                        dims[ii] *= at_dims[j];
                     free(at_dims);
                 } else {
                     SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], &(dims[ii])));
