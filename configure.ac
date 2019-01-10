@@ -547,6 +547,7 @@ AC_CONFIG_FILES([
   Makefile
   config/data/escdf.pc
   doc/Makefile
+  examples/Makefile
   src/Makefile
   src/gcov_check_coverage
   src/gcov_clean

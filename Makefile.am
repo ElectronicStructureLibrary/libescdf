@@ -29,7 +29,7 @@ AM_DISTCHECK_CONFIGURE_FLAGS = \
   --without-mpi
 
 # Build targets are expected to be in subdirectories
-SUBDIRS = src doc
+SUBDIRS = src doc examples
 
 # TODO: write script to generated the environment module
 # Files to install for the Environment Modules
