@@ -37,7 +37,7 @@
   },
   { 
     "Name" : "dimension_type", 
-    "Data_type" : "ESCDF_DT_INT", 
+    "Data_type" : "ESCDF_DT_UINT",
     "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ],
     "Range" : [0,2],
     "Description" : [ "This is a list defining the periodicity of the system in each of the directions given by the lattice_vectors. Valid options are: ",
@@ -123,25 +123,24 @@
   },
   {
     "Name" : "number_of_grid_points", 
-    "Data_type" : "ESCDF_DT_INT", 
+    "Data_type" : "ESCDF_DT_UINT",
     "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ],
-    "Range" : [0,1e6],
     "Description" : [ "Defines the number of grid points in every directions" ],
     "Disordered_Allowed" : "No",
     "Optional" : "no"
   },
   {
     "Name" : "number_of_components", 
-    "Data_type" : "ESCDF_DT_INT", 
+    "Data_type" : "ESCDF_DT_UINT",
     "Dimensions": 0,
     "Range" : [1,4],
     "Description" : [ "For a scalarfield, provides the number of components, like spin-up, spin-down for a colinear density." ]
   },
   {
     "Name" : "real_or_complex", 
-    "Data_type" : "ESCDF_DT_INT", 
+    "Data_type" : "ESCDF_DT_UINT",
     "Dimensions": 0,
-    "Range" : [0,1],
+    "Range" : [1,2],
     "Description" : [ "either we use one or to values to represent a real or a complex number." ]
   }
   ],
@@ -199,7 +198,7 @@
     "Name" : "values_on_grid",
     "Data_type" : "ESCDF_DT_DOUBLE",
     "Dimensions" : 3,
-      "Dims_definitions" : [ "number_of_components", "number_of_grid_points", "real_or_complex" ],
+    "Dims_definitions" : [ "number_of_components", "number_of_grid_points", "real_or_complex" ],
     "Description" : ["The values on a grid."]
   }
   ],
