@@ -122,12 +122,27 @@
     "Optional" : "no"
   },
   {
-    "Name" : "grid_dims",
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions" : 1,
-    "Dims_definitions" : ["number_of_physical_dimensions"],
+    "Name" : "number_of_grid_points", 
+    "Data_type" : "ESCDF_DT_INT", 
+    "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ],
+    "Range" : [0,1e6],
+    "Description" : [ "Defines the number of grid points in every directions" ],
     "Disordered_Allowed" : "No",
-    "Description" : ["Size of grid dimensions"]
+    "Optional" : "no"
+  },
+  {
+    "Name" : "number_of_components", 
+    "Data_type" : "ESCDF_DT_INT", 
+    "Dimensions": 0,
+    "Range" : [1,4],
+    "Description" : [ "For a scalarfield, provides the number of components, like spin-up, spin-down for a colinear density." ]
+  },
+  {
+    "Name" : "real_or_complex", 
+    "Data_type" : "ESCDF_DT_INT", 
+    "Dimensions": 0,
+    "Range" : [0,1],
+    "Description" : [ "either we use one or to values to represent a real or a complex number." ]
   }
   ],
   "Datasets" :
@@ -179,6 +194,13 @@
     "Disordered_Allowed" : "No",
     "Description" : ["The atomic number for each species. This could be non-integer for a number of reasons (e.g., a VCA atom), or zero (e.g., an empty site).",
                      "In such cases we recommend using species_names to clarify the nature of the site"]
+  },
+  {
+    "Name" : "values_on_grid",
+    "Data_type" : "ESCDF_DT_DOUBLE",
+    "Dimensions" : 3,
+      "Dims_definitions" : [ "number_of_components", "number_of_grid_points", "real_or_complex" ],
+    "Description" : ["The values on a grid."]
   }
   ],
   "Groups" :
@@ -212,9 +234,14 @@
     "Attributes" : [
       "number_of_physical_dimensions",
       "dimension_type",
-      "lattice_vectors"
+      "lattice_vectors",
+      "number_of_grid_points",
+      "number_of_components",
+      "real_or_complex"  
     ],
-    "Datasets" : []
+    "Datasets" : [
+      "values_on_grid"
+    ]
   }
  ] 
 }
