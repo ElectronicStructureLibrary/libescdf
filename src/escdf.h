@@ -30,6 +30,11 @@ extern "C" {
 
 /* #include "escdf_system.h" */
 
+//#include "escdf_groups_specs.h"
+
+void escdf_init();
+
+
 #ifdef __cplusplus
 }
 #endif

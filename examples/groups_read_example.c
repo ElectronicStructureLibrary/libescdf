@@ -23,8 +23,13 @@
 
 #include <assert.h>
 
+/*
 #include "../src/escdf_group.h"
 #include "../src/escdf_groups_specs.h"
+*/
+
+#include "../src/escdf.h"
+
 
 
 int main() {
@@ -64,7 +69,9 @@ int main() {
     int *tmp_int;
 
 
-    escdf_register_all_group_specs();
+    /* escdf_register_all_group_specs(); */
+
+    escdf_init();
 
 
     escdf_file = escdf_open("escdf-test.h5", NULL);

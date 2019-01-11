@@ -21,8 +21,12 @@
  */
 
 
+/*
 #include "../src/escdf_group.h"
 #include "../src/escdf_groups_specs.h"
+*/
+
+#include "../src/escdf.h"
 
 /* Comments: The above includes should be moved into the escdf.h header */
 
@@ -123,9 +127,12 @@ int main() {
 /********************************************************************/
 
 
-    /* Should this be moved into the escdf_create() call? */
+    /* Should this be moved into the escdf_create() call? 
     escdf_register_all_group_specs(); 
+    */
 
+    escdf_init();
+    
     escdf_file = escdf_create("escdf-test.h5", NULL);
 
     group_system = escdf_group_create(escdf_file, "system", NULL); 

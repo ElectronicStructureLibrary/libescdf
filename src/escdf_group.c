@@ -50,7 +50,7 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     known_group_specs[n_known_specs] = specs;
     n_known_specs++;
 
-    /*
+#ifdef DEBUG
     printf("Registering group %d, %s: %d %d\n", specs->group_id, specs->root, specs->nattributes, specs->ndatasets);
     
     for(i=0; i<specs->nattributes; i++) printf("   attribute %d: %s, %d %d %d \n",
@@ -63,7 +63,7 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
         specs->data_specs[i]->disordered_storage_allowed?"yes":"no");
 
     fflush(stdout);
-    */
+#endif
 
     return ESCDF_SUCCESS;
 }
