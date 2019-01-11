@@ -1,3 +1,4 @@
+import sys
 import json
 from pprint import pprint
 from collections import Counter
@@ -69,7 +70,7 @@ def write_ID_file(x, type):
 
 # Load input attributes definition file and transfer to dictionary.
 
-definitions_file = open('attributes_def.json','r')
+definitions_file = open(sys.argv[1],'r')
 definitions      = json.load(definitions_file)
 definitions_file.close()
 
