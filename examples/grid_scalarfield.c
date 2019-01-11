@@ -27,15 +27,44 @@
 #include <mpi.h>
 
 #define HAVE_MPI 1
-#include <escdf_grid_scalarfields.h>
+#include <escdf_group.h>
+#include <escdf_datasets.h>
+#include <escdf_groups_specs.h>
+
+unsigned int _get_start(int iproc, int nproc, unsigned int len)
+{
+    unsigned long long int *proclens;
+    unsigned long long int len_;
+    unsigned int my_offset;
+    hsize_t nValues, nGridPoints;
+    int i;
+
+    proclens = malloc(sizeof(unsigned long long int) * nproc);
+    len_ = (unsigned long long int)len;
+    if (nproc == 1) {
+        proclens[0] = len_;
+    } else {
+        MPI_Allgather(&len_, 1, MPI_UNSIGNED_LONG_LONG,
+                      proclens, 1, MPI_UNSIGNED_LONG_LONG, MPI_COMM_WORLD);
+    }
+
+    my_offset = 0;
+    for (i = 0; i < iproc; i++) {
+        my_offset += proclens[i];
+    }
+    free(proclens);
+
+    return my_offset;
+}
 
 int main(int argc, char **argv)
 {
     escdf_handle_t *file_id;
     escdf_errno_t err;
-    escdf_grid_scalarfield_t *scalarfield;
-#define NDIMS 3
-    escdf_direction_type dirarr[3];
+    escdf_group_t *scalarfield;
+    escdf_dataset_t *scalarfield_dens, *scalarfield_ord;
+    const unsigned int NDIMS = 3;
+    int dirarr[3];
     unsigned int uarr[3], uval, *xyz2zyx, nvals;
     double lattice[3 * 3];
     char *filename;
@@ -43,14 +72,16 @@ int main(int argc, char **argv)
     int iproc, nproc;
     hsize_t slice, i, j, x, y, z, x0, nx;
     double *dens, rx, ry, rz, fac, wallt;
-#define NCOMP 2
-#define NSIZE_X 200
-#define NSIZE_Y ((NDIMS > 1) ? 100 : 1)
-#define NSIZE_Z ((NDIMS > 2) ? 300 : 1)
+#define ESCDF_DIRECTION_FREE 0
+    const unsigned int NCOMP = 2;
+    const unsigned int ESCDF_REAL = 1;
+#define NSIZE_X 2
+#define NSIZE_Y ((NDIMS > 1) ? 1 : 1)
+#define NSIZE_Z ((NDIMS > 2) ? 3 : 1)
 #define NDATA NSIZE_X * NSIZE_Y * NSIZE_Z
 
 #define SINGLE_FILE true
-#define NRETRY 10
+#define NRETRY 1
 
     struct timespec begin, end;
 
@@ -58,6 +89,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &iproc);
     MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+
+    escdf_register_all_group_specs();
 
     /*****************************************************/
     /* Create a gaussian density per slice of yz planes. */
@@ -120,48 +153,57 @@ int main(int argc, char **argv)
       fprintf(stderr, "Data size: %g MB\n", 8. * nx * NSIZE_Y * NSIZE_Z * NCOMP / 1024. / 1024.);
     }
     
-    /**************************************/
-    /* Create a ESCDF scalarfield object. */
-    /**************************************/
-    scalarfield = escdf_grid_scalarfield_new(NULL);
-
-    escdf_grid_scalarfield_set_number_of_physical_dimensions(scalarfield, NDIMS);
-    dirarr[0] = ESCDF_DIRECTION_FREE;
-    dirarr[1] = ESCDF_DIRECTION_FREE;
-    dirarr[2] = ESCDF_DIRECTION_FREE;
-    escdf_grid_scalarfield_set_dimension_types(scalarfield, dirarr, NDIMS);
-    escdf_grid_scalarfield_set_lattice_vectors(scalarfield, lattice, NDIMS * NDIMS);
-    uarr[0] = (SINGLE_FILE) ? NSIZE_X : nx;
-    uarr[1] = NSIZE_Y;
-    uarr[2] = NSIZE_Z;
-    escdf_grid_scalarfield_set_number_of_grid_points(scalarfield, uarr, NDIMS);
-    escdf_grid_scalarfield_set_number_of_components(scalarfield, NCOMP);
-    escdf_grid_scalarfield_set_real_or_complex(scalarfield, ESCDF_REAL);
-    escdf_grid_scalarfield_set_use_default_ordering(scalarfield, false);
-
-    wallt = 0.;
-    for (i = 0; i < NRETRY; i++) {
-      /* Create a new file. */
-      if (SINGLE_FILE) {
+    /* Create a new file. */
+    if (SINGLE_FILE) {
         file_id = escdf_create_mpi("grid_scalarfield.h5", NULL, MPI_COMM_WORLD);
-      } else {
+    } else {
         filename = malloc(sizeof(char) *
                           (snprintf(NULL, 0, "grid_scalarfield.%04d.h5", iproc) + 1));
         sprintf(filename, "grid_scalarfield.%04d.h5", iproc);
         file_id = escdf_create(filename, NULL);
         free(filename);
-      }
-      if (file_id == NULL) {
+    }
+    if (file_id == NULL) {
         escdf_error_show(escdf_error_get_last(__func__), __FILE__, __LINE__, __func__);
         return escdf_error_get_last(__func__);
-      }
+    }
 
-      err = escdf_grid_scalarfield_write_metadata(scalarfield, file_id);
-      if (err != ESCDF_SUCCESS) {
-        escdf_error_show(err, __FILE__, __LINE__, __func__);
-        return err;
-      }
-    
+    /**************************************/
+    /* Create a ESCDF scalarfield object. */
+    /**************************************/
+    scalarfield = escdf_group_create(file_id, "density", NULL);
+    if (scalarfield == NULL) {
+        escdf_error_show(escdf_error_get_last(__func__), __FILE__, __LINE__, __func__);
+        return escdf_error_get_last(__func__);
+    }
+
+    escdf_group_attribute_set(scalarfield, "number_of_physical_dimensions", &NDIMS);
+    dirarr[0] = ESCDF_DIRECTION_FREE;
+    dirarr[1] = ESCDF_DIRECTION_FREE;
+    dirarr[2] = ESCDF_DIRECTION_FREE;
+    escdf_group_attribute_set(scalarfield, "dimension_types", dirarr);
+    escdf_group_attribute_set(scalarfield, "lattice_vectors", lattice);
+    uarr[0] = (SINGLE_FILE) ? NSIZE_X : nx;
+    uarr[1] = NSIZE_Y;
+    uarr[2] = NSIZE_Z;
+    escdf_group_attribute_set(scalarfield, "number_of_grid_points", uarr);
+    escdf_group_attribute_set(scalarfield, "number_of_components", &NCOMP);
+    escdf_group_attribute_set(scalarfield, "real_or_complex", &ESCDF_REAL);
+    scalarfield_dens = escdf_group_dataset_create_disordered(scalarfield, "values_on_grid");
+    if (scalarfield_dens == NULL) {
+        escdf_error_show(escdf_error_get_last(__func__), __FILE__, __LINE__, __func__);
+        return escdf_error_get_last(__func__);
+    }
+    scalarfield_ord = escdf_dataset_get_ordering(scalarfield_dens);
+    if (scalarfield_ord == NULL) {
+        escdf_error_show(escdf_error_get_last(__func__), __FILE__, __LINE__, __func__);
+        return escdf_error_get_last(__func__);
+    }
+
+    wallt = 0.;
+    for (i = 0; i < NRETRY; i++) {
+      size_t start[3];
+      size_t count[3];
       /**************************************************************/
       /* Write the density slices, providing only slices of data and
          slice sizes, additionally, the density is stored z last so a
@@ -170,14 +212,22 @@ int main(int argc, char **argv)
       /**************************************************************/
       MPI_Barrier(MPI_COMM_WORLD);
       clock_gettime(CLOCK_REALTIME, &begin);
-      err = escdf_grid_scalarfield_write_values_on_grid_sliced
-        (scalarfield, file_id, dens, xyz2zyx, nx * NSIZE_Y * NSIZE_Z);
+      start[0] = 0;
+      start[1] = _get_start(iproc, nproc, nx * NSIZE_Y * NSIZE_Z);
+      start[2] = 0;
+      count[0] = NCOMP;
+      count[1] = nx * NSIZE_Y * NSIZE_Z;
+      count[2] = 1;
+      err = escdf_dataset_write(scalarfield_dens, start, count, NULL, dens);
       if (err != ESCDF_SUCCESS) {
         escdf_error_show(err, __FILE__, __LINE__, __func__);
         return err;
       }
-
-      escdf_close(file_id);
+      err = escdf_dataset_write(scalarfield_ord, start + 1, count + 1, NULL, xyz2zyx);
+      if (err != ESCDF_SUCCESS) {
+        escdf_error_show(err, __FILE__, __LINE__, __func__);
+        return err;
+      }
 
       MPI_Barrier(MPI_COMM_WORLD);
       clock_gettime(CLOCK_REALTIME, &end);
@@ -189,9 +239,10 @@ int main(int argc, char **argv)
     /***********/
     /* Cleanup */
     /***********/
-    free(dens);
     free(xyz2zyx);
-    escdf_grid_scalarfield_free(scalarfield);
+    escdf_dataset_close(scalarfield_dens);
+    escdf_group_close(scalarfield);
+    escdf_close(file_id);
     
     if (iproc == 0) {
       fprintf(stderr, "Wall time: %g s\n", wallt / NRETRY);
@@ -220,10 +271,9 @@ int main(int argc, char **argv)
         return escdf_error_get_last(__func__);
       }
 
-      /* Read it meta data. */
-      scalarfield = escdf_grid_scalarfield_new(NULL);
-      err = escdf_grid_scalarfield_read_metadata(scalarfield, file_id);
-      if (err != ESCDF_SUCCESS) {
+      /* Read its meta data. */
+      scalarfield = escdf_group_open(file_id, "density", NULL);
+      if (!scalarfield) {
         escdf_error_show(err, __FILE__, __LINE__, __func__);
         return err;
       }
@@ -232,7 +282,7 @@ int main(int argc, char **argv)
       dens = malloc(sizeof(double) * nx * NSIZE_Y * NSIZE_Z * NCOMP);
       MPI_Barrier(MPI_COMM_WORLD);
       clock_gettime(CLOCK_REALTIME, &begin);
-      err = escdf_grid_scalarfield_read_values_on_grid_sliced
+      err = escdf_group_dataset_read_at
         (scalarfield, file_id, dens, NULL, nx * NSIZE_Y * NSIZE_Z);
       if (err != ESCDF_SUCCESS) {
         escdf_error_show(err, __FILE__, __LINE__, __func__);
@@ -258,7 +308,6 @@ int main(int argc, char **argv)
     /***********/
     free(dens);
     /* free(xyz2zyx); */
-    escdf_grid_scalarfield_free(scalarfield);    
 
     MPI_Finalize();
 
