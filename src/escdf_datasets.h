@@ -243,7 +243,7 @@ escdf_errno_t escdf_dataset_close(escdf_dataset_t *data);
 
 escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf);
 
-escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf);
+escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf);
 
 /**
  * @brief read from dataset *data
@@ -267,7 +267,7 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, unsigned int *star
  * @param buf 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, unsigned int *start, unsigned int *count, unsigned int *stride, void *buf);
+escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const unsigned int *start, const unsigned int *count, const unsigned int *stride, const void *buf);
 
 /**
  * @brief dump basic data to screen 

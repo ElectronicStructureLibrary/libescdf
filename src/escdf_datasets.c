@@ -458,7 +458,7 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
+escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
 {
     unsigned int i;
     hid_t mem_type_id;
@@ -508,7 +508,7 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, void *buf)
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, unsigned int *start, unsigned int *count, unsigned int *stride, void *buf)
+escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const unsigned int *start, const unsigned int *count, const unsigned int *stride, const void *buf)
 {
     escdf_errno_t err;
     hid_t mem_type_id;
@@ -516,7 +516,7 @@ escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, unsigned int *sta
     unsigned int start_compact[1];
     unsigned int count_compact[1];
     unsigned int stride_compact[1];
-    unsigned int *start_ptr, *count_ptr, *stride_ptr;
+    const unsigned int *start_ptr, *count_ptr, *stride_ptr;
 
     assert(data != NULL);
 

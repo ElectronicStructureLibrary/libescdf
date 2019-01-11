@@ -516,7 +516,7 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group)
 
 
 
-escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attribute_name, void* buf)
+escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attribute_name, const void* buf)
 {
     unsigned int iattr, i;
     bool attr_found = false;

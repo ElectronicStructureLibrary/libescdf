@@ -120,6 +120,14 @@
     "Dimensions" :  0 ,
     "Description" : ["Is time-reversal symmetry present?"],
     "Optional" : "no"
+  },
+  {
+    "Name" : "grid_dims",
+    "Data_type" : "ESCDF_DT_UINT",
+    "Dimensions" : 1,
+    "Dims_definitions" : ["number_of_physical_dimensions"],
+    "Disordered_Allowed" : "No",
+    "Description" : ["Size of grid dimensions"]
   }
   ],
   "Datasets" :

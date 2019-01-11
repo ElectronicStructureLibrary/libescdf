@@ -251,14 +251,14 @@ const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group
  * @param[in] buf: data to be written
  * @return error code
  */
-escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attribute_name, void* buf);
+escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attribute_name, const void* buf);
 
 /**
  * @brief This routine gets the value of an attribute by name.
  *
- * @param[in] group: pointer to the group in which to look for the attribute
- * @param[in] attribute_nam: attribute name
- * @param[in] buf: data to be written
+ * @param[in] escdf_group_t* group: pointer to the group in which to look for the attribute
+ * @param[in] const char* attribute_nam: attribute name
+ * @param[in] const void* buf: data to be written
  * @return error code
  */
 escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attribute_name, void* buf);

@@ -657,8 +657,8 @@ START_TEST(test_group_datasets)
 
     for(i=0; i<num_sites; i++) {
         
-        printf("positions[%d]      = (%7.3f, %7.3f, %7.3f); \n", positions[i][0], positions[i][1], positions[i][2]);
-        printf("read_positions[%d] = (%7.3f, %7.3f, %7.3f); \n", read_positions[i][0], read_positions[i][1], read_positions[i][2]);
+        printf("positions[%d]      = (%7.3f, %7.3f, %7.3f); \n", i, positions[i][0], positions[i][1], positions[i][2]);
+        printf("read_positions[%d] = (%7.3f, %7.3f, %7.3f); \n", i, read_positions[i][0], read_positions[i][1], read_positions[i][2]);
         
         ck_assert( vec_equal(positions[i], read_positions[i] ) );
         
