@@ -1,7 +1,10 @@
-EXTRA_PROGRAMS = grid groups_example groups_read_example
+EXTRA_PROGRAMS = grid groups_example groups_read_example density
 
 grid_SOURCES = grid_scalarfield.c
 grid_LDADD = $(top_builddir)/src/libescdf.la
+
+density_SOURCES = density_example.c
+density_LDADD = $(top_builddir)/src/libescdf.la
 
 groups_example_SOURCES = groups_example.c
 groups_example_LDADD = $(top_builddir)/src/libescdf.la
