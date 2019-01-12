@@ -51,7 +51,7 @@ struct escdf_dataset {
      * @brief Dimensions: array holding the number of elements in each dimension.
      * 
      */
-    unsigned int *dims;
+    size_t *dims;
 
     /**
      * @brief dims_attr is an array of pointers to the attributes defining the dimensions of the dataset
@@ -63,7 +63,7 @@ struct escdf_dataset {
      * 
      * Whether or not this compact storage is used, is determined by compact.
      */
-    unsigned int *index_array; /* only used for compact storage */
+    size_t *index_array; /* only used for compact storage */
 
     /**
      * @brief re-ordering table
@@ -126,7 +126,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     escdf_errno_t error;
     unsigned int ii, j;
     unsigned int dims0;
-    unsigned int *dims;
+    size_t *dims;
     unsigned int *dims1;
     unsigned int ndims_effective;
 
@@ -154,12 +154,12 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
             ndims_effective = 1;
             error = escdf_attribute_get(attr_dims[0], &dims0);
 
-            dims =  (unsigned int*) malloc(ndims_effective * sizeof(unsigned int));
+            dims =  (size_t*) malloc(ndims_effective * sizeof(size_t));
             dims1 = (unsigned int*) malloc(escdf_attribute_sizeof(attr_dims[1])); 
 
             error = escdf_attribute_get(attr_dims[1], dims1);
 
-            data->index_array = (unsigned int*) malloc((dims0 * sizeof(unsigned int)));
+            data->index_array = (size_t*) malloc((dims0 * sizeof(size_t)));
 
             for (ii=0, j=0; ii<dims0; ii++) {
                 data->index_array[ii] = j;
@@ -177,7 +177,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
         ndims_effective = specs->ndims;
 
         if (ndims_effective > 0) {
-            dims = (unsigned int*) malloc(ndims_effective * sizeof(unsigned int));
+            dims = (size_t*) malloc(ndims_effective * sizeof(size_t));
 
             assert(attr_dims != NULL);
             for (ii = 0; ii < specs->ndims; ii++) {
@@ -185,7 +185,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
                 assert(specs->dims_specs[ii]->datatype == ESCDF_DT_UINT);
 
                 if (specs->dims_specs[ii]->ndims) {
-                    unsigned int *at_dims = (unsigned int*) malloc(specs->dims_specs[ii]->ndims * sizeof(unsigned int));
+                    size_t *at_dims = (size_t*) malloc(specs->dims_specs[ii]->ndims * sizeof(size_t));
                     SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], at_dims));
                     dims[ii] = 1;
                     for (j = 0; j < specs->dims_specs[ii]->ndims; j++)
@@ -201,7 +201,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     data->specs = specs;
     data->ndims_effective = ndims_effective;
-    data->dims = (unsigned int*) malloc(ndims_effective * sizeof(unsigned int));
+    data->dims = (size_t*) malloc(ndims_effective * sizeof(size_t));
 
     assert(data->dims != NULL);
 
@@ -247,7 +247,7 @@ void escdf_dataset_free(escdf_dataset_t *data)
 
 
 
-const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
+const size_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
 {
     /* this routine assumes regular dimensions of the dataset */
     assert(data != NULL);
@@ -371,14 +371,14 @@ escdf_errno_t escdf_dataset_close(escdf_dataset_t *data)
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, unsigned int *start, unsigned int *count, unsigned int *stride, void *buf)
+escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, const size_t *start, const size_t *count, const size_t *stride, void *buf)
 {
     hid_t mem_type_id;
     bool compact;
-    unsigned int start_compact[1];
-    unsigned int count_compact[1];
-    unsigned int stride_compact[1];
-    unsigned int *start_ptr, *count_ptr, *stride_ptr;
+    size_t start_compact[1];
+    size_t count_compact[1];
+    size_t stride_compact[1];
+    const size_t *start_ptr, *count_ptr, *stride_ptr;
 
     assert(data != NULL);
     assert(buf != NULL);
@@ -431,7 +431,7 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
 {
     unsigned int i;
     hid_t mem_type_id;
-    unsigned int *start, *count, *stride;
+    size_t *start, *count, *stride;
 
     assert(data != NULL);
     assert(buf != NULL);
@@ -452,9 +452,9 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
         H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
     }
 
-    start = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
-    count = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
-    stride = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
+    start = (size_t *) malloc(data->specs->ndims * sizeof(size_t));
+    count = (size_t *) malloc(data->specs->ndims * sizeof(size_t));
+    stride = (size_t *) malloc(data->specs->ndims * sizeof(size_t));
     
     for (i=0; i<data->specs->ndims; i++) {
         start[i] = 0;
@@ -471,7 +471,7 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
 {
     unsigned int i;
     hid_t mem_type_id;
-    unsigned int *start, *count, *stride;
+    size_t *start, *count, *stride;
 
     assert(data != NULL);
 
@@ -484,9 +484,9 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
-    start = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
-    count = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
-    stride = (unsigned int *) malloc(data->specs->ndims * sizeof(unsigned int));
+    start = (size_t *) malloc(data->specs->ndims * sizeof(unsigned int));
+    count = (size_t *) malloc(data->specs->ndims * sizeof(unsigned int));
+    stride = (size_t *) malloc(data->specs->ndims * sizeof(unsigned int));
 
     if (data->specs->compact) {
         /* The question here is what data structure we expect in *buf? */
@@ -517,15 +517,15 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
     return ESCDF_SUCCESS;
 }
 
-escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const unsigned int *start, const unsigned int *count, const unsigned int *stride, const void *buf)
+escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const size_t *start, const size_t *count, const size_t *stride, const void *buf)
 {
     escdf_errno_t err;
     hid_t mem_type_id;
     bool compact;
-    unsigned int start_compact[1];
-    unsigned int count_compact[1];
-    unsigned int stride_compact[1];
-    const unsigned int *start_ptr, *count_ptr, *stride_ptr;
+    size_t start_compact[1];
+    size_t count_compact[1];
+    size_t stride_compact[1];
+    const size_t *start_ptr, *count_ptr, *stride_ptr;
 
     assert(data != NULL);
 
@@ -620,8 +620,8 @@ escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data)
 
     char datatype_name[20];
 
-    unsigned int *dims;
-    const unsigned int *dims_from_specs;
+    size_t *dims;
+    const size_t *dims_from_specs;
 
     if( data == NULL ) {
         printf("Dataset not defined! \n"); fflush(stdout);
@@ -669,19 +669,19 @@ escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data)
                 dims_from_specs = escdf_attribute_get_dimensions(data->dims_attr[i]);
 
                 for (j=0; j<data->specs->dims_specs[i]->ndims; j++) {
-                    printf("  Dimensions (%i): dims_from_spec[%i] = %i \n", i, j, dims_from_specs[j] );       
+                    printf("  Dimensions (%u): dims_from_spec[%u] = %lu \n", i, j, dims_from_specs[j] );       
                 }
 
 		printf("  Dimensions (%i): ndims = %i ", i, data->specs->dims_specs[i]->ndims );
 
-                dims = (unsigned int*) malloc( escdf_attribute_sizeof (data->dims_attr[i]) );
+                dims = (size_t*) malloc( escdf_attribute_sizeof (data->dims_attr[i]) );
                 error = escdf_attribute_get(data->dims_attr[i], dims);
 
                 assert(error == 0);
 
                 if (dims_from_specs) {
                     for (j=0; j<dims_from_specs[0]; j++) {
-                        printf(" %i, ", dims[j]);
+                        printf(" %lu, ", dims[j]);
                     }
                 }
 
@@ -700,7 +700,7 @@ escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data)
 		assert(data->index_array);
 
 		for (i=0; i<dims_from_specs[0]; i++) {
-		    printf("index[%i] = %i \n", i, data->index_array[i]);
+		    printf("index[%i] = %lu \n", i, data->index_array[i]);
 		}
             }
             

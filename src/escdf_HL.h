@@ -27,6 +27,13 @@
 extern "C" {
 #endif
 
+#include "escdf_common.h"
+#include "escdf_handle.h"
+#include "escdf_error.h"
+#include "escdf_attributes.h"
+#include "escdf_datasets.h"
+#include "escdf_group.h"
+
 
 /**
  * @brief Query group attributes
@@ -37,7 +44,7 @@ extern "C" {
  * @param[in] name: name of the attribute to be queried
  * @return yes/no.
  */
-bool escdf_HL_query_attribute(const escdf_group_t *group, const char *name); /* unused */
+bool escdf_hl_query_attribute(const escdf_group_t *group, const char *name); /* unused */
 
 /**
  * @brief get pointer to attribute_specs from name
@@ -77,7 +84,7 @@ const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group
  * @param[in] buf: data to be written
  * @return error code
  */
-escdf_errno_t escdf_HL_attribute_set(escdf_group_t* group, hid_t attribute_ID, const void* buf);
+escdf_errno_t escdf_hl_attribute_write(escdf_group_t* group, escdf_attribute_id_t attribute_ID, const void* buf);
 
 /**
  * @brief This routine gets the value of an attribute by name.
@@ -87,14 +94,7 @@ escdf_errno_t escdf_HL_attribute_set(escdf_group_t* group, hid_t attribute_ID, c
  * @param[in] const void* buf: data to be written
  * @return error code
  */
-escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attribute_name, void* buf);
-
-/************************************************************
- * Low level routines for accessing datasets in a group     *
- ************************************************************/
-
-
-escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
+escdf_errno_t escdf_hl_attribute_read(escdf_group_t* group, escdf_attribute_id_t attribute_ID, void* buf);
 
 
 /************************************************************
@@ -109,7 +109,7 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
  * @param[in] name 
  * @return escdf_dataset_t* 
  */
-escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *name);
+escdf_dataset_t *escdf_hl_dataset_create(escdf_group_t *group, escdf_dataset_id_t dataset_ID);
 
 /**
  * @brief Open dataset in a group
@@ -118,7 +118,7 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
  * @param[in] name 
  * @return escdf_dataset_t* 
  */
-escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name);
+escdf_dataset_t *escdf_hl_dataset_open(escdf_group_t *group, escdf_dataset_id_t dataset_ID);
  
 /**
  * @brief Close dataset in a group
@@ -127,7 +127,7 @@ escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name
  * @param[in] name 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name);
+escdf_errno_t escdf_hl_dataset_close(escdf_group_t *group, escdf_dataset_id_t dataset_ID);
 
 
 
@@ -138,7 +138,7 @@ escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name);
  * @param buf 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf);
+escdf_errno_t escdf_hl_dataset_write_simple(escdf_group_t *group, escdf_dataset_id_t dataset_ID, const void* buf);
 
 /**
  * @brief read complete dataset
@@ -147,7 +147,7 @@ escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf)
  * @param buf 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void *buf);
+escdf_errno_t escdf_hl_dataset_read_simple(escdf_group_t *group, escdf_dataset_id_t dataset_ID, void *buf);
 
 /**
  * @brief Write a section of a dataset
@@ -159,8 +159,8 @@ escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void 
  * @param[in] buf: 
  * @return escdf_errno_t: return 0 on success. 
  */
-escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data, 
-                                            unsigned int *start, unsigned int *count, unsigned int * stride, void* buf);
+escdf_errno_t escdf_hl_dataset_write_at(escdf_group_t *group, escdf_dataset_id_t dataset_ID, 
+                                        unsigned int *start, unsigned int *count, unsigned int * stride, void* buf);
 
 
 /**
@@ -173,11 +173,8 @@ escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data,
  * @param[out] buf: 
  * @return escdf_errno_t: return 0 on success. 
  */
-escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data, 
+escdf_errno_t escdf_hl_dataset_read_at(escdf_group_t *group, escdf_dataset_id_t dataset_ID, 
                                             unsigned int *start, unsigned int *count, unsigned int * stride, void *buf);
-
-
-
 
 
 #ifdef __cplusplus

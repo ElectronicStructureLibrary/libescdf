@@ -19,11 +19,11 @@
  */
 
 #include "escdf.h"
+#include "escdf_groups_specs.h"
+
 
 void escdf_init() {
   int i = 0;
 
   escdf_register_all_group_specs();
-
-  
 }

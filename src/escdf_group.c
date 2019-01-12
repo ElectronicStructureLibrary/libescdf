@@ -26,7 +26,9 @@
 #include <check.h>
 #endif
 
+#include "escdf_private_group.h"
 #include "escdf_group.h"
+
 /* #include "escdf_groups_specs.h" */
 
 #include "utils_hdf5.h"
@@ -37,7 +39,6 @@
 static unsigned int n_known_specs = 0;
 static escdf_group_specs_t const * known_group_specs[MAX_KNOWN_SPECS];
 
-escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr); 
 
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
 
@@ -68,10 +69,10 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     return ESCDF_SUCCESS;
 }
 
-escdf_group_id _escdf_get_group_id(const char* name)
+escdf_group_id_t _escdf_get_group_id(const char* name)
 {
     int i;
-    escdf_group_id group_id;
+    escdf_group_id_t group_id;
 
     group_id = ESCDF_UNDEFINED_ID;
 
@@ -85,26 +86,6 @@ escdf_group_id _escdf_get_group_id(const char* name)
 }
 
 
-/**
- * @brief escdf_group data structure
- * 
- * This struct contains the private data of a group
- * 
- */
-struct escdf_group {
-    const escdf_handle_t *escdf_handle;
-
-    const escdf_group_specs_t *specs;  /**< Pointer to the group specification */
-
-    char * name;                       /**< Group name */
-
-    hid_t loc_id;                      /**< Handle for HDF5 group */
-
-    escdf_attribute_t **attr;          /**< List of attributes */
-    escdf_dataset_t   **datasets;      /**< List of datasets */
-
-    bool *datasets_present;            /**< Flag whether datasets are present */
-};
 
 /************************************************************
  * Helper routines for groups                               *
@@ -254,7 +235,7 @@ const escdf_dataset_specs_t * _get_dataset_specs(escdf_group_specs_t *group_spec
  * Low-level creators and destructors                                         *
  ******************************************************************************/
 
-escdf_group_t * escdf_group_new(escdf_group_id group_id)
+escdf_group_t * escdf_group_new(escdf_group_id_t group_id)
 {
     escdf_group_t *group = NULL;
     unsigned int ii;
@@ -392,7 +373,7 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group)
 escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group_name, const char *instance_name)
 {
     escdf_group_t *group;
-    escdf_group_id group_id;
+    escdf_group_id_t group_id;
 
     int i;
 
@@ -445,7 +426,7 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group
 escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *group_name, const char* instance_name)
 {
     escdf_group_t *group;
-    escdf_group_id group_id;
+    escdf_group_id_t group_id;
     
     /* get group_id corresponding to the group name */
 
@@ -645,13 +626,14 @@ escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr
 
 escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) {
 
-    unsigned int i, ii, idim, ndims, dim_ID;
+    unsigned int i, ii, idim, ndims;
+    escdf_attribute_id_t dim_ID;
     bool found;
 
     escdf_attribute_t **dims = NULL;
     escdf_errno_t error;
 
-    const unsigned int *dims_check;
+    const size_t *dims_check;
 
     /* determine the dimensions from linked dimension attributes */
     
@@ -661,11 +643,15 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 
     ndims = group->specs->data_specs[idata]->ndims;
 
-    /* printf("_escdf_group_dataset_new for %s, ndims = %d\n", group->specs->data_specs[idata]->name, ndims); fflush(stdout); */
-
+#ifdef DEBUG
+    printf("_escdf_group_dataset_new for %s, ndims = %d\n", group->specs->data_specs[idata]->name, ndims); fflush(stdout); 
+#endif
 
     if( ndims > 0 ) {
         
+#ifdef DEBUG
+    printf("_escdf_group_dataset_new: attempting to allocate %lu\n", ndims* sizeof(escdf_attribute_t*)); fflush(stdout); 
+#endif        
         dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
 
         if(dims == NULL) printf("_escdf_group_dataset_new: dims==NULL!!\n");
@@ -683,21 +669,21 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 
 	        idim = group->specs->data_specs[idata]->dims_specs[i]->id;
 
-            
-            /* printf("_escdf_group_dataset_new for %s, dim_id = %d\n", group->specs->data_specs[idata]->name, idim); fflush(stdout); */
-            
+#ifdef DEBUG            
+            printf("_escdf_group_dataset_new for %s, dim_id = %d\n", group->specs->data_specs[idata]->name, idim); fflush(stdout); 
+#endif            
 
 	        for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
 	            if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; found=true;}
 	        }
 
-            /*
+#ifdef DEBUG        
             printf("_escdf_group_dataset_new for %s, found %s with %d dimensions.\n", 
                 group->specs->data_specs[idata]->name, 
                 group->specs->attr_specs[idim]->name,
                 group->specs->attr_specs[idim]->ndims); 
             fflush(stdout);
-            */
+#endif            
 
             FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
@@ -719,21 +705,27 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
 
     for(i=0; i<ndims; i++) {
         unsigned int d;
+        error = escdf_attribute_get(dims[i], &d);
 #ifdef HAVE_CHECK_H
-        ck_assert(escdf_attribute_get(dims[i], &d) == ESCDF_SUCCESS);
+        ck_assert( error == ESCDF_SUCCESS);
 #endif
-        /* printf("_escdf_group_dataset_new:  dims[%d] = %lld\n",i,d); */
+
+#ifdef DEBUG
+        printf("_escdf_group_dataset_new:  dims[%d] = %u\n",i,d); 
+#endif
+
+
     }
 
     group->datasets[idata] = escdf_dataset_new(group->specs->data_specs[idata], dims);
 
     dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
 
-    /*
+#ifdef DEBUG
     for(i=0; i<ndims; i++) {
-        printf("_escdf_group_dataset_new:  Dims_check[%d] = %d\n",i,dims_check[i]);
+        printf("_escdf_group_dataset_new:  Dims_check[%d] = %lu\n",i,dims_check[i]);
     }
-    */
+#endif
 
     if(dims != NULL) free(dims);
 
@@ -747,6 +739,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
     return ESCDF_SUCCESS;
 
 };
+
 
 escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group)
 {
@@ -908,40 +901,9 @@ escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name)
 
 }
 
-/*******
- * Do we need these wrappers?
- */
-
-
-escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf)
-{
-
-    escdf_errno_t err;
-    assert(data != NULL);
-
-    /* printf("escdf_group_dataset_write_simple: %s \n", escdf_dataset_get_name(data)); fflush(stdout); */
-
-
-    err = escdf_dataset_write_simple(data, buf);
-
-    return err;
-}
-
-escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void* buf)
-{
-
-    escdf_errno_t err;
-    assert(data != NULL);
-    assert(buf!=NULL);
-
-    err = escdf_dataset_read_simple(data, buf);
-
-    return err;
-}
-
 
 escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data, 
-                                            unsigned int *start, unsigned int *count, unsigned int * stride, void* buf)
+                                            const size_t *start, const size_t *count, const size_t *stride, void* buf)
 {
     escdf_errno_t err;
     assert(data != NULL);
@@ -958,7 +920,7 @@ escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data,
 
 
 escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data, 
-                                            unsigned int *start, unsigned int *count, unsigned int * stride, void *buf)
+                                            const size_t *start, const size_t *count, const size_t *stride, void *buf)
 {
     escdf_errno_t err;
     assert(data != NULL);

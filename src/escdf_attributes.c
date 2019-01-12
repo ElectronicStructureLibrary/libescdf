@@ -26,7 +26,7 @@
 struct escdf_attribute {
     const escdf_attribute_specs_t *specs;
     bool is_set;
-    unsigned int *dims;
+    size_t *dims;
     void *buf;
 };
 
@@ -109,7 +109,8 @@ int escdf_attribute_specs_get_id(const escdf_attribute_specs_t *specs)
 escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, escdf_attribute_t **attr_dims)
 {
     escdf_attribute_t *attr = NULL;
-    unsigned int ii, *dim;
+    unsigned int ii;
+    size_t *dim;
     size_t len;
 
     /* Check input */
@@ -134,7 +135,7 @@ escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, es
 
     /* Get the size of the attribute and allocate buffer memory */
     if (attr->specs->ndims > 0) {
-        attr->dims = (unsigned int *) malloc(attr->specs->ndims * sizeof(unsigned int));
+        attr->dims = (size_t *) malloc(attr->specs->ndims * sizeof(size_t));
         if (attr->dims == NULL) {
             free(attr);
             return NULL;
@@ -142,7 +143,7 @@ escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, es
     }
     len = 1;
     for (ii = 0; ii < attr->specs->ndims; ii++) {
-        dim = (unsigned int *) (attr_dims[ii]->buf);
+        dim = (size_t *) (attr_dims[ii]->buf);
         len *= *dim;
         attr->dims[ii] = *dim;
     }
@@ -259,7 +260,7 @@ bool escdf_attribute_is_set(const escdf_attribute_t *attr)
   return attr->is_set;
 }
 
-const unsigned int * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
+const size_t * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
 
     assert( attr != NULL );
 

@@ -30,6 +30,7 @@ extern "C" {
 
 #include "escdf_handle.h"
 #include "escdf_attributes.h"
+#include "escdf_datasets_ID.h"
 
 typedef struct escdf_dataset_specs escdf_dataset_specs_t;
 
@@ -37,7 +38,7 @@ typedef struct escdf_dataset_specs escdf_dataset_specs_t;
  * @brief definition of the escdf dataset specifications
  */
 struct escdf_dataset_specs {
-    int id;
+    escdf_dataset_id_t id;
     char * name;
     int datatype;
 
@@ -148,7 +149,7 @@ void escdf_dataset_free(escdf_dataset_t *data);
  * @param[in] data 
  * @return const hsize_t* 
  */
-const unsigned int * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
+const size_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
 
 /**
  * @brief set ordered flag
@@ -255,7 +256,7 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
  * @param buf 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, unsigned int *start, unsigned int *count, unsigned int *stride, void *buf);
+escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, const size_t *start, const size_t *count, const size_t *stride, void *buf);
 
 /**
  * @brief write to dataset *data
@@ -267,7 +268,7 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, unsigned int *star
  * @param buf 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const unsigned int *start, const unsigned int *count, const unsigned int *stride, const void *buf);
+escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const size_t *start, const size_t *count, const size_t *stride, const void *buf);
 
 /**
  * @brief dump basic data to screen 
