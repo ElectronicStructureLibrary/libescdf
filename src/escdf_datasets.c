@@ -113,10 +113,9 @@ bool escdf_dataset_specs_is_compact(const escdf_dataset_specs_t *specs) {
 escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_attribute_t **attr_dims)
 {
     escdf_dataset_t *data = NULL;
-    escdf_errno_t error;
     unsigned int ii, j;
     unsigned int dims0;
-    unsigned int *dims;
+    unsigned int *dims = NULL;
     unsigned int *dims1;
     unsigned int ndims_effective;
 
@@ -129,7 +128,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     assert(specs != NULL);
     assert(attr_dims != NULL);
    
-    /* Allocate memory */ 
+    /* Allocate memory */
     data = (escdf_dataset_t *) malloc(sizeof(escdf_dataset_t));
     
     if (data == NULL) {
@@ -147,12 +146,20 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
              * Store the data as one dimensional array with an additional indexing array.
              */
             ndims_effective = 1;
-            error = escdf_attribute_get(attr_dims[0], &dims0);
+            if (escdf_attribute_get(attr_dims[0], &dims0) != ESCDF_SUCCESS) {
+                escdf_dataset_free(data);
+                return NULL;
+            }
 
             dims =  (unsigned int*) malloc(ndims_effective * sizeof(unsigned int));
             dims1 = (unsigned int*) malloc(escdf_attribute_sizeof(attr_dims[1])); 
 
-            error = escdf_attribute_get(attr_dims[1], dims1);
+            if (escdf_attribute_get(attr_dims[1], dims1) != ESCDF_SUCCESS) {
+                escdf_dataset_free(data);
+                free(dims);
+                free(dims1);
+                return NULL;
+            }
 
             data->index_array = (size_t*) malloc((dims0 * sizeof(size_t)));
 
@@ -160,6 +167,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
                 data->index_array[ii] = j;
                 j += dims1[ii];
             }
+            free(dims1);
             dims[0] = j;
             /* dims[1] = 0; // was 1! */ 
         } else { 
@@ -253,8 +261,9 @@ void escdf_dataset_free(escdf_dataset_t *data)
             escdf_dataset_free(data->ordering);
         }
         free(data->dims);
-        free(data);
+        free(data->dims_attr);
     }
+    free(data);
 }
 
 
@@ -460,7 +469,6 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
 
 escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const size_t *start, const size_t *count, const size_t *stride, const void *buf)
 {
-    escdf_errno_t err;
     hid_t mem_type_id;
     bool compact;
     size_t start_compact[1];
@@ -499,9 +507,7 @@ escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const size_t *sta
         H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
     }
 
-    err = utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start_ptr, count_ptr, stride_ptr);
-
-    return ESCDF_SUCCESS;
+    return utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start_ptr, count_ptr, stride_ptr);
 }
 
 
@@ -558,7 +564,7 @@ escdf_errno_t escdf_dataset_print(const escdf_dataset_t *data)
     char datatype_name[20];
 
     size_t *dims;
-    const size_t *dims_from_specs;
+    const size_t *dims_from_specs = NULL;
 
     if( data == NULL ) {
         printf("Dataset not defined! \n"); fflush(stdout);

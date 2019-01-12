@@ -56,6 +56,5 @@ void escdf_info_string(char *info)
 
   assert(info != NULL);
 
-  strncpy(info, PACKAGE_STRING, s);
-  info[s] = '\0';
+  strncpy(info, PACKAGE_STRING, s + 1);
 }
