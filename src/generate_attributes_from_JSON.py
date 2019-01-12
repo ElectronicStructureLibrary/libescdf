@@ -1,3 +1,4 @@
+import sys
 import json
 from pprint import pprint
 from collections import Counter
@@ -53,23 +54,35 @@ def write_ID_file(x, type):
         ID_file.write('\n')
 
 
-
         ID_file.write('#ifndef ESCDF_'+type.upper()+'_ID_H\n')
         ID_file.write('#define ESCDF_'+type.upper()+'_ID_H\n\n')
 
         all = x[type]
 
+        ID_file.write('#include "escdf_common.h"\n\n')
+
+        ID_file.write('typedef enum { \n')
         counter = 0
+
+#        for a in all:
+#            ID_file.write('#define ' + def_name(a['Name']) + ' ' + str(counter) + '\n')
+#            counter += 1
+
         for a in all:
-            ID_file.write('#define ' + def_name(a['Name']) + ' ' + str(counter) + '\n')
+            ID_file.write('    '+ def_name(a['Name']) + ', \n')
             counter += 1
+
+
+        ID_file.write('    '+ 'ESCDF_'+type.upper()+'_UNDEFINED_ID = ESCDF_UNDEFINED_ID' + ' \n')
+
+        ID_file.write('} escdf_'+type.lower().rstrip('s')+'_id_t; \n')
 
         ID_file.write('\n#endif\n')
         ID_file.close()
 
 # Load input attributes definition file and transfer to dictionary.
 
-definitions_file = open('attributes_def.json','r')
+definitions_file = open(sys.argv[1],'r')
 definitions      = json.load(definitions_file)
 definitions_file.close()
 

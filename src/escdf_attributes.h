@@ -29,13 +29,14 @@ extern "C" {
 #include <string.h>
 
 #include "escdf_handle.h"
+#include "escdf_attributes_ID.h"
 
 
 typedef struct escdf_attribute_specs escdf_attribute_specs_t;
 
 
 struct escdf_attribute_specs {
-    int id;
+    escdf_attribute_id_t id;
     char * name;
     int datatype;
 
@@ -106,7 +107,7 @@ size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
  * @param[in] const escdf_attribute_t *attr :  pointer to attribute
  * @return *unsigned int : array of dimensions (rank defined in specs)
  */
-const unsigned int *escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
+const size_t *escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
 
 /**
  * @brief set the attribute to a value given in the buffer

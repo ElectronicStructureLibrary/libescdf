@@ -30,6 +30,7 @@ extern "C" {
 #include "escdf_handle.h"
 #include "escdf_attributes.h"
 #include "escdf_datasets.h"
+#include "escdf_groups_ID.h"
 
 
 /******************************************************************************
@@ -43,7 +44,7 @@ extern "C" {
  * 
  */
 struct escdf_group_specs {
-    int group_id;                                  /**< ESCDF group ID */
+    escdf_group_id_t group_id;                    /**< ESCDF group ID */
     const char * root;                             /**< Root location of the group */
 
     unsigned int nattributes;                      /**< Number of attributes in the group */
@@ -57,7 +58,6 @@ typedef struct escdf_group_specs escdf_group_specs_t;
 
 typedef struct escdf_group escdf_group_t;
 
-typedef int escdf_group_id;
 
 /**
  * @brief register the group specifications
@@ -86,7 +86,7 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
  * @param[in] group_id
  * @return instance of the group.
  */
-escdf_group_t * escdf_group_new(escdf_group_id group_id);
+escdf_group_t * escdf_group_new(escdf_group_id_t group_id);
 
 /**
  * @brief Free all memory associated with the group (low level routine)
@@ -268,6 +268,7 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attrib
  ************************************************************/
 
 
+
 escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
 
 
@@ -306,24 +307,6 @@ escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name);
 
 
 /**
- * @brief write complete dataset
- * 
- * @param data 
- * @param buf 
- * @return escdf_errno_t 
- */
-escdf_errno_t escdf_group_dataset_write_simple(escdf_dataset_t *data, void* buf);
-
-/**
- * @brief read complete dataset
- * 
- * @param[in] data 
- * @param buf 
- * @return escdf_errno_t 
- */
-escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void *buf);
-
-/**
  * @brief Write a section of a dataset
  * 
  * @param data: pointer to dataset being written to 
@@ -334,7 +317,7 @@ escdf_errno_t escdf_group_dataset_read_simple(const escdf_dataset_t *data, void 
  * @return escdf_errno_t: return 0 on success. 
  */
 escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data, 
-                                            unsigned int *start, unsigned int *count, unsigned int * stride, void* buf);
+                                            const size_t *start, const size_t *count, const size_t * stride, void* buf);
 
 
 /**
@@ -348,7 +331,7 @@ escdf_errno_t escdf_group_dataset_write_at(const escdf_dataset_t *data,
  * @return escdf_errno_t: return 0 on success. 
  */
 escdf_errno_t escdf_group_dataset_read_at(const escdf_dataset_t *data, 
-                                            unsigned int *start, unsigned int *count, unsigned int * stride, void *buf);
+                                            const size_t *start, const size_t *count, const size_t *stride, void *buf);
 
 
 

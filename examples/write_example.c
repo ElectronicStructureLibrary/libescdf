@@ -141,47 +141,42 @@ int main() {
 
 
     /* Should the setters and getters be more 'symmetric' in terms of handle and name parameters? */
-    error = escdf_group_attribute_set(group_system, "number_of_physical_dimensions", &num_dims);
-    printf("setting 'number_of_phycical dimensions' results in error = %d \n", error);
+    error = escdf_hl_attribute_write(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims);
+    printf("setting 'number_of_phycical_dimensions' results in error = %i \n", error);
 
-    error = escdf_group_attribute_set(group_system, "number_of_species", &num_species);
-    printf("setting 'number_of_species' results in error = %d \n", error);
+    error = escdf_hl_attribute_write(group_system, NUMBER_OF_SPECIES, &num_species);
+    printf("setting 'number_of_species' results in error = %i \n", error);
 
-    error = escdf_group_attribute_set(group_system, "number_of_sites", &num_sites);
-    printf("setting 'number_of_sites' results in error = %d \n", error);
+    error = escdf_hl_attribute_write(group_system, NUMBER_OF_SITES, &num_sites);
+    printf("setting 'number_of_sites' results in error = %i \n", error);
 
-    error = escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site);
-    printf("setting 'number_of_species_at_site' results in error = %d \n", error);
+    error = escdf_hl_attribute_write(group_system, NUMBER_OF_SPECIES_AT_SITE, num_species_at_site);
+    printf("setting 'number_of_species_at_site' results in error = %i \n", error);
 
     /*
     error = escdf_group_attribute_set(group_system, "max_number_of_species_at_site", &max_num_species_at_site);
     printf("setting 'max_number_of_species_at_site' results in error = %d \n", error);
     */
 
-    dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
-    printf("Dataset species_names created.\n");
+    dataset_species_at_site = escdf_hl_dataset_create(group_system, SPECIES_AT_SITE);
 
-    dataset_site_pos = escdf_group_dataset_create(group_system, "cartesian_site_positions");
-    printf("Dataset cartesian_site_positions created.\n");
-
-    dataset_species_at_site = escdf_group_dataset_create(group_system, "species_at_site");
-
-    if(dataset_species_names==NULL) printf("Null pointer for dataset species_names!!\n");
-    if(dataset_site_pos==NULL) printf("Null pointer for dataset site_pos!!\n");
     if(dataset_species_at_site==NULL) printf("Null pointer for dataset species_at_sites!!\n");
 
-    escdf_dataset_print(dataset_species_at_site);
+    // escdf_dataset_print(dataset_species_at_site);
 
-    escdf_group_dataset_write_simple(dataset_species_names, names);
-    escdf_group_dataset_write_simple(dataset_site_pos, coords);
+    error = escdf_hl_dataset_write_simple(group_system, SPECIES_NAMES, names);
+    printf("dataset_species_names written with error = %d\n", error);
+
+    error = escdf_hl_dataset_write_simple(group_system, CARTESIAN_SITE_POSITIONS, coords);
+    printf("dataset_species_pos written with error = %d\n", error);
 
 
 
     for(i=0; i<num_sites; i++) {
 
-        hsize_t start[2];
-        hsize_t count[2];
-        hsize_t stride[2];
+        size_t start[2];
+        size_t count[2];
+        size_t stride[2];
         
         start[0] = i;
         start[1] = 0;
@@ -192,26 +187,23 @@ int main() {
         stride[0] = 1;
         stride[1] = 1;
 
-        printf("writing species_at_site[%d]: start = (%d,%d), count = (%d,%d). \n", i, start[0], start[1], count[0], count[1]);
+        printf("writing species_at_site[%d]: start = (%lu,%lu), count = (%lu,%lu). \n", i, start[0], start[1], count[0], count[1]);
 
         escdf_group_dataset_write_at(dataset_species_at_site, start, count, stride, species_at_site[i]);
 
     }
-    
+
+    error = escdf_dataset_close(dataset_species_at_site);    
     printf("Datasets written.\n");
 
-    escdf_group_dataset_close(group_system, "species_names");
-    escdf_group_dataset_close(group_system, "cartesian_site_positions");
-
-    printf("Datasets closed. \n");
 
     escdf_group_close(group_system);
 
-    printf("Group closed. \n");
+    printf("Group closed. error = %d \n", error);
 
     escdf_close(escdf_file);
 
-    printf("File closed. \n");
+    printf("File closed. error = %d\n", error);
 
     return 0;
 }

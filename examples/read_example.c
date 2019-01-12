@@ -41,7 +41,7 @@ int main() {
     escdf_dataset_t *dataset_site_pos;
     escdf_dataset_t *dataset_species_at_site;
 
-    escdf_errno_t err;
+    escdf_errno_t error;
 
     const escdf_dataset_specs_t *tmp_specs;
 
@@ -85,15 +85,14 @@ int main() {
 
     if(group_system == NULL) printf("Null pointer for group !!\n");
 
-    escdf_group_attribute_get(group_system, "number_of_physical_dimensions", &num_dims);
+    escdf_hl_attribute_read(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims);
 
-    escdf_group_attribute_get(group_system, "number_of_species", &num_species);
-    escdf_group_attribute_get(group_system, "number_of_sites", &num_sites);
-    escdf_group_attribute_get(group_system, "number_of_jokes", &dummy); 
+    escdf_hl_attribute_read(group_system, NUMBER_OF_SPECIES, &num_species);
+    escdf_hl_attribute_read(group_system, NUMBER_OF_SITES, &num_sites);
 
     num_species_at_site = (unsigned int*) malloc(num_sites * sizeof(unsigned));
 
-    escdf_group_attribute_get(group_system, "number_of_species_at_site", num_species_at_site); 
+    escdf_hl_attribute_read(group_system, NUMBER_OF_SPECIES_AT_SITE, num_species_at_site); 
     
 
 
@@ -141,9 +140,8 @@ int main() {
 
 
 
-    dataset_species_names = escdf_group_dataset_open(group_system, "species_names");
-    dataset_site_pos = escdf_group_dataset_open(group_system, "cartesian_site_positions");
-    dataset_species_at_site = escdf_group_dataset_open(group_system, "species_at_site");
+    dataset_species_names = escdf_hl_dataset_open(group_system, SPECIES_NAMES);
+    dataset_species_at_site = escdf_hl_dataset_open(group_system, SPECIES_AT_SITE);
 
 
     if(dataset_species_names==NULL) printf("Null pointer for dataset species_names!!\n");
@@ -151,28 +149,25 @@ int main() {
     if(dataset_species_at_site==NULL) printf("Null pointer for dataset species_at_site!!\n");
 
 
-    err = escdf_group_dataset_read_simple(dataset_site_pos, (void*) coords[0]);
+
+    error = escdf_hl_dataset_read_simple(group_system, CARTESIAN_SITE_POSITIONS, (void*) coords[0]);
 
     for(i=0; i<num_sites; i++){
-        printf("coords[%d] = (%8.3f %8.3f %8.3f). \n", i, coords[i][0], coords[i][1], coords[i][2]);
+        printf("coords[%i] = (%8.3f %8.3f %8.3f). \n", i, coords[i][0], coords[i][1], coords[i][2]);
     }
 
-
-    err = escdf_group_dataset_read_simple(dataset_species_names, (void*) names[0]);
-
+    error = escdf_hl_dataset_read_simple(group_system, SPECIES_NAMES, (void*) names[0]);
 
     for(i=0; i<num_species; i++){
-        printf("names[%d] = %s \n", i, names[i]);
+        printf("names[%i] = %s \n", i, names[i]);
     }
 
     
-
-
     for(i=0; i<num_sites; i++) {
 
-        hsize_t start[2];
-        hsize_t count[2];
-        hsize_t stride[2];
+        size_t start[2];
+        size_t count[2];
+        size_t stride[2];
         
         start[0] = i;
         start[1] = 0;
@@ -183,21 +178,22 @@ int main() {
         stride[0] = 1;
         stride[1] = 1;
 
-        err = escdf_group_dataset_read_at(dataset_species_at_site, start, count, stride, (void*) species_at_site[i]);
+        error = escdf_group_dataset_read_at(dataset_species_at_site, start, count, stride, (void*) species_at_site[i]);
         
-        printf("Species at site %2d: ", i);
+        printf("Species at site %2i: ", i);
         for(j=0; j<num_species_at_site[i]; j++) printf("%s, ", names[ species_at_site[i][j] ] );
         printf("\n");
     }
 
+    error = escdf_dataset_close(dataset_species_at_site);
+    printf("Datasets closed: %i\n", error);
 
-    escdf_group_dataset_close(group_system, "species_names");
-    escdf_group_dataset_close(group_system, "cartesian_site_positions");
 
+    error = escdf_group_close(group_system);
+    printf("Group closed: %i\n", error);
 
-    escdf_group_close(group_system);
-
-    escdf_close(escdf_file);
+    error = escdf_close(escdf_file);
+    printf("File closed: %i\n", error);
 
     free(coords);
 

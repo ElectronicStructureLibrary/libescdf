@@ -53,10 +53,16 @@ escdf_core_srcs = \
 escdf_core_hdrs = \
   escdf.h \
   escdf_attributes.h \
+  escdf_attributes_ID.h \
+  escdf_attributes_specs.h \
   escdf_common.h \
+  escdf_datasets_ID.h \
+  escdf_datasets_specs.h \
   escdf_datatransfer.h \
   escdf_error.h \
   escdf_group.h \
+  escdf_groups_ID.h \
+  escdf_groups_specs.h \
   escdf_handle.h \
   escdf_info.h 
 
@@ -88,6 +94,11 @@ libescdf_la_SOURCES = $(escdf_core_srcs)
 include_HEADERS = $(escdf_core_hdrs)
 noinst_HEADERS = $(escdf_hidden_hdrs)
 
+escdf_attributes_ID.h escdf_attributes_specs.h escdf_datasets_ID.h escdf_datasets_specs.h escdf_groups_ID.h escdf_groups_specs.h: intermediate.json ;
+
+.INTERMEDIATE: intermediate.json
+intermediate.json: generate_attributes_from_JSON.py attributes_def.json
+	python $(srcdir)/generate_attributes_from_JSON.py $(srcdir)/attributes_def.json
 
                     # ------------------------------------ #
 
