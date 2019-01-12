@@ -836,6 +836,24 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
     return dataset;   
 }
 
+escdf_dataset_t *escdf_group_dataset_create_disordered(escdf_group_t *group, const char *name)
+{
+    escdf_dataset_t *dataset, *ordering;
+
+    dataset = escdf_group_dataset_create(group, name);
+    if (!dataset) {
+        return NULL;
+    }
+
+    ordering = escdf_dataset_get_ordering(dataset);
+    if (!ordering || escdf_dataset_ensure(ordering, group->loc_id) != ESCDF_SUCCESS) {
+        escdf_dataset_close(dataset);
+        REGISTER_ERROR(ESCDF_ERROR);
+        return NULL;
+    }
+
+    return dataset;   
+}
 
 escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name)
 {

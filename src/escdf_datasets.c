@@ -35,9 +35,6 @@ struct escdf_dataset {
     const escdf_dataset_specs_t *specs;
 
     /* bool is_set; */
-    bool is_ordered;
-    bool ordered_flag_set;
-    bool transfer_on_disk;
 
     /**
      * @brief effective number of dimensions
@@ -66,10 +63,10 @@ struct escdf_dataset {
     size_t *index_array; /* only used for compact storage */
 
     /**
-     * @brief re-ordering table
+     * @brief re-ordering table, if any.
      * 
      */
-    escdf_datatransfer_t *transfer;
+    escdf_dataset_t *ordering;
     
     hid_t type_id;
     hid_t xfer_id;
@@ -103,13 +100,6 @@ bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t lo
     assert(specs != NULL);
 
     return utils_hdf5_check_present(loc_id, specs->name);
-}
-
-bool escdf_dataset_specs_disordered_storage_allowed(const escdf_dataset_specs_t *specs)
-{
-    assert(specs != NULL);
- 
-    return specs->disordered_storage_allowed;
 }
 
 bool escdf_dataset_specs_is_compact(const escdf_dataset_specs_t *specs) {
@@ -174,7 +164,6 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
             /* dims[1] = 0; // was 1! */ 
         } else { 
             REGISTER_ERROR(ESCDF_ERROR_DIM); 
-
             return NULL;
         } 
 
@@ -227,9 +216,17 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     }    
 
     data->dtset_id = ESCDF_UNDEFINED_ID;
-    data->is_ordered = true;
-    data->transfer = NULL;
-    data->transfer_on_disk = false;
+    data->ordering = NULL;
+    if (specs->ordering_specs && specs->ordering_specs->ndims == 1) {
+        /* Need to find the attr_dims fitted for ordering. */
+        for (ii = 0; ii < specs->ndims; ii++) {
+            if (escdf_attribute_get_specs_id(attr_dims[ii])
+                == specs->ordering_specs->dims_specs[0]->id) {
+                data->ordering = escdf_dataset_new(specs->ordering_specs, attr_dims + ii);
+                break;
+            }
+        }
+    }
 
     data->type_id = utils_hdf5_disk_type(specs->datatype);
 
@@ -252,6 +249,9 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 void escdf_dataset_free(escdf_dataset_t *data)
 {
     if (data != NULL) {
+        if (data->ordering) {
+            escdf_dataset_free(data->ordering);
+        }
         free(data->dims);
         free(data);
     }
@@ -268,48 +268,15 @@ const size_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data)
     return data->dims;
 }
 
-bool escdf_dataset_is_ordered(const escdf_dataset_t *data)
+escdf_dataset_t * escdf_dataset_get_ordering(const escdf_dataset_t * data)
 {
     assert(data != NULL);
 
-    return data->is_ordered;
-}
-
-escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered)
-{
-    if( !data->specs->disordered_storage_allowed && !ordered ) 
-        RETURN_WITH_ERROR(ESCDF_ERROR);
-
-    data->is_ordered = ordered;
-
-    return ESCDF_SUCCESS;
-}
-
-escdf_datatransfer_t * escdf_dataset_get_datatransfer(const escdf_dataset_t * data)
-{
-    assert(data != NULL);
-
-    return data->transfer;
-}
-
-escdf_errno_t escdf_dataset_set_datatransfer(escdf_dataset_t *data, escdf_datatransfer_t *transfer)
-{
-    assert(data != NULL);
-
-    if(!data->specs->disordered_storage_allowed)
-        RETURN_WITH_ERROR(ESCDF_ERROR);
-
-    data->transfer = transfer;
-
-    data->is_ordered = false;
-
-    return ESCDF_SUCCESS;
+    return data->ordering;
 }
 
 escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 {
-    int transfer_id; /**< Handle of the data transfer (re-ordering) table */
-
     assert(data != NULL);
 
     if (data->dtset_id == ESCDF_UNDEFINED_ID) {
@@ -320,27 +287,27 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
         /* alternatively we could close and reopen the dataset? */
     }
 
-    SUCCEED_OR_RETURN(utils_hdf5_write_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &(data->is_ordered)));
+    return ESCDF_SUCCESS;
+}
 
-    /* Flag error if data is not ordered but there is no reordering table */
-    if (!data->is_ordered || data->transfer != NULL) 
-        RETURN_WITH_ERROR(ESCDF_ERROR);
+escdf_errno_t escdf_dataset_ensure(escdf_dataset_t *data, hid_t loc_id)
+{
+    assert(data != NULL);
 
-    /* write reordering table as dataset within the dataset. Write even is data is ordered (?) */
-    if (data->transfer != NULL) {
-        transfer_id = escdf_datatransfer_get_id(data->transfer);
+    if (data->dtset_id == ESCDF_UNDEFINED_ID
+        && !utils_hdf5_check_present(loc_id, data->specs->name)) {
+	SUCCEED_OR_RETURN(utils_hdf5_create_dataset(loc_id, data->specs->name, 
+						    data->type_id, data->dims, data->ndims_effective, &data->dtset_id));
     } else {
-        transfer_id = ESCDF_UNDEFINED_ID;
+        RETURN_WITH_ERROR(ESCDF_ERROR);
+        /* alternatively we could close and reopen the dataset? */
     }
-	
-    SUCCEED_OR_RETURN(utils_hdf5_write_attr(data->dtset_id, "transfer", H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_INT, &transfer_id));
 
     return ESCDF_SUCCESS;
 }
 
 escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
 {
-    _bool_set_t tmp_bool;
     hid_t dtset_pt;
 
     assert(data != NULL);
@@ -358,15 +325,10 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id)
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
-    SUCCEED_OR_RETURN(utils_hdf5_read_attr_bool(data->dtset_id, "is_ordered", NULL, 0, &tmp_bool));
-    data->is_ordered = tmp_bool.value;
-    data->ordered_flag_set = tmp_bool.is_set;
-
-    /* check whether a reordering table is present in the file */
-    if (!utils_hdf5_check_present_attr(data->dtset_id, "transfer") && !data->is_ordered) {
-	RETURN_WITH_ERROR(ESCDF_ERROR);
+    if (data->ordering && utils_hdf5_check_present(loc_id, data->ordering->specs->name)) {
+        SUCCEED_OR_RETURN(escdf_dataset_open(data->ordering, loc_id));
     }
-    
+
     return ESCDF_SUCCESS;
 }
 
@@ -374,8 +336,8 @@ escdf_errno_t escdf_dataset_close(escdf_dataset_t *data)
 {
     assert(data != NULL);
 
-    if (data->transfer != NULL && data->transfer_on_disk) {
-        /* TODO: need to write transfer table */
+    if (data->ordering && data->ordering->dtset_id != ESCDF_UNDEFINED_ID) {
+        FULFILL_OR_RETURN(utils_hdf5_close_dataset(data->ordering->dtset_id)==ESCDF_SUCCESS, ESCDF_ERROR);
     }
 
     /* close dataset on disk */    
@@ -404,10 +366,6 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, const size_t *star
     /* check whether we need to re-order on read */
 
     /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
-
-    if (!data->is_ordered && data->transfer == NULL) {
-	RETURN_WITH_ERROR(ESCDF_ERROR);
-    }
 
     compact = escdf_dataset_specs_is_compact(data->specs);
 
@@ -442,19 +400,14 @@ escdf_errno_t escdf_dataset_read(const escdf_dataset_t *data, const size_t *star
 
 escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
 {
-    unsigned int i;
     hid_t mem_type_id;
-    size_t *start, *count, *stride;
 
     assert(data != NULL);
     assert(buf != NULL);
 
-    /* check whether we need to re-order on read */
-
-    /* QUESTION: If is_ordered = false and no reordering present, shall we fail or use normal order ? */
-
-    if (!data->is_ordered && data->transfer == NULL) {
-	RETURN_WITH_ERROR(ESCDF_ERROR);
+    /* check that the dataset in the file is open */
+    if (data->dtset_id == ESCDF_UNDEFINED_ID) {
+        RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 
     mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
@@ -465,26 +418,14 @@ escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf)
         H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
     }
 
-    start = (size_t *) malloc(data->specs->ndims * sizeof(size_t));
-    count = (size_t *) malloc(data->specs->ndims * sizeof(size_t));
-    stride = (size_t *) malloc(data->specs->ndims * sizeof(size_t));
-    
-    for (i=0; i<data->specs->ndims; i++) {
-        start[i] = 0;
-        count[i] = data->dims[i];
-        stride[i] = 1;
-    }
-    
-    utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
+    utils_hdf5_read_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, NULL, NULL, NULL);
 
     return ESCDF_SUCCESS;
 }
 
 escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
 {
-    unsigned int i;
     hid_t mem_type_id;
-    size_t *start, *count, *stride;
 
     assert(data != NULL);
 
@@ -492,14 +433,6 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
     if (data->dtset_id == ESCDF_UNDEFINED_ID) {
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
-
-    if (!data->is_ordered) {
-        RETURN_WITH_ERROR(ESCDF_ERROR);
-    }
-
-    start = (size_t *) malloc(data->specs->ndims * sizeof(unsigned int));
-    count = (size_t *) malloc(data->specs->ndims * sizeof(unsigned int));
-    stride = (size_t *) malloc(data->specs->ndims * sizeof(unsigned int));
 
     if (data->specs->compact) {
         /* The question here is what data structure we expect in *buf? */
@@ -509,11 +442,6 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
          *
          **/
     } else {    
-	for(i=0; i<data->specs->ndims; i++) {
-    	    start[i] = 0;
-    	    count[i] = data->dims[i];
-    	    stride[i] = 1;
-    	}
         fflush(stdout);
 
     	mem_type_id = utils_hdf5_mem_type(data->specs->datatype);
@@ -524,7 +452,7 @@ escdf_errno_t escdf_dataset_write_simple(escdf_dataset_t *data, const void *buf)
     	    H5Tset_strpad(mem_type_id, H5T_STR_NULLTERM);
     	}
 
-	utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, start, count, stride);
+	utils_hdf5_write_dataset(data->dtset_id, data->xfer_id, buf, mem_type_id, NULL, NULL, NULL);
     }
 
     return ESCDF_SUCCESS;
@@ -543,10 +471,6 @@ escdf_errno_t escdf_dataset_write(const escdf_dataset_t *data, const size_t *sta
     assert(data != NULL);
 
     if (data->dtset_id == ESCDF_UNDEFINED_ID) {
-        RETURN_WITH_ERROR(ESCDF_ERROR);
-    }
-
-    if (!data->is_ordered) {
         RETURN_WITH_ERROR(ESCDF_ERROR);
     }
 

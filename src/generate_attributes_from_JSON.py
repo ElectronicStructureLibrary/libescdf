@@ -259,26 +259,22 @@ for d in datasets:
             dims_names += '\n  &' + specs_name(p) + ','
             aa = get_attribute(p)
             num_dims = aa['Dimensions']
-            if num_dims > 0:
+            if num_dims == 2:
                 print(p + ': ' + str(num_dims) + '\n')
                 compact = 'true, '
             else:
                 compact = 'false, '
+        ordering = ", NULL"
+        if 'Ordering' in d:
+            ordering = ", &" + specs_name(d['Ordering'])
     
         dims_names = dims_names.rstrip(',')
         dataset_specs_file.write('const escdf_attribute_specs_t *' + dims_name(dataset_name) + '[] = { ' + dims_names + ' \n};\n\n')
         dims_pointer = dims_name(dataset_name)
-        if 'Disordered_Allowed' in d:
-            if d['Disordered_Allowed']=='Yes': 
-                disordered = 'true, '
-            else:   
-                disordered = 'false, '
-        else:
-            disordered = 'false, '
 
     dataset_specs_file.write('const escdf_dataset_specs_t '+specs_name(dataset_name) + ' = \n')
     dataset_specs_file.write('   { '+ ID_name + ', ' + name_string( dataset_name )+ ', ' + d['Data_type'] + ', ' +str(stringlength) + ', ' 
-                            + str(d['Dimensions']) +', '+ disordered + compact + dims_pointer + ' }; \n\n')
+                            + str(d['Dimensions']) +', ' + compact + dims_pointer + ordering + ' }; \n\n')
 
 
 # Create group specs definitions:

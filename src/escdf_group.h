@@ -287,6 +287,19 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
 escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *name);
 
 /**
+ * @brief Create new dataset in a group
+ *
+ * Work as escdf_group_dataset_create() instead that the dataset will be
+ * written with an ordering array. This is only possible if the specification
+ * allow reordering for the dataset @name.
+ * 
+ * @param group 
+ * @param[in] name 
+ * @return escdf_dataset_t* 
+ */
+escdf_dataset_t *escdf_group_dataset_create_disordered(escdf_group_t *group, const char *name);
+
+/**
  * @brief Open dataset in a group
  * 
  * @param group 

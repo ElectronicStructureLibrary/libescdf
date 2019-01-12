@@ -267,6 +267,12 @@ const size_t * escdf_attribute_get_dimensions(const escdf_attribute_t *attr) {
     return attr->dims;
 }
 
+int escdf_attribute_get_specs_id(const escdf_attribute_t *attr)
+{
+    assert( attr != NULL );
+
+    return attr->specs->id;
+}
 
 escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr)
 {

@@ -126,7 +126,6 @@
     "Data_type" : "ESCDF_DT_UINT",
     "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ],
     "Description" : [ "Defines the number of grid points in every directions" ],
-    "Disordered_Allowed" : "No",
     "Optional" : "no"
   },
   {
@@ -150,14 +149,12 @@
     "Data_type" : "ESCDF_DT_DOUBLE", 
     "Dimensions" : 2, 
     "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
-    "Disordered_Allowed" : "No",
     "Description" : ["The position of each site in cartesian (absolute) coordinates"]
   },
   { "Name" : "fractional_site_positions", 
     "Data_type" : "ESCDF_DT_DOUBLE", 
     "Dimensions" : 2, 
     "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
-    "Disordered_Allowed" : "No",
     "Description" : ["The position of each site in fractional (reduced/crystallographic) coordinates"]
   },
   {
@@ -190,16 +187,24 @@
     "Data_type" : "ESCDF_DT_DOUBLE",
     "Dimensions" : 1,
     "Dims_definitions" : [ "number_of_species" ],
-    "Disordered_Allowed" : "No",
     "Description" : ["The atomic number for each species. This could be non-integer for a number of reasons (e.g., a VCA atom), or zero (e.g., an empty site).",
                      "In such cases we recommend using species_names to clarify the nature of the site"]
+  },
+  {
+    "Name" : "grid_ordering",
+    "Data_type" : "ESCDF_DT_UINT",
+    "Dimensions" : 1,
+    "Dims_definitions" : [ "number_of_grid_points" ],
+    "Description" : ["Some indirect indexing."],
+    "Optional" : "Yes"
   },
   {
     "Name" : "values_on_grid",
     "Data_type" : "ESCDF_DT_DOUBLE",
     "Dimensions" : 3,
     "Dims_definitions" : [ "number_of_components", "number_of_grid_points", "real_or_complex" ],
-    "Description" : ["The values on a grid."]
+    "Description" : ["The values on a grid."],
+    "Ordering" : "grid_ordering"
   }
   ],
   "Groups" :
@@ -239,6 +244,7 @@
       "real_or_complex"  
     ],
     "Datasets" : [
+      "grid_ordering",
       "values_on_grid"
     ]
   }

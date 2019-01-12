@@ -56,12 +56,6 @@ struct escdf_dataset_specs {
     unsigned int ndims;
 
     /**
-     * @brief Flag whether disordered storage is used:
-     * 
-     */
-    bool disordered_storage_allowed;
-
-    /**
      * @brief Flag whether compact storage is used:
      * 
      * e.g. species_at_site, we will store it as an effective one-dimensional array.
@@ -76,9 +70,8 @@ struct escdf_dataset_specs {
 
     /** 
      * the reordering table specs are not necessary in the dataset_specs.
-     * 
-     *  const escdf_dataset_specs_t *reordering_table_specs;
-     */    
+     */ 
+    const escdf_dataset_specs_t *ordering_specs;
 };
 
 size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
@@ -95,15 +88,6 @@ size_t escdf_dataset_specs_sizeof(const escdf_dataset_specs_t *specs);
 bool escdf_dataset_specs_is_present(const escdf_dataset_specs_t *specs, hid_t loc_id);
 
 /**
- * @brief query whether disordered storage is allowed
- * 
- * @param[in] specs
- * @return true 
- * @return false 
- */
-bool escdf_dataset_specs_disordered_storage_allowed(const escdf_dataset_specs_t *specs);
-
-/**
  * @brief return whether compact storage is used.
  * 
  * @param[in] specs
@@ -116,15 +100,6 @@ bool escdf_dataset_specs_is_compact(const escdf_dataset_specs_t *specs);
 
 
 typedef struct escdf_dataset escdf_dataset_t;
-
-/**
- * @brief query whether data is stored in order
- * 
- * @param[in] data 
- * @return true 
- * @return false 
- */
-bool escdf_dataset_is_ordered(const escdf_dataset_t *data);
 
 /**
  * @brief Create a new dataset, based on specification specs and dimensions defind in the attributes attr_dims
@@ -150,15 +125,6 @@ void escdf_dataset_free(escdf_dataset_t *data);
  * @return const hsize_t* 
  */
 const size_t * escdf_dataset_get_dimensions(const escdf_dataset_t *data);
-
-/**
- * @brief set ordered flag
- * 
- * @param[inout] data 
- * @param[in] ordered 
- * @return escdf_errno_t 
- */
-escdf_errno_t escdf_dataset_set_ordered(escdf_dataset_t *data, bool ordered);
 
 /**
  * @brief Get pointer to the dataset holding the reordering table.
@@ -226,6 +192,17 @@ const char * escdf_dataset_get_name(const escdf_dataset_t *data);
 escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id);
 
 /**
+ * @brief ensure a dataset exists
+ *
+ * Creates the dataset if it does not yet exists.
+ * 
+ * @param data 
+ * @param loc_id 
+ * @return escdf_errno_t 
+ */
+escdf_errno_t escdf_dataset_ensure(escdf_dataset_t *data, hid_t loc_id);
+
+/**
  * @brief open a dataset
  * 
  * @param data 
@@ -241,6 +218,14 @@ escdf_errno_t escdf_dataset_open(escdf_dataset_t *data, hid_t loc_id);
  * @return escdf_errno_t 
  */
 escdf_errno_t escdf_dataset_close(escdf_dataset_t *data);
+
+/**
+ * @brief get the ordering dataset associated, if any
+ * 
+ * @param data 
+ * @return escdf_dataset_t 
+ */
+escdf_dataset_t * escdf_dataset_get_ordering(const escdf_dataset_t * data);
 
 escdf_errno_t escdf_dataset_read_simple(const escdf_dataset_t *data, void *buf);
 
