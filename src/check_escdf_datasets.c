@@ -63,49 +63,49 @@ static const escdf_attribute_specs_t specs_dim2 = {
 static const escdf_attribute_specs_t *array2_dims[] = {&specs_dim1, &specs_dim2};
 
 static const escdf_dataset_specs_t specs_none = {
-    NONE, "none", ESCDF_DT_NONE, 0, 0, false, false, NULL
+    NONE, "none", ESCDF_DT_NONE, 0, 0, false, NULL, NULL
 };
 
 static const escdf_dataset_specs_t specs_array1_uint = {
-    ARRAY1_UINT, "array1_uint", ESCDF_DT_UINT, 0, 1, true, false, array1_dims
+    ARRAY1_UINT, "array1_uint", ESCDF_DT_UINT, 0, 1, false, array1_dims, NULL
 };
 
 static const escdf_dataset_specs_t specs_array1_int = {
-    ARRAY1_INT, "array1_int", ESCDF_DT_INT, 0, 1, true, false, array1_dims
+    ARRAY1_INT, "array1_int", ESCDF_DT_INT, 0, 1, false, array1_dims, NULL
 };
 
 static const escdf_dataset_specs_t specs_array1_double = {
-    ARRAY1_DOUBLE, "array1_double", ESCDF_DT_DOUBLE, 0, 1, true, false, array1_dims
+    ARRAY1_DOUBLE, "array1_double", ESCDF_DT_DOUBLE, 0, 1, false, array1_dims, NULL
 };
 
 static const escdf_dataset_specs_t specs_array1_string = {
-    ARRAY1_STRING, "array1_string", ESCDF_DT_STRING, 30, 1, true, false, array1_dims
+    ARRAY1_STRING, "array1_string", ESCDF_DT_STRING, 30, 1, false, array1_dims, NULL
 };
 
 static const escdf_dataset_specs_t specs_array2_uint = {
-    ARRAY2_UINT, "array2_uint", ESCDF_DT_UINT, 0, 2, false, true, array2_dims
+    ARRAY2_UINT, "array2_uint", ESCDF_DT_UINT, 0, 2, true, array2_dims, NULL
 };
 
 static const escdf_dataset_specs_t specs_array2_int = {
-    ARRAY2_INT, "array2_int", ESCDF_DT_INT, 0, 2, false, true, array2_dims
+    ARRAY2_INT, "array2_int", ESCDF_DT_INT, 0, 2, true, array2_dims, NULL
 };
 
 static const escdf_dataset_specs_t specs_array2_double = {
-    ARRAY2_DOUBLE, "array2_double", ESCDF_DT_DOUBLE, 0, 2, false, true, array2_dims
+    ARRAY2_DOUBLE, "array2_double", ESCDF_DT_DOUBLE, 0, 2, true, array2_dims, NULL
 };
 
 static const escdf_dataset_specs_t specs_array2_string = {
-    ARRAY2_STRING, "array2_string", ESCDF_DT_STRING, 30, 2, false, true, array2_dims
+    ARRAY2_STRING, "array2_string", ESCDF_DT_STRING, 30, 2, true, array2_dims, NULL
 };
 
 static hid_t string_len_30;
-static unsigned int dims0[] = {4};
+static size_t dims0[] = {4};
 static unsigned int array1_uint[4] = {0, 1, 2, 3};
 static int array1_int[4] = {-1, 1,  2, -3};
 static double array1_double[4] = {0.00, 0.00, 0.25, 0.50};
 static char array1_string[4][30] = {"aa1", "aa2", "aa3", "aa4"};
 
-static unsigned int dims1[] = {2, 3};
+static size_t dims1[] = {2, 3};
 static unsigned int array2_uint[2][3] = {{1, 2, 3},
                                         {4, 5, 6}};
 static int array2_int[2][3] = {{ 1,  2, -3},
@@ -265,19 +265,6 @@ START_TEST(test_dataset_specs_is_present_false)
 END_TEST
 
 
-START_TEST(test_dataset_specs_disordered_storage_allowed_true)
-{
-    ck_assert(escdf_dataset_specs_disordered_storage_allowed(&specs_array1_uint) == true);
-}
-END_TEST
-
-START_TEST(test_dataset_specs_disordered_storage_allowed_false)
-{
-    ck_assert(escdf_dataset_specs_disordered_storage_allowed(&specs_array2_uint) == false);
-}
-END_TEST
-
-
 START_TEST(test_dataset_specs_is_compact_true)
 {
     ck_assert(escdf_dataset_specs_is_compact(&specs_array2_uint) == true);
@@ -363,12 +350,6 @@ Suite * make_datasets_suite(void)
     tcase_add_test(tc_dataset_specs_is_present, test_dataset_specs_is_present_true);
     tcase_add_test(tc_dataset_specs_is_present, test_dataset_specs_is_present_false);
     suite_add_tcase(s, tc_dataset_specs_is_present);
-
-    tc_dataset_specs_disordered_storage_allowed = tcase_create("Dataset disordered storage allowed");
-    tcase_add_checked_fixture(tc_dataset_specs_disordered_storage_allowed, NULL, NULL);
-    tcase_add_test(tc_dataset_specs_disordered_storage_allowed, test_dataset_specs_disordered_storage_allowed_true);
-    tcase_add_test(tc_dataset_specs_disordered_storage_allowed, test_dataset_specs_disordered_storage_allowed_false);
-    suite_add_tcase(s, tc_dataset_specs_disordered_storage_allowed);
 
     tc_dataset_specs_is_compact = tcase_create("Dataset is compact");
     tcase_add_checked_fixture(tc_dataset_specs_is_compact, NULL, NULL);

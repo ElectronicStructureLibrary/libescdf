@@ -110,7 +110,6 @@ escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, es
 {
     escdf_attribute_t *attr = NULL;
     unsigned int ii;
-    size_t *dim;
     size_t len;
 
     /* Check input */
@@ -143,7 +142,8 @@ escdf_attribute_t * escdf_attribute_new(const escdf_attribute_specs_t *specs, es
     }
     len = 1;
     for (ii = 0; ii < attr->specs->ndims; ii++) {
-        dim = (size_t *) (attr_dims[ii]->buf);
+        assert(attr_dims[ii]->specs->datatype == ESCDF_DT_UINT);
+        unsigned int *dim = (unsigned int *) (attr_dims[ii]->buf);
         len *= *dim;
         attr->dims[ii] = *dim;
     }
