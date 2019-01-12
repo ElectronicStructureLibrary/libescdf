@@ -126,9 +126,14 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     escdf_errno_t error;
     unsigned int ii, j;
     unsigned int dims0;
-    size_t *dims;
+    unsigned int *dims;
     unsigned int *dims1;
     unsigned int ndims_effective;
+
+
+#ifdef DEBUG
+    printf("escdf_dataset_new: start.\n");
+#endif
 
      /* Check input */
     assert(specs != NULL);
@@ -154,7 +159,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
             ndims_effective = 1;
             error = escdf_attribute_get(attr_dims[0], &dims0);
 
-            dims =  (size_t*) malloc(ndims_effective * sizeof(size_t));
+            dims =  (unsigned int*) malloc(ndims_effective * sizeof(unsigned int));
             dims1 = (unsigned int*) malloc(escdf_attribute_sizeof(attr_dims[1])); 
 
             error = escdf_attribute_get(attr_dims[1], dims1);
@@ -177,7 +182,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
         ndims_effective = specs->ndims;
 
         if (ndims_effective > 0) {
-            dims = (size_t*) malloc(ndims_effective * sizeof(size_t));
+            dims = (unsigned int*) malloc(ndims_effective * sizeof(unsigned int));
 
             assert(attr_dims != NULL);
             for (ii = 0; ii < specs->ndims; ii++) {
@@ -185,7 +190,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
                 assert(specs->dims_specs[ii]->datatype == ESCDF_DT_UINT);
 
                 if (specs->dims_specs[ii]->ndims) {
-                    size_t *at_dims = (size_t*) malloc(specs->dims_specs[ii]->ndims * sizeof(size_t));
+                    unsigned int *at_dims = (unsigned int*) malloc(specs->dims_specs[ii]->ndims * sizeof(unsigned int));
                     SUCCEED_OR_BREAK(escdf_attribute_get(attr_dims[ii], at_dims));
                     dims[ii] = 1;
                     for (j = 0; j < specs->dims_specs[ii]->ndims; j++)
@@ -233,6 +238,10 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     /* QUESTION: Where do we define the xfer_id? */
     data->xfer_id = ESCDF_UNDEFINED_ID;
    
+#ifdef DEBUG
+    printf("escdf_dataset_new: end.\n");
+#endif
+
     return data;
 }
 

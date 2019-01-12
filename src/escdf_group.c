@@ -564,7 +564,7 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, const char* attrib
   
 }
 
-escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr)
+escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_id_t iattr)
 { 
 
     unsigned int i, ii, idim, ndims, dim_ID;
@@ -624,7 +624,7 @@ escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, unsigned int iattr
 }
 
 
-escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata) {
+escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t idata) {
 
     unsigned int i, ii, idim, ndims;
     escdf_attribute_id_t dim_ID;
@@ -633,7 +633,9 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
     escdf_attribute_t **dims = NULL;
     escdf_errno_t error;
 
-    const size_t *dims_check;
+    size_t *dims_check;
+
+    escdf_dataset_t *data;
 
     /* determine the dimensions from linked dimension attributes */
     
@@ -700,31 +702,42 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, unsigned int idata)
       
     }
     else { /* ndims == 0 case */
-      dims = NULL;
+        dims = NULL;
+#ifdef DEBUG
+        printf("_escdf_group_dataset_new: setting dims=NULL!!\n");
+#endif
     }
 
     for(i=0; i<ndims; i++) {
         unsigned int d;
         error = escdf_attribute_get(dims[i], &d);
-#ifdef HAVE_CHECK_H
-        ck_assert( error == ESCDF_SUCCESS);
-#endif
+  
+        assert( error == ESCDF_SUCCESS);
 
 #ifdef DEBUG
         printf("_escdf_group_dataset_new:  dims[%d] = %u\n",i,d); 
 #endif
-
-
     }
 
-    group->datasets[idata] = escdf_dataset_new(group->specs->data_specs[idata], dims);
+#ifdef DEBUG
+    printf("_escdf_group_dataset_new:  check. idata = %i\n", idata); 
+#endif
 
-    dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
+    data = escdf_dataset_new(group->specs->data_specs[idata], dims);
+#ifdef DEBUG
+    printf("_escdf_group_dataset_new:  dataset created\n"); 
+#endif
+
+    group->datasets[idata] = data;
+
+
 
 #ifdef DEBUG
+    dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
     for(i=0; i<ndims; i++) {
         printf("_escdf_group_dataset_new:  Dims_check[%d] = %lu\n",i,dims_check[i]);
     }
+    if(dims_check != NULL) free(dims_check);
 #endif
 
     if(dims != NULL) free(dims);
