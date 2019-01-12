@@ -34,7 +34,6 @@ extern "C" {
 
 #include "escdf_hl.h"
 
-
 void escdf_init();
 
 

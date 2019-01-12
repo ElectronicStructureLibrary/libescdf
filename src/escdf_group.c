@@ -446,7 +446,7 @@ escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *gro
         return NULL;
     }
 
-    group->name = (char*) malloc( strlen(group_name) );
+    group->name = (char*) malloc( strlen(group_name)  + 1);
     strcpy(group->name, group_name);
 
     group->escdf_handle = handle;
@@ -633,7 +633,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     escdf_attribute_t **dims = NULL;
     escdf_errno_t error;
 
-    size_t *dims_check;
+    const size_t *dims_check;
 
     escdf_dataset_t *data;
 
@@ -661,10 +661,11 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
         FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
       
         for(i = 0; i<ndims; i++) {
-	
+
+#ifdef DEBUG	
             if(group->specs->data_specs[idata] == NULL) printf("_escdf_group_dataset_new: group->specs->data_specs[%d]==NULL!!\n", idata);
             if(group->specs->data_specs[idata]->dims_specs[i] == NULL) printf("_escdf_group_dataset_new: group->specs->data_specs[%d]->dims_specs[%d]==NULL!!\n", idata, i);
-
+#endif
 	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata] != NULL, ESCDF_EVALUE, dims );
 	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata]->dims_specs[i] != NULL, ESCDF_EVALUE, dims );
 	
@@ -708,16 +709,17 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 #endif
     }
 
+#ifdef DEBUG
     for(i=0; i<ndims; i++) {
-        unsigned int d;
-        error = escdf_attribute_get(dims[i], &d);
+        void *d = malloc( escdf_attribute_sizeof(dims[i]));
+        error = escdf_attribute_get(dims[i], d);
   
         assert( error == ESCDF_SUCCESS);
 
-#ifdef DEBUG
-        printf("_escdf_group_dataset_new:  dims[%d] = %u\n",i,d); 
-#endif
+        printf("_escdf_group_dataset_new:  dims[%d] = something.\n",i); 
+    free(d);
     }
+#endif
 
 #ifdef DEBUG
     printf("_escdf_group_dataset_new:  check. idata = %i\n", idata); 
