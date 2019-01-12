@@ -94,7 +94,17 @@ libescdf_la_SOURCES = $(escdf_core_srcs)
 include_HEADERS = $(escdf_core_hdrs)
 noinst_HEADERS = $(escdf_hidden_hdrs)
 
-escdf_attributes_ID.h escdf_attributes_specs.h escdf_datasets_ID.h escdf_datasets_specs.h escdf_groups_ID.h escdf_groups_specs.h: intermediate.json ;
+escdf_spec_headers = \
+  escdf_attributes_ID.h \
+  escdf_attributes_specs.h \
+  escdf_datasets_ID.h \
+  escdf_datasets_specs.h \
+  escdf_groups_ID.h \
+  escdf_groups_specs.h
+
+BUILT_SOURCES = $(escdf_spec_headers)
+
+$(escdf_spec_headers): intermediate.json ;
 
 .INTERMEDIATE: intermediate.json
 intermediate.json: generate_attributes_from_JSON.py attributes_def.json
@@ -171,6 +181,7 @@ MOSTLYCLEANFILES = *.gcda *.gcno *.gcov test_*.tmp
 
 # Binary files generated during the tests
 CLEANFILES = \
+  $(escdf_spec_headers) \
   tmp_grid_scalarfield_read.h5 \
   tmp_grid_scalarfield_test_file.h5 \
   tmp_grid_scalarfield_write.h5
