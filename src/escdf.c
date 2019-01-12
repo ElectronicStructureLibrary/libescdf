@@ -23,7 +23,5 @@
 
 
 void escdf_init() {
-  int i = 0;
-
   escdf_register_all_group_specs();
 }
