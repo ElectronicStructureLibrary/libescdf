@@ -99,13 +99,13 @@ static const escdf_dataset_specs_t specs_array2_string = {
 };
 
 static hid_t string_len_30;
-static unsigned int dims0[] = {4};
+static size_t dims0[] = {4};
 static unsigned int array1_uint[4] = {0, 1, 2, 3};
 static int array1_int[4] = {-1, 1,  2, -3};
 static double array1_double[4] = {0.00, 0.00, 0.25, 0.50};
 static char array1_string[4][30] = {"aa1", "aa2", "aa3", "aa4"};
 
-static unsigned int dims1[] = {2, 3};
+static size_t dims1[] = {2, 3};
 static unsigned int array2_uint[2][3] = {{1, 2, 3},
                                         {4, 5, 6}};
 static int array2_int[2][3] = {{ 1,  2, -3},
@@ -265,19 +265,6 @@ START_TEST(test_dataset_specs_is_present_false)
 END_TEST
 
 
-START_TEST(test_dataset_specs_disordered_storage_allowed_true)
-{
-    ck_assert(escdf_dataset_specs_disordered_storage_allowed(&specs_array1_uint) == true);
-}
-END_TEST
-
-START_TEST(test_dataset_specs_disordered_storage_allowed_false)
-{
-    ck_assert(escdf_dataset_specs_disordered_storage_allowed(&specs_array2_uint) == false);
-}
-END_TEST
-
-
 START_TEST(test_dataset_specs_is_compact_true)
 {
     ck_assert(escdf_dataset_specs_is_compact(&specs_array2_uint) == true);
@@ -363,12 +350,6 @@ Suite * make_datasets_suite(void)
     tcase_add_test(tc_dataset_specs_is_present, test_dataset_specs_is_present_true);
     tcase_add_test(tc_dataset_specs_is_present, test_dataset_specs_is_present_false);
     suite_add_tcase(s, tc_dataset_specs_is_present);
-
-    tc_dataset_specs_disordered_storage_allowed = tcase_create("Dataset disordered storage allowed");
-    tcase_add_checked_fixture(tc_dataset_specs_disordered_storage_allowed, NULL, NULL);
-    tcase_add_test(tc_dataset_specs_disordered_storage_allowed, test_dataset_specs_disordered_storage_allowed_true);
-    tcase_add_test(tc_dataset_specs_disordered_storage_allowed, test_dataset_specs_disordered_storage_allowed_false);
-    suite_add_tcase(s, tc_dataset_specs_disordered_storage_allowed);
 
     tc_dataset_specs_is_compact = tcase_create("Dataset is compact");
     tcase_add_checked_fixture(tc_dataset_specs_is_compact, NULL, NULL);
