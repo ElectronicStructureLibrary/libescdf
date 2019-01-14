@@ -105,7 +105,7 @@ static unsigned int scalar_uint = 1;
 static int scalar_int = 2;
 static double scalar_double = 3.0;
 static char scalar_string[30] = "test-string";
-static unsigned int dims[] = {2, 3};
+static size_t dims[] = {2, 3};
 static bool array_bool[2][3] = {{true, false, false},
                                 {false, true, true}};
 static unsigned int array_uint[2][3] = {{1, 2, 3},
@@ -185,11 +185,17 @@ void scalar_teardown(void)
 
 void array_setup(void)
 {
+    unsigned int d[2];
     file_setup();
     attr_dims[0] = escdf_attribute_new(&specs_dim1, NULL);
     attr_dims[1] = escdf_attribute_new(&specs_dim2, NULL);
-    escdf_attribute_set(attr_dims[0], &dims[0]);
-    escdf_attribute_set(attr_dims[1], &dims[1]);
+    ck_assert(escdf_attribute_set(attr_dims[0], &dims[0]) == ESCDF_SUCCESS);
+    ck_assert(escdf_attribute_set(attr_dims[1], &dims[1]) == ESCDF_SUCCESS);
+    
+    ck_assert(escdf_attribute_get(attr_dims[0], d + 0) == ESCDF_SUCCESS);
+    ck_assert(d[0] == dims[0]);
+    ck_assert(escdf_attribute_get(attr_dims[1], d + 1) == ESCDF_SUCCESS);
+    ck_assert(d[1] == dims[1]);
 }
 
 void array_teardown(void)

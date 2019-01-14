@@ -651,8 +651,8 @@ START_TEST(test_group_datasets)
 
 
     
-    ck_assert( escdf_group_dataset_write_simple(dataset_fractional_site_positions, positions ) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_dataset_read_simple(dataset_fractional_site_positions, read_positions ) == ESCDF_SUCCESS); 
+    ck_assert( escdf_dataset_write_simple(dataset_fractional_site_positions, positions ) == ESCDF_SUCCESS);
+    ck_assert( escdf_dataset_read_simple(dataset_fractional_site_positions, read_positions ) == ESCDF_SUCCESS); 
     
 
     for(i=0; i<num_sites; i++) {
@@ -680,10 +680,10 @@ START_TEST(test_group_datasets)
 
 
     
-    ck_assert( escdf_group_dataset_write_simple(dataset_species_names, (void*) &names ) == ESCDF_SUCCESS);
+    ck_assert( escdf_dataset_write_simple(dataset_species_names, (void*) &names ) == ESCDF_SUCCESS);
     printf("finished writing species names.\n"); fflush(stdout);
 
-    ck_assert( escdf_group_dataset_read_simple(dataset_species_names, (void*) &read_names ) == ESCDF_SUCCESS);
+    ck_assert( escdf_dataset_read_simple(dataset_species_names, (void*) &read_names ) == ESCDF_SUCCESS);
     printf("finished reading species names.\n"); fflush(stdout);
 
     printf("Number of species = %d \n", num_species); 
