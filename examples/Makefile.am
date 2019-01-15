@@ -1,4 +1,4 @@
-EXTRA_PROGRAMS = grid groups_example groups_read_example density
+EXTRA_PROGRAMS = grid write_example read_example density
 
 grid_SOURCES = grid_scalarfield.c
 grid_LDADD = $(top_builddir)/src/libescdf.la
@@ -6,11 +6,11 @@ grid_LDADD = $(top_builddir)/src/libescdf.la
 density_SOURCES = density_example.c
 density_LDADD = $(top_builddir)/src/libescdf.la
 
-groups_example_SOURCES = groups_example.c
-groups_example_LDADD = $(top_builddir)/src/libescdf.la
+read_example_SOURCES = read_example.c
+read_example_LDADD = $(top_builddir)/src/libescdf.la
 
-groups_read_example_SOURCES = groups_read_example.c
-groups_read_example_LDADD = $(top_builddir)/src/libescdf.la
+write_example_SOURCES = write_example.c
+write_example_LDADD = $(top_builddir)/src/libescdf.la
 
 AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
 

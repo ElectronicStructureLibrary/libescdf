@@ -42,6 +42,7 @@ escdf_core_srcs = \
   escdf_error.c \
   escdf_group.c \
   escdf_handle.c \
+  escdf_hl.c \
   escdf_info.c \
   utils.c \
   utils_hdf5.c
@@ -64,6 +65,7 @@ escdf_core_hdrs = \
   escdf_groups_ID.h \
   escdf_groups_specs.h \
   escdf_handle.h \
+  escdf_hl.h \
   escdf_info.h 
 
 #  escdf_grid_scalarfields.h 
@@ -73,7 +75,8 @@ escdf_core_hdrs = \
 escdf_hidden_hdrs = \
   utils.h \
   utils_hdf5.h \
-  escdf_lookuptable.h
+  escdf_lookuptable.h \
+  escdf_private_group.h
 
                     # ------------------------------------ #
 
