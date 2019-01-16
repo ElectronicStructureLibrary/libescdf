@@ -39,8 +39,9 @@
 static unsigned int n_known_specs = 0;
 static escdf_group_specs_t const * known_group_specs[MAX_KNOWN_SPECS];
 
-
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
+
+    int i;
 
     FULFILL_OR_RETURN(specs != NULL, ESCDF_EVALUE)
 
@@ -67,6 +68,10 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     return ESCDF_SUCCESS;
 }
 
+/************************************************************
+ * Helper routines for groups                               *
+ ************************************************************/
+
 escdf_group_id_t _escdf_get_group_id(const char* name)
 {
     int i;
@@ -83,11 +88,32 @@ escdf_group_id_t _escdf_get_group_id(const char* name)
     return group_id;
 }
 
+unsigned int _escdf_group_get_attribute_index(const escdf_group_t* group, escdf_attribute_id_t iattr)
+{
+    unsigned int index=0;
 
+    assert(group!=NULL);
 
-/************************************************************
- * Helper routines for groups                               *
- ************************************************************/
+    while( index < group->specs->nattributes && group->specs->attr_specs[index]!=iattr ) {index++;}
+
+    FULFILL_OR_EXIT(index < group->specs->nattributes, ESCDF_ERROR);
+
+    return index;
+}
+
+unsigned int _escdf_group_get_dataset_index(const escdf_group_t* group, escdf_dataset_id_t idata)
+{
+    unsigned int index=0;
+
+    assert(group!=NULL);
+
+    while( index < group->specs->ndatasets && group->specs->data_specs[index]!=idata ) {index++;}
+
+    FULFILL_OR_EXIT(index < group->specs->ndatasets, ESCDF_ERROR);
+
+    return index;
+}
+
 
 const escdf_attribute_specs_t * escdf_group_get_attribute_specs(escdf_group_t *group, const char *name)
 {
@@ -495,7 +521,7 @@ escdf_errno_t escdf_group_read_attributes(escdf_group_t *group)
 
 
 
-escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attribute_name, const void* buf)
+escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, escdf_attribute_id_t attribute_id, const void* buf)
 {
     unsigned int iattr, i;
     bool attr_found = false;
@@ -505,7 +531,7 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attrib
     FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
 
     for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
-        if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
+        if ( group->specs->attr_specs[i]->id == attribute_id ) {iattr = i; attr_found=true;}
     }
     FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
 
@@ -526,7 +552,7 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, const char* attrib
 
 
 
-escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, const char* attribute_name, void *buf)
+escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, escdf_attribute_id_t attribute_id, void *buf)
 {
     unsigned int iattr, i;
     bool attr_found;
@@ -536,7 +562,7 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, const char* attrib
     FULFILL_OR_RETURN(buf != NULL, ESCDF_EVALUE);
 
     for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
-        if ( strcmp(group->specs->attr_specs[i]->name, attribute_name) == 0 ) {iattr = i; attr_found=true;}
+        if ( group->specs->attr_specs[i]->id == attribute_id) {iattr = i; attr_found=true;}
     }
     FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
 
@@ -558,10 +584,10 @@ escdf_errno_t escdf_group_attribute_get(escdf_group_t *group, const char* attrib
   
 }
 
-escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_id_t iattr)
+escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_id_t attribute_id)
 { 
 
-    unsigned int i, ii, idim, ndims, dim_ID;
+    unsigned int i, ii, idim, ndims, dim_ID, iattr;
     bool attr_found;
 
     escdf_attribute_t **dims = NULL;
@@ -572,7 +598,16 @@ escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_id
     
     FULFILL_OR_EXIT(group->specs != NULL, ESCDF_EVALUE);
 
+    for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
+        if ( group->specs->attr_specs[i]->id == attribute_id) {iattr = i; attr_found=true;}
+    }
+    FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
+
+
     ndims = group->specs->attr_specs[iattr]->ndims;
+#ifdef DEBUG
+    printf("escdf_group_attribute_new: name = %s, ndims = %u\n", group->specs->attr_specs[iattr]->name, ndims);
+#endif
 
     if( ndims > 0 ) {
       
@@ -617,9 +652,9 @@ escdf_errno_t escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_id
 }
 
 
-escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t idata) {
+escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t dataset_id) {
 
-    unsigned int i, ii, idim, ndims;
+    unsigned int i, ii, idim, ndims, idata;
     escdf_attribute_id_t dim_ID;
     bool found;
 
@@ -632,6 +667,13 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     if(group->datasets == NULL) printf("_escdf_group_dataset_new: group->datasets==NULL!!\n");
 
     FULFILL_OR_EXIT(group->datasets != NULL, ESCDF_EVALUE);
+
+    for (found = false, i = 0; i < group->specs->ndatasets; i++) {
+        if ( group->specs->data_specs[i]->id == dataset_id) {idata = i; found=true;}
+    }
+    FULFILL_OR_RETURN(found == true, ESCDF_ERROR);
+
+
 
     ndims = group->specs->data_specs[idata]->ndims;
 
@@ -702,7 +744,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 #ifdef DEBUG
     for(i=0; i<ndims; i++) {
         void *d = malloc( escdf_attribute_sizeof(dims[i]));
-        error = escdf_attribute_get(dims[i], d);
+        escdf_errno_t error = escdf_attribute_get(dims[i], d);
   
         assert( error == ESCDF_SUCCESS);
 
@@ -725,7 +767,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 
 
 #ifdef DEBUG
-    dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
+    size_t *dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
     for(i=0; i<ndims; i++) {
         printf("_escdf_group_dataset_new:  Dims_check[%d] = %lu\n",i,dims_check[i]);
     }
@@ -766,28 +808,33 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group)
 
 
 
-escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *name)
+escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, escdf_dataset_id_t dataset_id)
 {
-    unsigned int dataset_number;
+    unsigned int idata, i;
     escdf_dataset_t *dataset;
     escdf_errno_t err;
+    bool found;
 
     assert(group!=NULL);
 
-    /* get dataset ID */
+    /* get dataset index */
 
-    dataset_number = _escdf_group_get_dataset_number_from_name(group, name);
-    
+    for (found = false, i = 0; i < group->specs->ndatasets; i++) {
+        if ( group->specs->data_specs[i]->id == dataset_id) {idata = i; found=true;}
+    }
+    FULFILL_OR_RETURN(found == true, ESCDF_ERROR);
+
+   
     /* printf("escdf_group_dataset_create: name = %s, dataset_number = %d\n",name, dataset_number); */
     
-    if(dataset_number == ESCDF_UNDEFINED_ID)  return NULL;
+    if(idata == ESCDF_UNDEFINED_ID)  return NULL;
     
 
     /* create dataset structure */
 
-    FULFILL_OR_RETURN_VAL(_escdf_group_dataset_new(group, dataset_number) == ESCDF_SUCCESS, ESCDF_ERROR, NULL);
+    FULFILL_OR_RETURN_VAL(_escdf_group_dataset_new(group, idata) == ESCDF_SUCCESS, ESCDF_ERROR, NULL);
 
-    dataset = group->datasets[dataset_number];
+    dataset = group->datasets[idata];
 
     /* print for checks */
 
@@ -825,29 +872,34 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
 }
 
 
-escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name)
+escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, escdf_dataset_id_t dataset_id)
 {
     escdf_dataset_t *dataset;
     escdf_errno_t err;
 
-    unsigned int dataset_number;
-
+    unsigned int idata, i;
+    bool found;
 
     assert(group!=NULL);
 
-    dataset_number = _escdf_group_get_dataset_number_from_name(group, name);
+    for (found = false, i = 0; i < group->specs->ndatasets; i++) {
+        if ( group->specs->data_specs[i]->id == dataset_id) {idata = i; found=true;}
+    }
+    FULFILL_OR_RETURN(found == true, ESCDF_ERROR);
 
-    if(dataset_number == ESCDF_UNDEFINED_ID)  return NULL;
+
+
+    if(idata == ESCDF_UNDEFINED_ID)  return NULL;
 
     /* printf("escdf_group_dataset_open: name = %s, dataset_number = %d\n",name, dataset_number); */
 
-    err = _escdf_group_dataset_new(group, dataset_number);
+    err = _escdf_group_dataset_new(group, idata);
 
     /* printf("escdf_group_dataset_open: name = %s, new() resulted in %d\n",name, err); */
     
     FULFILL_OR_RETURN_VAL(err == ESCDF_SUCCESS,  ESCDF_ERROR, NULL);
 
-    dataset = group->datasets[dataset_number];
+    dataset = group->datasets[idata];
 
 
     /* id = escdf_dataset_get_id(dataset); */
@@ -865,35 +917,42 @@ escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name
         FULFILL_OR_RETURN_VAL(false, ESCDF_ERROR, NULL);    
     }
 
-    group->datasets_present[dataset_number] = true;
+    group->datasets_present[idata] = true;
 
     return dataset;   
 }
 
-escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name)
+escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, escdf_dataset_id_t dataset_id)
 {
-    unsigned int dataset_number;
+    unsigned int idata, i;
     escdf_errno_t err;
+    bool found;
 
     assert(group != NULL);
 
-    dataset_number = _escdf_group_get_dataset_number_from_name(group, name);
+
+    for (found = false, i = 0; i < group->specs->ndatasets; i++) {
+        if ( group->specs->data_specs[i]->id == dataset_id) {idata = i; found=true;}
+    }
+    FULFILL_OR_RETURN(found == true, ESCDF_ERROR);
+
+
     /* name_check = escdf_dataset_get_name(group->datasets[dataset_number]); */
 
     /* printf("escdf_group_dataset_close: attempting to close dataset %d: %s %s\n", dataset_number, name, name_check); */
 
     /* if(dataset_number == ESCDF_UNDEFINED_ID)  return ESCDF_SUCCESS; */ /* QUESTION: Shall wi throw an error ? */
 
-    err = escdf_dataset_close(group->datasets[dataset_number]);
+    err = escdf_dataset_close(group->datasets[idata]);
 
     /* printf("escdf_group_dataset_close: after closing dataset %d: %s %d\n", dataset_number, name, err); */
 
 
     FULFILL_OR_RETURN( err == ESCDF_SUCCESS, ESCDF_ERROR);
 
-    escdf_dataset_free(group->datasets[dataset_number]);
+    escdf_dataset_free(group->datasets[idata]);
 
-    group->datasets[dataset_number] = NULL;
+    group->datasets[idata] = NULL;
 
     /* printf("escdf_group_dataset_close: after freeing dataset %d: %s %d\n", dataset_number, name, err); */
 

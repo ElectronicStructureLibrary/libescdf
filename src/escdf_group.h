@@ -52,6 +52,10 @@ struct escdf_group_specs {
 
     unsigned int ndatasets;                        /**< Number of datasets in the group */
     const escdf_dataset_specs_t **data_specs;      /**< List of dataset specifications */
+
+    /* NOTE: The index imn the above arrays is NOT the same as the attribute_ID or dataset_ID!
+     *       We need to implement another lookuo functionality
+     */
 };
 
 typedef struct escdf_group_specs escdf_group_specs_t;
@@ -251,7 +255,7 @@ const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group
  * @param[in] buf: data to be written
  * @return error code
  */
-escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attribute_name, const void* buf);
+escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, escdf_attribute_id_t attribute_id, const void* buf);
 
 /**
  * @brief This routine gets the value of an attribute by name.
@@ -261,7 +265,7 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t* group, const char* attrib
  * @param[in] const void* buf: data to be written
  * @return error code
  */
-escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, const char* attribute_name, void* buf);
+escdf_errno_t escdf_group_attribute_get(escdf_group_t* group, escdf_attribute_id_t attribute_id, void* buf);
 
 /************************************************************
  * Low level routines for accessing datasets in a group     *
@@ -284,7 +288,7 @@ escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group);
  * @param[in] name 
  * @return escdf_dataset_t* 
  */
-escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *name);
+escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, escdf_dataset_id_t dataset_id);
 
 /**
  * @brief Open dataset in a group
@@ -293,7 +297,7 @@ escdf_dataset_t *escdf_group_dataset_create(escdf_group_t *group, const char *na
  * @param[in] name 
  * @return escdf_dataset_t* 
  */
-escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name);
+escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, escdf_dataset_id_t dataset_id);
  
 /**
  * @brief Close dataset in a group
@@ -302,7 +306,7 @@ escdf_dataset_t *escdf_group_dataset_open(escdf_group_t *group, const char *name
  * @param[in] name 
  * @return escdf_errno_t 
  */
-escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, const char *name);
+escdf_errno_t escdf_group_dataset_close(escdf_group_t *group, escdf_dataset_id_t dataset_id);
 
 
 

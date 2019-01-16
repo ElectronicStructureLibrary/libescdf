@@ -19,6 +19,13 @@
 
   "Attributes" :
   [
+  {
+    "Name":"file_format",
+    "Data_type":"ESCDF_DT_STRING",
+    "Dimensions":0,
+    "String_length":80,
+    "Optional":"no"
+  },
   { 
     "Name" : "system_name", 
     "Data_type"  : "ESCDF_DT_STRING", 
@@ -30,7 +37,8 @@
   { 
     "Name" : "number_of_physical_dimensions", 
     "Data_type" : "ESCDF_DT_UINT", 
-    "Dimensions":  0, "Range" : [3,3],
+    "Dimensions":  0, 
+    "Range" : [3,3],
     "Description" : ["The number of physical dimensions in space. Note that this is not the same as the number of periodic directions,", 
                      "which might be less than or equal to this number."],
     "Optional" : "no"
@@ -203,7 +211,11 @@
   }
   ],
   "Groups" :
-  [
+  [   
+  {
+    "Name":"global",
+    "Attributes":["file_format"]
+  },
    { "Name" : "system" , 
      "Attributes" : [
        "system_name", 
