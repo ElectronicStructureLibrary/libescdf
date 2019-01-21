@@ -88,31 +88,43 @@ escdf_group_id_t _escdf_get_group_id(const char* name)
     return group_id;
 }
 
-unsigned int _escdf_group_get_attribute_index(const escdf_group_t* group, escdf_attribute_id_t iattr)
+int _escdf_group_get_attribute_index(const escdf_group_t *group, escdf_attribute_id_t attribute_id)
 {
-    unsigned int index=0;
+    bool found;
+    unsigned int i, index;
+
+    index = -999;
 
     assert(group!=NULL);
 
-    while( index < group->specs->nattributes && group->specs->attr_specs[index]!=iattr ) {index++;}
+    for (found = false, i = 0; i < group->specs->nattributes; i++) {
+        if ( group->specs->attr_specs[i]->id == attribute_id) {index = i; found=true;}
+    }
 
-    FULFILL_OR_EXIT(index < group->specs->nattributes, ESCDF_ERROR);
+    if(!found) REGISTER_ERROR(ESCDF_ERROR);
 
     return index;
 }
 
-unsigned int _escdf_group_get_dataset_index(const escdf_group_t* group, escdf_dataset_id_t idata)
+
+int _escdf_group_get_dataset_index(const escdf_group_t *group, escdf_dataset_id_t dataset_id)
 {
-    unsigned int index=0;
+    bool found;
+    unsigned int i, index;
+
+    index = -999;
 
     assert(group!=NULL);
 
-    while( index < group->specs->ndatasets && group->specs->data_specs[index]!=idata ) {index++;}
+    for (found = false, i = 0; i < group->specs->ndatasets; i++) {
+        if ( group->specs->data_specs[i]->id == dataset_id) {index = i; found=true;}
+    }
 
-    FULFILL_OR_EXIT(index < group->specs->ndatasets, ESCDF_ERROR);
+    if(!found) REGISTER_ERROR(ESCDF_ERROR);
 
     return index;
 }
+
 
 
 const escdf_attribute_specs_t * escdf_group_get_attribute_specs(escdf_group_t *group, const char *name)
@@ -715,7 +727,10 @@ escdf_errno_t _escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_i
 
 escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t dataset_id) {
 
-    unsigned int i, ii, idim, ndims, idata;
+    unsigned int i, ii;        
+    unsigned int idim, idata;  /* array indices for dimension attributes and dataset */
+    unsigned int ndims;
+
     bool found;
 
     escdf_attribute_id_t dim_ID;
@@ -729,13 +744,18 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     if(group->datasets == NULL) printf("_escdf_group_dataset_new: group->datasets==NULL!!\n");
     FULFILL_OR_EXIT(group->datasets != NULL, ESCDF_EVALUE);
 
-    /* detemine storage index of the dataset from the dataset_id */
+    /* determine storage index of the dataset from the dataset_id */
 
+    /* moved to function call: 
     for (found = false, i = 0; i < group->specs->ndatasets; i++) {
         if ( group->specs->data_specs[i]->id == dataset_id) {idata = i; found=true;}
     }
     FULFILL_OR_RETURN(found == true, ESCDF_ERROR);
+    */
 
+    idata = _escdf_group_get_dataset_index(group, dataset_id);
+
+    assert(idata >= 0);
 
     /* determine the dimensions from linked dimension attributes */
 
@@ -747,11 +767,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 
     if( ndims > 0 ) {
         
-#ifdef DEBUG
-        printf("%s (%s, %d): attempting to allocate %lu bytes.\n", __func__, __FILE__, __LINE__, ndims * sizeof(escdf_attribute_t*)); fflush(stdout); 
-#endif        
         dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
-
         if(dims == NULL) printf("%s (%s, %d): malloc error (dims==NULL) !!\n", __func__, __FILE__, __LINE__);
         FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
       
@@ -768,7 +784,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 	        dim_ID = group->specs->data_specs[idata]->dims_specs[i]->id;
 
 #ifdef DEBUG            
-            printf("%s (%s, %d) for %s, dim_ID = %d\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, dim_ID); fflush(stdout); 
+            printf("%s (%s, %d): for %s, dim_ID = %d\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, dim_ID); fflush(stdout); 
 #endif            
 
 	        for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
@@ -819,9 +835,12 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     }
 #endif
 
+/*
 #ifdef DEBUG
-    printf("%s (%s, %d):  check. idata = %i\n", __func__, __FILE__, __LINE__, idata); 
+    printf("%s (%s, %d):  check. index = %i\n", __func__, __FILE__, __LINE__, idata); 
 #endif
+*/
+
 
     data = escdf_dataset_new(group->specs->data_specs[idata], dims);
 #ifdef DEBUG
@@ -1110,3 +1129,15 @@ void escdf_group_print_info(const escdf_group_t* group)
     printf("\n\n");
 
 };
+
+
+escdf_dataset_t * _escdf_group_get_dataset(const escdf_group_t *group, escdf_dataset_id_t dataset_id)
+{
+    escdf_dataset_t *data = NULL;
+    assert(group!=NULL);
+
+    int index = _escdf_group_get_dataset_index(group, dataset_id);
+    if(index>=0) data = group->datasets[index];
+
+    return data;
+}

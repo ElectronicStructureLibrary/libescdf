@@ -131,7 +131,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
 
 #ifdef DEBUG
-    printf("escdf_dataset_new: start.\n");
+    printf("%s (%s, %d): start.\n", __func__, __FILE__, __LINE__);
 #endif
 
      /* Check input */
@@ -141,6 +141,10 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     /* Allocate memory */
     data = (escdf_dataset_t *) malloc(sizeof(escdf_dataset_t));
     
+#ifdef DEBUG
+    printf("%s (%s, %d): memory for escdf_dataset_t created.\n", __func__, __FILE__, __LINE__);
+#endif
+
     if (data == NULL) {
         return data;
     }
@@ -150,6 +154,9 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
 
     /* Check whether dimensions are regular shaped */
     if (specs->compact) {
+#ifdef DEBUG
+    printf("%s (%s, %d): compact storage detected.\n", __func__, __FILE__, __LINE__);
+#endif        
         if (specs->ndims == 2) {
 
             /*
@@ -181,6 +188,10 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
             dims[0] = j;
             /* dims[1] = 0; // was 1! */ 
         } else { 
+#ifdef DEBUG
+    printf("%s (%s, %d): compact storage for ndims = %d not implemented!!.\n", __func__, __FILE__, __LINE__, specs->ndims);
+#endif        
+
             REGISTER_ERROR(ESCDF_ERROR_DIM); 
 
             return NULL;
@@ -251,7 +262,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->xfer_id = ESCDF_UNDEFINED_ID;
    
 #ifdef DEBUG
-    printf("escdf_dataset_new: end.\n");
+    printf("%s (%s, %d): end.\n", __func__, __FILE__, __LINE__);
 #endif
 
     return data;

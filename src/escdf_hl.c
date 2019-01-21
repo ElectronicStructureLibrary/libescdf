@@ -119,7 +119,7 @@ escdf_dataset_t *escdf_hl_dataset_create(escdf_group_t *group, escdf_dataset_id_
     FULFILL_OR_RETURN_VAL( err == ESCDF_SUCCESS, ESCDF_ERROR, NULL);
 
 #ifdef DEBUG
-    printf("_escdf_group_dataset_new resulted %d\n",err); fflush(stdout); 
+    printf("%s (%s, %d): _escdf_group_dataset_new resulted %d\n",__func__, __FILE__, __LINE__, err); fflush(stdout); 
 #endif
 
     dataset = group->datasets[dataset_ID];
@@ -130,7 +130,7 @@ escdf_dataset_t *escdf_hl_dataset_create(escdf_group_t *group, escdf_dataset_id_
     err = escdf_dataset_create(dataset, group->loc_id); 
 
 #ifdef DEBUG
-    printf("escdf_dataset_create resulted %d\n",err); fflush(stdout); 
+    printf("%s (%s, %d): escdf_dataset_create resulted %d\n", __func__, __FILE__, __LINE__, err); fflush(stdout); 
 #endif
 
     if( err != ESCDF_SUCCESS ) {
@@ -222,20 +222,28 @@ escdf_errno_t escdf_hl_dataset_close(escdf_group_t *group, escdf_dataset_id_t da
 
 escdf_errno_t escdf_hl_dataset_write_simple(escdf_group_t *group, escdf_dataset_id_t dataset_ID, const void* buf)
 {
+    int index;
     escdf_dataset_t *data;
 
-    if( utils_hdf5_check_present(group->loc_id, group->specs->data_specs[dataset_ID]->name) ) {
+    index = _escdf_group_get_dataset_index(group, dataset_ID);
+
+#ifdef DEBUG
+    printf("%s (%s, %d): writing %s \n", __func__, __FILE__, __LINE__, group->specs->data_specs[index]->name); fflush(stdout); 
+#endif
+
+    if( utils_hdf5_check_present(group->loc_id, group->specs->data_specs[index]->name) ) {
         return ESCDF_ERROR;
     }
     else {
-        data = escdf_hl_dataset_create(group, dataset_ID);
+        data = escdf_group_dataset_create(group, dataset_ID);
     }
 
+    data = group->datasets[index];
 
     FULFILL_OR_RETURN(data != NULL, ESCDF_ERROR);
 
 #ifdef DEBUG
-    printf("escdf_group_dataset_write_simple: %s \n", escdf_dataset_get_name(data)); fflush(stdout); 
+    printf("%s (%s, %d): %s \n", __func__, __FILE__, __LINE__, escdf_dataset_get_name(data)); fflush(stdout); 
 #endif
 
     FULFILL_OR_RETURN( escdf_dataset_write_simple(data, buf) == ESCDF_SUCCESS, ESCDF_ERROR );
