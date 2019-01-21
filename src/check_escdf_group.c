@@ -22,6 +22,7 @@
 #include <zconf.h>
 #include <assert.h>
 
+#include "escdf.h"
 #include "escdf_group.h"
 
 #include "escdf_attributes_ID.h"
@@ -304,13 +305,13 @@ START_TEST(test_group_attribute_system)
 
   escdf_group_print_info(group_system);
 
-  ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
+  ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, (void*) &dim) == ESCDF_SUCCESS);
   dim = 0;
-  ck_assert( escdf_group_attribute_get(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
+  ck_assert( escdf_group_attribute_get(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, (void*) &dim) == ESCDF_SUCCESS);
   ck_assert( dim == 3 );
 
-  ck_assert( escdf_group_attribute_set(group_system, "lattice_vectors", (void*) alat) == ESCDF_SUCCESS );
-  ck_assert( escdf_group_attribute_get(group_system, "lattice_vectors", (void*) values) == ESCDF_SUCCESS ); 
+  ck_assert( escdf_group_attribute_set(group_system, LATTICE_VECTORS, (void*) alat) == ESCDF_SUCCESS );
+  ck_assert( escdf_group_attribute_get(group_system, LATTICE_VECTORS, (void*) values) == ESCDF_SUCCESS ); 
 
   for(i = 0; i<dim; i++) {
     for (j = 0; j<dim; j++) {
@@ -318,8 +319,8 @@ START_TEST(test_group_attribute_system)
     }
   }
 
-  ck_assert( escdf_group_attribute_set(group_system, "system_name", (void*) name) == ESCDF_SUCCESS);
-  ck_assert( escdf_group_attribute_get(group_system, "system_name", (void*) value_string) == ESCDF_SUCCESS);
+  ck_assert( escdf_group_attribute_set(group_system, SYSTEM_NAME, (void*) name) == ESCDF_SUCCESS);
+  ck_assert( escdf_group_attribute_get(group_system, SYSTEM_NAME, (void*) value_string) == ESCDF_SUCCESS);
   ck_assert( strcmp( name, value_string ) == 0 );
 
   strcpy(value_string, "    ");
@@ -365,13 +366,13 @@ START_TEST(test_group_datasets_system)
 
     escdf_group_print_info(group_system);
 
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_species", (void*) &num_species) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_SPECIES, (void*) &num_species) == ESCDF_SUCCESS);
     num = 0;
-    ck_assert( escdf_group_attribute_get(group_system, "number_of_species", (void*) &num) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, NUMBER_OF_SPECIES, (void*) &num) == ESCDF_SUCCESS);
     ck_assert( num == num_species );
 
 
-    escdf_dataset_t* dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
+    escdf_dataset_t* dataset_species_names = escdf_group_dataset_create(group_system, SPECIES_NAMES);
     printf("finished creating dataset species_names.\n"); fflush(stdout);
     
     ck_assert( dataset_species_names != NULL);
@@ -458,7 +459,7 @@ bool vec_equal(double *a, double *b){
 
 void new_handle_setup(void)
 {
-    escdf_register_all_group_specs();
+    escdf_init();
     escdf_handle = escdf_create(TEST_FILE, NULL);
 }
 
@@ -482,6 +483,22 @@ void new_group_teardown(void)
     new_handle_teardown();
 }
 
+void new_group_dimensions_setup(void)
+{
+    int dim = 3;
+    int num_sites = 5;
+
+    new_group_setup();
+
+    escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, (void*) &dim);
+    escdf_group_attribute_set(group_system, NUMBER_OF_SITES, (void*) &num_sites);
+}
+
+void new_group_dimensions_teardown(void)
+{
+    new_group_teardown();
+}
+
 START_TEST(test_handle_create)
 {
     ck_assert(escdf_handle != NULL);
@@ -490,21 +507,53 @@ END_TEST
 
 START_TEST(test_group_create)
 {
-    printf("----------------------------------\n");
-    printf("TEST_GROUP_CREATE\n");
-    printf("----------------------------------\n\n");
-
-    ck_assert( (group_system = escdf_group_create(escdf_handle, "system", NULL)) != NULL);
-    escdf_group_free(group_system);
-    group_system = NULL;
+    ck_assert(group_system != NULL);
 }
 END_TEST
+
+START_TEST(test_group_attributes_set_bool)
+{
+    bool embedded = false, embedded_read;
+
+    ck_assert( escdf_group_attribute_set(group_system, EMBEDDED_SYSTEM, (void*) &embedded) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
+START_TEST(test_group_attributes_get_bool)
+{
+    bool embedded = false, embedded_read;
+
+    escdf_group_attribute_set(group_system, EMBEDDED_SYSTEM, (void*) &embedded);
+    ck_assert( escdf_group_attribute_get(group_system, EMBEDDED_SYSTEM, (void*) &embedded_read) == ESCDF_SUCCESS);
+    ck_assert( embedded == embedded_read );
+}
+END_TEST
+
+START_TEST(test_group_attributes_set_integer)
+{
+    int dim=3;
+
+    ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, (void*) &dim) == ESCDF_SUCCESS);
+}
+END_TEST
+
+
+START_TEST(test_group_attributes_get_integer)
+{
+    int dim=3, dim_read;
+
+    escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, (void*) &dim);
+    ck_assert( escdf_group_attribute_get(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, (void*) &dim_read) == ESCDF_SUCCESS);
+    ck_assert( dim == dim_read );
+}
+END_TEST
+
 
 START_TEST(test_group_attributes)
 {
     int dim=3;
 
-    bool embedded = false, embedded_read;
 
     double alat[3][3] = {{1.0, 0.0, 0.0},{0.0, 1.0, 0.0},{0.0, 0.0, 1.0}};
     double values[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}};
@@ -521,29 +570,18 @@ START_TEST(test_group_attributes)
 
     escdf_group_print_info(group_system);
 
-    /* Bool */
-
-    printf("Testing Bool: ");fflush(stdout);
-    ck_assert( escdf_group_attribute_set(group_system, "embedded_system", (void*) &embedded) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_attribute_get(group_system, "embedded_system", (void*) &embedded_read) == ESCDF_SUCCESS);
-    ck_assert( embedded == embedded_read );
-    printf("OK.\n"); fflush(stdout);
 
     /* Simple Integer */
 
     printf("Testing Integer: ");fflush(stdout);
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
-    dim = 0;
-    ck_assert( escdf_group_attribute_get(group_system, "number_of_physical_dimensions", (void*) &dim) == ESCDF_SUCCESS);
-    ck_assert( dim == 3 );
     printf("OK.\n"); fflush(stdout);
 
 
     /* Integer array */
 
     printf("Testing Integer Array: ");fflush(stdout);
-    ck_assert( escdf_group_attribute_set(group_system, "lattice_vectors", (void*) alat) == ESCDF_SUCCESS );
-    ck_assert( escdf_group_attribute_get(group_system, "lattice_vectors", (void*) values) == ESCDF_SUCCESS ); 
+    ck_assert( escdf_group_attribute_set(group_system, LATTICE_VECTORS, (void*) alat) == ESCDF_SUCCESS );
+    ck_assert( escdf_group_attribute_get(group_system, LATTICE_VECTORS, (void*) values) == ESCDF_SUCCESS ); 
 
     for(int i = 0; i<dim; i++) {
         for (int j = 0; j<dim; j++) {
@@ -555,8 +593,8 @@ START_TEST(test_group_attributes)
     /* Simple string */
 
     printf("Testing String: ");fflush(stdout);
-    ck_assert( escdf_group_attribute_set(group_system, "system_name", (void*) name) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_attribute_get(group_system, "system_name", &value_string) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_set(group_system, SYSTEM_NAME, (void*) name) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, SYSTEM_NAME, &value_string) == ESCDF_SUCCESS);
     ck_assert( strcmp( name, value_string ) == 0 );
     printf("OK.\n"); fflush(stdout);
 
@@ -612,17 +650,16 @@ START_TEST(test_group_datasets)
     ck_assert(group_system!=NULL);
 
     printf("Setting Integer Dimensions (Attributes): ");fflush(stdout);
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_physical_dimensions", &num_dims) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_attribute_get(group_system, "number_of_physical_dimensions", &num) == ESCDF_SUCCESS);
-    ck_assert( num == num_dims );
+    ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_atribute_get(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num) == ESCDF_SUCCESS);
+    ck_assert( num == num_dims);
 
-
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_species", &num_species) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_attribute_get(group_system, "number_of_species", &num) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_SPECIES, &num_species) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, NUMBER_OF_SPECIES, &num) == ESCDF_SUCCESS);
     ck_assert( num == num_species );
 
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_sites", &num_sites) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_attribute_get(group_system, "number_of_sites", &num) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_SITES, &num_sites) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, NUMBER_OF_SITES, &num) == ESCDF_SUCCESS);
     ck_assert( num == num_sites );
 
     printf("Done.\n"); fflush(stdout);
@@ -634,7 +671,7 @@ START_TEST(test_group_datasets)
     */
 
     
-    ck_assert( escdf_group_attribute_set(group_system, "number_of_species_at_site", num_species_at_site) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_SPECIES_AT_SITE, num_species_at_site) == ESCDF_SUCCESS);
     
 
     
@@ -644,7 +681,7 @@ START_TEST(test_group_datasets)
     
     printf("Retrieve dataset handle: \n"); fflush(stdout);
 
-    dataset_fractional_site_positions = escdf_group_dataset_create(group_system, "fractional_site_positions");
+    dataset_fractional_site_positions = escdf_group_dataset_create(group_system, FRACTIONAL_SITE_POSITIONS);
     ck_assert( dataset_fractional_site_positions != NULL);
     printf("OK.\n");
     
@@ -670,7 +707,7 @@ START_TEST(test_group_datasets)
 
     
     printf("Retrieve dataset handle: \n"); fflush(stdout);
-    dataset_species_names = escdf_group_dataset_create(group_system, "species_names");
+    dataset_species_names = escdf_group_dataset_create(group_system, SPECIES_NAMES);
     ck_assert( dataset_species_names != NULL);
     printf("OK.\n");
     printf("finished creating dataset species_names.\n"); fflush(stdout);
@@ -702,29 +739,50 @@ END_TEST
 Suite *make_new_group_suite(void)
 {
     Suite *s;
+    /*
     TCase *tc_handle_create, *tc_group_create, *tc_group_attributes, *tc_group_datasets;
-
+    */
     s = suite_create("New Group Test");
 
-    tc_handle_create = tcase_create("Create Handle");
+    TCase *tc_handle_create = tcase_create("Create Handle");
     tcase_add_checked_fixture(tc_handle_create, new_handle_setup, new_handle_teardown);
     tcase_add_test(tc_handle_create, test_handle_create);
     suite_add_tcase(s, tc_handle_create);
 
-    tc_group_create = tcase_create("Create Group");
-    tcase_add_checked_fixture(tc_group_create, new_handle_setup, new_handle_teardown);
+    TCase *tc_group_create = tcase_create("Create Group");
+    tcase_add_checked_fixture(tc_group_create, new_group_setup, new_group_teardown);
     tcase_add_test(tc_group_create, test_group_create);
     suite_add_tcase(s, tc_group_create);
 
-    tc_group_attributes = tcase_create("Group Attributes");
-    tcase_add_checked_fixture(tc_group_attributes, new_group_setup, new_group_teardown);
-    tcase_add_test(tc_group_attributes, test_group_attributes);
-    suite_add_tcase(s, tc_group_attributes);
+    TCase *tc_group_attributes_set_bool = tcase_create("Group Attributes Set Bool");
+    tcase_add_checked_fixture(tc_group_attributes_set_bool, new_group_setup, new_group_teardown);
+    tcase_add_test(tc_group_attributes_set_bool, test_group_attributes_set_bool);
+    suite_add_tcase(s, tc_group_attributes_set_bool);
 
+    TCase *tc_group_attributes_get_bool = tcase_create("Group Attributes Get Bool");
+    tcase_add_checked_fixture(tc_group_attributes_get_bool, new_group_setup, new_group_teardown);
+    tcase_add_test(tc_group_attributes_get_bool, test_group_attributes_get_bool);
+    suite_add_tcase(s, tc_group_attributes_get_bool);
+
+
+    TCase *tc_group_attributes_set_int = tcase_create("Group Attributes Set Integer");
+    tcase_add_checked_fixture(tc_group_attributes_set_int, new_group_setup, new_group_teardown);
+    tcase_add_test(tc_group_attributes_set_int, test_group_attributes_set_integer);
+    suite_add_tcase(s, tc_group_attributes_set_int);
+
+    TCase *tc_group_attributes_get_int = tcase_create("Group Attributes Get Integer");
+    tcase_add_checked_fixture(tc_group_attributes_get_int, new_group_setup, new_group_teardown);
+    tcase_add_test(tc_group_attributes_get_int, test_group_attributes_get_integer);
+    suite_add_tcase(s, tc_group_attributes_get_int);
+
+
+
+    /*
     tc_group_datasets = tcase_create("Group Datasets");
     tcase_add_checked_fixture(tc_group_datasets, new_group_setup, new_group_teardown);
     tcase_add_test(tc_group_datasets, test_group_datasets);
     suite_add_tcase(s, tc_group_datasets);
+    */
 
     
     return s;

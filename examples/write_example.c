@@ -170,10 +170,11 @@ int main() {
 
     // escdf_dataset_print(dataset_species_at_site);
 
-    
+    /*
     error = escdf_hl_dataset_write_simple(group_system, SPECIES_NAMES, names);
     printf("dataset_species_names written with error = %d\n\n\n", error);
-
+    */
+   
     /*
     error = escdf_hl_dataset_write_simple(group_system, CARTESIAN_SITE_POSITIONS, coords);
     printf("dataset_species_pos written with error = %d\n", error);

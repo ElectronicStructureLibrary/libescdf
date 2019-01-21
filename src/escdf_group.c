@@ -762,7 +762,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     ndims = group->specs->data_specs[idata]->ndims;
 
 #ifdef DEBUG
-    printf("%s (%s, %d): for %s, ndims = %d\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, ndims); fflush(stdout); 
+    printf("%s (%s, %d): for \"%s\", ndims = %d\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, ndims); fflush(stdout); 
 #endif
 
     if( ndims > 0 ) {
@@ -783,9 +783,11 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 
 	        dim_ID = group->specs->data_specs[idata]->dims_specs[i]->id;
 
+/*
 #ifdef DEBUG            
             printf("%s (%s, %d): for %s, dim_ID = %d\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, dim_ID); fflush(stdout); 
 #endif            
+*/
 
 	        for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
 	            if (group->specs->attr_specs[ii]->id == dim_ID) {idim = ii; found=true;}
@@ -796,9 +798,9 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
             FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
 #ifdef DEBUG        
-            printf("%s (%s, %d): for %s, found %s with %d dimensions.\n", __func__, __FILE__, __LINE__,
+            printf("%s (%s, %d): for \"%s\", found \"%s\" (dim_ID = %d, index = %d) with %d dimensions.\n", __func__, __FILE__, __LINE__,
                 group->specs->data_specs[idata]->name, 
-                group->specs->attr_specs[idim]->name,
+                group->specs->attr_specs[idim]->name, dim_ID, idata, 
                 group->specs->attr_specs[idim]->ndims); 
             fflush(stdout);
 #endif            
@@ -823,7 +825,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 #endif
     }
 
-#ifdef DEBUG
+#ifdef DEBUG_
     for(i=0; i<ndims; i++) {
         void *d = malloc( escdf_attribute_sizeof(dims[i]));
         escdf_errno_t error = escdf_attribute_get(dims[i], d);
@@ -835,16 +837,11 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     }
 #endif
 
-/*
-#ifdef DEBUG
-    printf("%s (%s, %d):  check. index = %i\n", __func__, __FILE__, __LINE__, idata); 
-#endif
-*/
 
 
     data = escdf_dataset_new(group->specs->data_specs[idata], dims);
 #ifdef DEBUG
-    printf("%s (%s, %d):  dataset created\n", __func__, __FILE__, __LINE__); 
+    printf("%s (%s, %d): dataset created\n", __func__, __FILE__, __LINE__); 
 #endif
 
     group->datasets[idata] = data;
@@ -854,7 +851,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 #ifdef DEBUG
     size_t *dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
     for(i=0; i<ndims; i++) {
-        printf("%s (%s, %d):  Dims_check[%d] = %lu\n", __func__, __FILE__, __LINE__, i,dims_check[i]);
+        printf("%s (%s, %d): Dims_check[%d] = %lu\n", __func__, __FILE__, __LINE__, i,dims_check[i]);
     }
     if(dims_check != NULL) free(dims_check);
 #endif

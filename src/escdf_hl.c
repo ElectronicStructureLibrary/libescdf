@@ -228,10 +228,13 @@ escdf_errno_t escdf_hl_dataset_write_simple(escdf_group_t *group, escdf_dataset_
     index = _escdf_group_get_dataset_index(group, dataset_ID);
 
 #ifdef DEBUG
-    printf("%s (%s, %d): writing %s \n", __func__, __FILE__, __LINE__, group->specs->data_specs[index]->name); fflush(stdout); 
+    printf("%s (%s, %d): attempting to write \"%s\" \n", __func__, __FILE__, __LINE__, group->specs->data_specs[index]->name); fflush(stdout); 
 #endif
 
     if( utils_hdf5_check_present(group->loc_id, group->specs->data_specs[index]->name) ) {
+#ifdef DEBUG
+    printf("%s (%s, %d): dataset \"%s\" already exists in the file.\n", __func__, __FILE__, __LINE__, group->specs->data_specs[index]->name); fflush(stdout); 
+#endif
         return ESCDF_ERROR;
     }
     else {
@@ -243,7 +246,7 @@ escdf_errno_t escdf_hl_dataset_write_simple(escdf_group_t *group, escdf_dataset_
     FULFILL_OR_RETURN(data != NULL, ESCDF_ERROR);
 
 #ifdef DEBUG
-    printf("%s (%s, %d): %s \n", __func__, __FILE__, __LINE__, escdf_dataset_get_name(data)); fflush(stdout); 
+    printf("%s (%s, %d): \"%s\" \n", __func__, __FILE__, __LINE__, escdf_dataset_get_name(data)); fflush(stdout); 
 #endif
 
     FULFILL_OR_RETURN( escdf_dataset_write_simple(data, buf) == ESCDF_SUCCESS, ESCDF_ERROR );
