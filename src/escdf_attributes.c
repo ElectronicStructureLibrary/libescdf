@@ -430,3 +430,9 @@ escdf_errno_t escdf_attribute_print(escdf_attribute_t *attr)
   return ESCDF_SUCCESS;
 
 }
+
+const escdf_attribute_specs_t *escdf_attribute_get_specs(const escdf_attribute_t *attr){
+    assert(attr!=NULL);
+
+    return attr->specs;
+}

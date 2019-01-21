@@ -110,6 +110,15 @@ size_t escdf_attribute_sizeof(const escdf_attribute_t *attr);
 const size_t *escdf_attribute_get_dimensions(const escdf_attribute_t *attr);
 
 /**
+ * @brief obtain pointer to specs of an attribute
+ * 
+ * @param[in] const escdf_attribute_t *attr : pointer to attribute
+ * @return const escdf_attribute_specs_t * 
+ */
+const escdf_attribute_specs_t *escdf_attribute_get_specs(const escdf_attribute_t *attr);
+ 
+
+/**
  * @brief set the attribute to a value given in the buffer
  * 
  * @param[in] escdf_attribute_t *attr : pointer to attribute

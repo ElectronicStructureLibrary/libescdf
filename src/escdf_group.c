@@ -358,14 +358,14 @@ escdf_errno_t escdf_group_create_location(escdf_group_t *group, const escdf_hand
 {
     char location_path[ESCDF_STRLEN_GROUP];
 
-#ifdef DEBUG
+#ifdef DEBUG__
     printf("%s (%s, %d): before initial checks. \n",  __func__, __FILE__, __LINE__);
 #endif
 
     FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE)
     FULFILL_OR_RETURN(handle != NULL, ESCDF_EVALUE)
 
-#ifdef DEBUG
+#ifdef DEBUG__
     printf("%s (%s, %d): after initial checks. \n",  __func__, __FILE__, __LINE__);
 #endif
 
@@ -376,7 +376,7 @@ escdf_errno_t escdf_group_create_location(escdf_group_t *group, const escdf_hand
 
     utils_hdf5_create_group(handle->file_id, location_path, &(group->loc_id));
 
-#ifdef DEBUG
+#ifdef DEBUG__
     printf("%s (%s, %d): after utils_hdf5_create_group. \n",  __func__, __FILE__, __LINE__);
 #endif
 
@@ -572,15 +572,15 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, escdf_attribute_id
 
     for (attr_found = false, i = 0; i < group->specs->nattributes; i++) {
         assert(group->specs->attr_specs[i] != NULL);
-#ifdef DEBUG
-        printf("escdf_group_attribute_set(%s,%u): probing attribute %u(%u) : ID = %u \n", group->name, attribute_id, i, group->specs->nattributes, group->specs->attr_specs[i]->id);    
+#ifdef DEBUG__
+        printf("%s (%s, %d): (%s,%u): probing attribute %u(%u) : ID = %u \n", __func__, __FILE__, __LINE__, group->name, attribute_id, i, group->specs->nattributes, group->specs->attr_specs[i]->id);    
 #endif        
         if ( group->specs->attr_specs[i]->id == attribute_id ) {iattr = i; attr_found=true;}
     }
     FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
 
 #ifdef DEBUG
-    printf("escdf_group_attribute_set(%s,%u): found attribute %u(%u) \n", group->name, attribute_id, iattr, group->specs->nattributes);    
+    printf("%s (%s, %d): (%s,%u): found attribute %u(%u) \n", __func__, __FILE__, __LINE__, group->name, attribute_id, iattr, group->specs->nattributes);    
 #endif
 
     FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
@@ -588,7 +588,7 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, escdf_attribute_id
     if (group->attr[iattr] == NULL) {
         error = _escdf_group_attribute_new(group, attribute_id);
 #ifdef DEBUG
-        printf("escdf_group_attribute_set(%s,%u): created attribute %u(%u). Error = %d \n", group->name, attribute_id, iattr, group->specs->nattributes, error);    
+        printf("%s (%s, %d): (%s,%u): created attribute %u(%u). Error = %d \n", __func__, __FILE__, __LINE__, group->name, attribute_id, iattr, group->specs->nattributes, error);    
 #endif
         SUCCEED_OR_RETURN(error = ESCDF_SUCCESS);
     }
@@ -716,18 +716,20 @@ escdf_errno_t _escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_i
 escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t dataset_id) {
 
     unsigned int i, ii, idim, ndims, idata;
-    escdf_attribute_id_t dim_ID;
     bool found;
 
+    escdf_attribute_id_t dim_ID;
     escdf_attribute_t **dims = NULL;
-
     escdf_dataset_t *data;
 
-    /* determine the dimensions from linked dimension attributes */
-    
-    if(group->datasets == NULL) printf("_escdf_group_dataset_new: group->datasets==NULL!!\n");
+    /* initial checks */
 
+    assert(group!=NULL);
+
+    if(group->datasets == NULL) printf("_escdf_group_dataset_new: group->datasets==NULL!!\n");
     FULFILL_OR_EXIT(group->datasets != NULL, ESCDF_EVALUE);
+
+    /* detemine storage index of the dataset from the dataset_id */
 
     for (found = false, i = 0; i < group->specs->ndatasets; i++) {
         if ( group->specs->data_specs[i]->id == dataset_id) {idata = i; found=true;}
@@ -735,62 +737,65 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     FULFILL_OR_RETURN(found == true, ESCDF_ERROR);
 
 
+    /* determine the dimensions from linked dimension attributes */
 
     ndims = group->specs->data_specs[idata]->ndims;
 
 #ifdef DEBUG
-    printf("_escdf_group_dataset_new for %s, ndims = %d\n", group->specs->data_specs[idata]->name, ndims); fflush(stdout); 
+    printf("%s (%s, %d): for %s, ndims = %d\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, ndims); fflush(stdout); 
 #endif
 
     if( ndims > 0 ) {
         
 #ifdef DEBUG
-    printf("_escdf_group_dataset_new: attempting to allocate %lu\n", ndims* sizeof(escdf_attribute_t*)); fflush(stdout); 
+        printf("%s (%s, %d): attempting to allocate %lu bytes.\n", __func__, __FILE__, __LINE__, ndims * sizeof(escdf_attribute_t*)); fflush(stdout); 
 #endif        
         dims = (escdf_attribute_t**) malloc(ndims * sizeof(escdf_attribute_t*));
 
-        if(dims == NULL) printf("_escdf_group_dataset_new: dims==NULL!!\n");
-
+        if(dims == NULL) printf("%s (%s, %d): malloc error (dims==NULL) !!\n", __func__, __FILE__, __LINE__);
         FULFILL_OR_RETURN(dims != NULL, ESCDF_ERROR);
       
         for(i = 0; i<ndims; i++) {
 
 #ifdef DEBUG	
-            if(group->specs->data_specs[idata] == NULL) printf("_escdf_group_dataset_new: group->specs->data_specs[%d]==NULL!!\n", idata);
-            if(group->specs->data_specs[idata]->dims_specs[i] == NULL) printf("_escdf_group_dataset_new: group->specs->data_specs[%d]->dims_specs[%d]==NULL!!\n", idata, i);
+            if(group->specs->data_specs[idata] == NULL) printf("%s (%s, %d): group->specs->data_specs[%d]==NULL!!\n", __func__, __FILE__, __LINE__, idata);
+            if(group->specs->data_specs[idata]->dims_specs[i] == NULL) printf("%s (%s, %d): group->specs->data_specs[%d]->dims_specs[%d]==NULL!!\n", __func__, __FILE__, __LINE__, idata, i);
 #endif
 	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata] != NULL, ESCDF_EVALUE, dims );
 	        FULFILL_OR_RETURN_CLEAN( group->specs->data_specs[idata]->dims_specs[i] != NULL, ESCDF_EVALUE, dims );
 	
 
-	        idim = group->specs->data_specs[idata]->dims_specs[i]->id;
+	        dim_ID = group->specs->data_specs[idata]->dims_specs[i]->id;
 
 #ifdef DEBUG            
-            printf("_escdf_group_dataset_new for %s, dim_id = %d\n", group->specs->data_specs[idata]->name, idim); fflush(stdout); 
+            printf("%s (%s, %d) for %s, dim_ID = %d\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, dim_ID); fflush(stdout); 
 #endif            
 
 	        for (found=false, ii = 0; ii < group->specs->nattributes; ii++) {
-	            if (group->specs->attr_specs[ii]->id == idim) {dim_ID = ii; found=true;}
+	            if (group->specs->attr_specs[ii]->id == dim_ID) {idim = ii; found=true;}
 	        }
+#ifdef DEBUG
+            if(!found) printf("%s (%s, %d): dim_ID = %i not found!\n", __func__, __FILE__, __LINE__, dim_ID);
+#endif            
+            FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
 #ifdef DEBUG        
-            printf("_escdf_group_dataset_new for %s, found %s with %d dimensions.\n", 
+            printf("%s (%s, %d): for %s, found %s with %d dimensions.\n", __func__, __FILE__, __LINE__,
                 group->specs->data_specs[idata]->name, 
                 group->specs->attr_specs[idim]->name,
                 group->specs->attr_specs[idim]->ndims); 
             fflush(stdout);
 #endif            
 
-            FULFILL_OR_RETURN_CLEAN( found == true, ESCDF_ERROR, dims );
 
-	        if(group->attr[dim_ID] == NULL) {
-                printf("_escdf_group_dataset_new for %s: group->attrib[%d] = NULL!\n", group->specs->data_specs[idata]->name, idim );
+	        if(group->attr[idim] == NULL) {
+                printf("%s (%s, %d) for %s: group->attrib[%d] = NULL!\n", __func__, __FILE__, __LINE__, group->specs->data_specs[idata]->name, idim );
 	            if (dims != NULL) free(dims);
 	            return ESCDF_ERROR_DIM;
 	        }
 	        else {
-	            FULFILL_OR_RETURN_CLEAN( group->attr[dim_ID] !=  NULL, ESCDF_EVALUE, dims );
-	            dims[i] = group->attr[dim_ID];
+	            FULFILL_OR_RETURN_CLEAN( group->attr[idim] !=  NULL, ESCDF_EVALUE, dims );
+	            dims[i] = group->attr[idim];
 	        }
         }
       
@@ -798,7 +803,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     else { /* ndims == 0 case */
         dims = NULL;
 #ifdef DEBUG
-        printf("_escdf_group_dataset_new: setting dims=NULL!!\n");
+        printf("%s (%s, %d): setting dims=NULL!!\n", __func__, __FILE__, __LINE__);
 #endif
     }
 
@@ -809,18 +814,18 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
   
         assert( error == ESCDF_SUCCESS);
 
-        printf("_escdf_group_dataset_new:  dims[%d] = something.\n",i); 
-    free(d);
+        printf("%s (%s, %d):  dims[%d]->name = %s.\n", __func__, __FILE__, __LINE__, i, escdf_attribute_get_specs(dims[i])->name); 
+        free(d);
     }
 #endif
 
 #ifdef DEBUG
-    printf("_escdf_group_dataset_new:  check. idata = %i\n", idata); 
+    printf("%s (%s, %d):  check. idata = %i\n", __func__, __FILE__, __LINE__, idata); 
 #endif
 
     data = escdf_dataset_new(group->specs->data_specs[idata], dims);
 #ifdef DEBUG
-    printf("_escdf_group_dataset_new:  dataset created\n"); 
+    printf("%s (%s, %d):  dataset created\n", __func__, __FILE__, __LINE__); 
 #endif
 
     group->datasets[idata] = data;
@@ -830,7 +835,7 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 #ifdef DEBUG
     size_t *dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
     for(i=0; i<ndims; i++) {
-        printf("_escdf_group_dataset_new:  Dims_check[%d] = %lu\n",i,dims_check[i]);
+        printf("%s (%s, %d):  Dims_check[%d] = %lu\n", __func__, __FILE__, __LINE__, i,dims_check[i]);
     }
     if(dims_check != NULL) free(dims_check);
 #endif

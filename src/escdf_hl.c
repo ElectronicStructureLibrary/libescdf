@@ -52,7 +52,7 @@ escdf_errno_t escdf_hl_attribute_write(escdf_group_t* group, escdf_attribute_id_
     FULFILL_OR_RETURN(group->specs->attr_specs[attribute_ID] != NULL, ESCDF_EVALUE);
 
     if (group->attr[attribute_ID] == NULL) {
-        SUCCEED_OR_RETURN(escdf_group_attribute_new(group, attribute_ID));
+        SUCCEED_OR_RETURN(_escdf_group_attribute_new(group, attribute_ID));
     }
 
     SUCCEED_OR_RETURN(escdf_attribute_set(group->attr[attribute_ID], buf));
@@ -79,7 +79,7 @@ escdf_errno_t escdf_hl_attribute_read(escdf_group_t* group, escdf_attribute_id_t
     FULFILL_OR_RETURN(group->specs->attr_specs[attribute_ID] != NULL, ESCDF_EVALUE);
 
     if (group->attr[attribute_ID] == NULL) {
-        SUCCEED_OR_RETURN(escdf_group_attribute_new(group, attribute_ID));
+        SUCCEED_OR_RETURN(_escdf_group_attribute_new(group, attribute_ID));
     }
 
     /* check whether the attribute already as a value in memory */
