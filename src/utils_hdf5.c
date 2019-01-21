@@ -554,6 +554,10 @@ escdf_errno_t utils_hdf5_create_dataset(hid_t loc_id, const char *name, hid_t ty
     }
  
     if ((dtspace_id = H5Screate_simple(ndims, dims_, NULL)) < 0) {
+        
+#ifdef DEBUG
+    printf("%s (%s, %d): H5Screate_simple() returned %lli \n", __func__, __FILE__, __LINE__, dtspace_id);
+#endif
         RETURN_WITH_ERROR(dtspace_id);
     }
 

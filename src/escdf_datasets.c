@@ -318,12 +318,26 @@ escdf_errno_t escdf_dataset_set_datatransfer(escdf_dataset_t *data, escdf_datatr
 escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
 {
     int transfer_id; /**< Handle of the data transfer (re-ordering) table */
+    escdf_errno_t error;
+
+#ifdef DEBUG
+    printf("%s (%s, %d): start.\n",__func__, __FILE__, __LINE__); fflush(stdout); 
+#endif
 
     assert(data != NULL);
 
     if (data->dtset_id == ESCDF_UNDEFINED_ID) {
-	SUCCEED_OR_RETURN(utils_hdf5_create_dataset(loc_id, data->specs->name, 
-						    data->type_id, data->dims, data->ndims_effective, &data->dtset_id));
+#ifdef DEBUG
+        printf("%s (%s, %d): calling utils_hdf5_create_dataset().\n",__func__, __FILE__, __LINE__); fflush(stdout); 
+#endif
+        error = utils_hdf5_create_dataset(loc_id, data->specs->name, 
+						    data->type_id, data->dims, data->ndims_effective, &data->dtset_id);
+
+#ifdef DEBUG
+        printf("%s (%s, %d): utils_hdf5_create_dataset() returned %d.\n",__func__, __FILE__, __LINE__, error); fflush(stdout); 
+#endif
+
+	SUCCEED_OR_RETURN(error);
     } else {
         RETURN_WITH_ERROR(ESCDF_ERROR);
         /* alternatively we could close and reopen the dataset? */
@@ -343,6 +357,10 @@ escdf_errno_t escdf_dataset_create(escdf_dataset_t *data, hid_t loc_id)
     }
 	
     SUCCEED_OR_RETURN(utils_hdf5_write_attr(data->dtset_id, "transfer", H5T_NATIVE_INT, NULL, 0, H5T_NATIVE_INT, &transfer_id));
+
+#ifdef DEBUG
+    printf("%s (%s, %d): end.\n",__func__, __FILE__, __LINE__); fflush(stdout); 
+#endif
 
     return ESCDF_SUCCESS;
 }

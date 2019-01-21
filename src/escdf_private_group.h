@@ -56,7 +56,7 @@ struct escdf_group {
     bool *datasets_present;            /**< Flag whether datasets are present */
 };
 
-escdf_errno_t escdf_group_attribute_new(escdf_group_t *, escdf_attribute_id_t ); 
+escdf_errno_t _escdf_group_attribute_new(escdf_group_t *, escdf_attribute_id_t ); 
 escdf_errno_t _escdf_group_dataset_new(escdf_group_t *, escdf_dataset_id_t );
 
 #ifdef __cplusplus

@@ -73,6 +73,8 @@ int main() {
 
     escdf_init();
 
+    printf("escdf_init() done.\n");
+
 
     escdf_file = escdf_open("escdf-test.h5", NULL);
 
@@ -84,17 +86,18 @@ int main() {
     group_system = escdf_group_open(escdf_file, "system", NULL); 
 
     if(group_system == NULL) printf("Null pointer for group !!\n");
+    printf("escdf_group_open() done for system.\n");
 
-    escdf_hl_attribute_read(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims);
 
-    escdf_hl_attribute_read(group_system, NUMBER_OF_SPECIES, &num_species);
-    escdf_hl_attribute_read(group_system, NUMBER_OF_SITES, &num_sites);
+    escdf_group_attribute_get(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims);
+
+    escdf_group_attribute_get(group_system, NUMBER_OF_SPECIES, &num_species);
+    escdf_group_attribute_get(group_system, NUMBER_OF_SITES, &num_sites);
 
     num_species_at_site = (unsigned int*) malloc(num_sites * sizeof(unsigned));
 
-    escdf_hl_attribute_read(group_system, NUMBER_OF_SPECIES_AT_SITE, num_species_at_site); 
+    escdf_group_attribute_get(group_system, NUMBER_OF_SPECIES_AT_SITE, num_species_at_site); 
     
-
 
 
     printf("num_dims = %d \n", num_dims);
@@ -139,7 +142,7 @@ int main() {
     }
 
 
-
+    /*
     dataset_species_names = escdf_hl_dataset_open(group_system, SPECIES_NAMES);
     dataset_species_at_site = escdf_hl_dataset_open(group_system, SPECIES_AT_SITE);
 
@@ -188,6 +191,7 @@ int main() {
     error = escdf_dataset_close(dataset_species_at_site);
     printf("Datasets closed: %i\n", error);
 
+    */
 
     error = escdf_group_close(group_system);
     printf("Group closed: %i\n", error);
