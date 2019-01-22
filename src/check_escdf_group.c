@@ -459,28 +459,36 @@ bool vec_equal(double *a, double *b){
 
 void new_handle_setup(void)
 {
+    printf("%s start \n", __func__);
     escdf_init();
-    escdf_handle = escdf_create(TEST_FILE, NULL);
+    escdf_handle = escdf_create(TEST_FILE, "test");
+    printf("%s end \n\n", __func__); fflush(stdout);
 }
 
 void new_handle_teardown(void)
 {
+    printf("%s start \n", __func__);
     escdf_close(escdf_handle);
+    escdf_group_specs_cleanup();
     unlink(TEST_FILE);
+    printf("%s end \n\n", __func__); fflush(stdout);
 }
 
 void new_group_setup(void)
 {
+    printf("%s start \n", __func__);
     new_handle_setup();
-    group_system = escdf_group_create(escdf_handle, "system", NULL);
-
+    group_system = escdf_group_create(escdf_handle, SYSTEM, NULL);
+    printf("%s end \n\n", __func__); fflush(stdout);
 }
 
 void new_group_teardown(void)
 {
+    printf("%s start \n", __func__);
     escdf_group_free(group_system);
     group_system = NULL;
     new_handle_teardown();
+    printf("%s end \n\n", __func__); fflush(stdout);
 }
 
 void new_group_dimensions_setup(void)
@@ -488,10 +496,14 @@ void new_group_dimensions_setup(void)
     int dim = 3;
     int num_sites = 5;
 
+    printf("%s start", __func__);
+
     new_group_setup();
 
     escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, (void*) &dim);
     escdf_group_attribute_set(group_system, NUMBER_OF_SITES, (void*) &num_sites);
+
+    printf("%s end \n\n", __func__); fflush(stdout);
 }
 
 void new_group_dimensions_teardown(void)
@@ -507,7 +519,15 @@ END_TEST
 
 START_TEST(test_group_create)
 {
+    group_system = escdf_group_create(escdf_handle, SYSTEM, NULL);
     ck_assert(group_system != NULL);
+    escdf_group_free(group_system);
+}
+END_TEST
+
+START_TEST(test_group_close)
+{
+    ck_assert(escdf_group_close(group_system) == ESCDF_SUCCESS);
 }
 END_TEST
 
@@ -651,7 +671,7 @@ START_TEST(test_group_datasets)
 
     printf("Setting Integer Dimensions (Attributes): ");fflush(stdout);
     ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims) == ESCDF_SUCCESS);
-    ck_assert( escdf_group_atribute_get(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num) == ESCDF_SUCCESS);
+    ck_assert( escdf_group_attribute_get(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num) == ESCDF_SUCCESS);
     ck_assert( num == num_dims);
 
     ck_assert( escdf_group_attribute_set(group_system, NUMBER_OF_SPECIES, &num_species) == ESCDF_SUCCESS);
@@ -750,20 +770,25 @@ Suite *make_new_group_suite(void)
     suite_add_tcase(s, tc_handle_create);
 
     TCase *tc_group_create = tcase_create("Create Group");
-    tcase_add_checked_fixture(tc_group_create, new_group_setup, new_group_teardown);
+    tcase_add_checked_fixture(tc_group_create, new_handle_setup, new_handle_teardown);
     tcase_add_test(tc_group_create, test_group_create);
     suite_add_tcase(s, tc_group_create);
+
+    TCase *tc_group_close = tcase_create("Close Group");
+    tcase_add_checked_fixture(tc_group_close, new_group_setup, new_handle_teardown);
+    tcase_add_test(tc_group_close, test_group_close);
+    suite_add_tcase(s, tc_group_close);
 
     TCase *tc_group_attributes_set_bool = tcase_create("Group Attributes Set Bool");
     tcase_add_checked_fixture(tc_group_attributes_set_bool, new_group_setup, new_group_teardown);
     tcase_add_test(tc_group_attributes_set_bool, test_group_attributes_set_bool);
     suite_add_tcase(s, tc_group_attributes_set_bool);
 
+
     TCase *tc_group_attributes_get_bool = tcase_create("Group Attributes Get Bool");
     tcase_add_checked_fixture(tc_group_attributes_get_bool, new_group_setup, new_group_teardown);
     tcase_add_test(tc_group_attributes_get_bool, test_group_attributes_get_bool);
     suite_add_tcase(s, tc_group_attributes_get_bool);
-
 
     TCase *tc_group_attributes_set_int = tcase_create("Group Attributes Set Integer");
     tcase_add_checked_fixture(tc_group_attributes_set_int, new_group_setup, new_group_teardown);
@@ -774,7 +799,6 @@ Suite *make_new_group_suite(void)
     tcase_add_checked_fixture(tc_group_attributes_get_int, new_group_setup, new_group_teardown);
     tcase_add_test(tc_group_attributes_get_int, test_group_attributes_get_integer);
     suite_add_tcase(s, tc_group_attributes_get_int);
-
 
 
     /*

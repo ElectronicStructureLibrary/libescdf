@@ -46,8 +46,8 @@ struct escdf_group {
 
     const escdf_group_specs_t *specs;  /**< Pointer to the group specification */
 
-    char * name;                       /**< Group name */
-
+    char * root; 
+    
     hid_t loc_id;                      /**< Handle for HDF5 group */
 
     escdf_attribute_t **attr;          /**< List of attributes */

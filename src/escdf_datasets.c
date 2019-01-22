@@ -130,19 +130,21 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     unsigned int ndims_effective;
 
 
-#ifdef DEBUG
-    printf("%s (%s, %d): start.\n", __func__, __FILE__, __LINE__);
-#endif
 
      /* Check input */
     assert(specs != NULL);
+
+#ifdef DEBUG
+    printf("%s (%s, %d): \"%s\" start.\n", __func__, __FILE__, __LINE__, specs->name);
+#endif
+
     assert(attr_dims != NULL);
    
     /* Allocate memory */
     data = (escdf_dataset_t *) malloc(sizeof(escdf_dataset_t));
     
-#ifdef DEBUG
-    printf("%s (%s, %d): memory for escdf_dataset_t created.\n", __func__, __FILE__, __LINE__);
+#ifdef DEBUG_
+    printf("%s (%s, %d): memory for escdf_dataset_t \"%s\" created.\n", __func__, __FILE__, __LINE__, specs->name);
 #endif
 
     if (data == NULL) {
@@ -155,7 +157,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     /* Check whether dimensions are regular shaped */
     if (specs->compact) {
 #ifdef DEBUG
-    printf("%s (%s, %d): compact storage detected.\n", __func__, __FILE__, __LINE__);
+    printf("%s (%s, %d): compact storage for \"%s\" detected.\n", __func__, __FILE__, __LINE__, specs->name);
 #endif        
         if (specs->ndims == 2) {
 
@@ -262,7 +264,7 @@ escdf_dataset_t * escdf_dataset_new(const escdf_dataset_specs_t *specs, escdf_at
     data->xfer_id = ESCDF_UNDEFINED_ID;
    
 #ifdef DEBUG
-    printf("%s (%s, %d): end.\n", __func__, __FILE__, __LINE__);
+    printf("%s (%s, %d): \"%s\" end.\n", __func__, __FILE__, __LINE__, specs->name);
 #endif
 
     return data;

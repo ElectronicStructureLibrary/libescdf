@@ -177,6 +177,7 @@ group_specs_file.write('#ifndef ESCDF_GROUPS_SPECS_H\n')
 group_specs_file.write('#define ESCDF_GROUPS_SPECS_H\n\n')
 group_specs_file.write('#include \"escdf_group.h\" \n')
 group_specs_file.write('#include \"escdf_groups_ID.h\" \n')
+group_specs_file.write('#include \"escdf_error.h\" \n')
 group_specs_file.write('#include \"escdf_attributes_specs.h\" \n')
 group_specs_file.write('#include \"escdf_datasets_specs.h\" \n\n')
 
@@ -366,13 +367,14 @@ for a in list(use_counter):
 
 # Create function to register groups
 
-group_specs_file.write('void escdf_register_all_group_specs() { \n')
+group_specs_file.write('escdf_errno_t escdf_register_all_group_specs() { \n\n')
+group_specs_file.write('    escdf_errno_t error = ESCDF_SUCCESS; \n')
 
 for g in groups:
     if g['Num_Attrib'] >0:
-        group_specs_file.write('   escdf_group_specs_register(&'+specs_name(g['Name'])+'); \n')
+        group_specs_file.write('   FULFILL_OR_RETURN (escdf_group_specs_register(&'+specs_name(g['Name'])+') == ESCDF_SUCCESS, ESCDF_ERROR); \n')
 
-group_specs_file.write('}; \n')
+group_specs_file.write('   return ESCDF_SUCCESS;\n}; \n')
 
 
 

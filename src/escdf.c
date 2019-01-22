@@ -18,10 +18,19 @@
  * 02110-1301  USA.
  */
 
+#include <assert.h>
+
 #include "escdf.h"
 #include "escdf_groups_specs.h"
 
 
 void escdf_init() {
-  escdf_register_all_group_specs();
+
+  
+  assert(escdf_register_all_group_specs() == ESCDF_SUCCESS);
+
+#ifdef DEBUG
+  printf("%s (%s,%d): done.\n", __func__, __FILE__, __LINE__); fflush(stdout);
+#endif 
+
 }

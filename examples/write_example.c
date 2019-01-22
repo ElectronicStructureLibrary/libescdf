@@ -137,7 +137,7 @@ int main() {
     
     escdf_file = escdf_create("escdf-test.h5", NULL);
 
-    group_system = escdf_group_create(escdf_file, "system", NULL); 
+    group_system = escdf_group_create(escdf_file, SYSTEM, NULL); 
 
     if(group_system == NULL) printf("Null pointer for group !!\n");
 

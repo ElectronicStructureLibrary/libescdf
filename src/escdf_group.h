@@ -45,7 +45,9 @@ extern "C" {
  */
 struct escdf_group_specs {
     escdf_group_id_t group_id;                    /**< ESCDF group ID */
-    const char * root;                             /**< Root location of the group */
+
+    const char * name;                            /**< Group name */
+
 
     unsigned int nattributes;                      /**< Number of attributes in the group */
     const escdf_attribute_specs_t **attr_specs;    /**< List of attribute specifications */
@@ -70,6 +72,8 @@ typedef struct escdf_group escdf_group_t;
  * @return escdf_errno_t 
  */
 escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs);
+
+void escdf_group_specs_cleanup();
 
 
 /* void escdf_register_all_group_specs(); */
@@ -154,12 +158,12 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group);
  *
  * @param[in] handle: the file/group handle defining the root where to open
  * the "/group" group.
- * @param[in] group_name: Group name, as defined in the specifications.
+ * @param[in] group_id: Group ID, as defined in the specifications (escdf_groups_ID.h).
  * @param[in] instance_name: If NULL, assume that the group is stored in the
  * "/group" group, otherwise "/group/name" is used.
  * @return instance of the group data type.
  */
-escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char *group_name, const char *instance_name);
+escdf_group_t * escdf_group_open(const escdf_handle_t *handle, escdf_group_id_t group_id, const char *instance_name);
 
 /**
  * @brief Create a group (high level routine)
@@ -170,13 +174,13 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char *group
  *
  * @param[in] handle: the file/group handle defining the root where to open
  * the "/group" group.
- * @param[in] group_name: Group name, as defined in the specifications.
+ * @param[in] group_id: Group ID, as defined in the specifications (escdf_groups_ID.h).
  * @param[in] instance_name: If NULL, assume that the group is stored in the
  * "/group" group, otherwise "/group/name" is used.
  * @return instance of the group data type.
  *
  */
-escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *group_name, const char *instance_name);
+escdf_group_t * escdf_group_create(const escdf_handle_t *handle, escdf_group_id_t group_id, const char *instance_name);
 
 /**
  * @brief Close a group

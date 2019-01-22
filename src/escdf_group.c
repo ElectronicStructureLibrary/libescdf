@@ -51,7 +51,7 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     n_known_specs++;
 
 #ifdef DEBUG
-    printf("Registering group %d, %s: %d %d\n", specs->group_id, specs->root, specs->nattributes, specs->ndatasets);
+    printf("Registering group %d, %s: %d %d\n", specs->group_id, specs->name, specs->nattributes, specs->ndatasets);
     
     for(i=0; i<specs->nattributes; i++) printf("   attribute %d: %s, %d %d %d \n",
         i, specs->attr_specs[i]->name, specs->attr_specs[i]->datatype,
@@ -64,9 +64,18 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
 
     fflush(stdout);
 #endif
-
+    
     return ESCDF_SUCCESS;
 }
+
+void escdf_group_specs_cleanup(){
+
+    unsigned int i;
+
+    for(i=0; i<n_known_specs; i++) known_group_specs[i] = NULL;
+    n_known_specs = 0;
+}
+
 
 /************************************************************
  * Helper routines for groups                               *
@@ -81,7 +90,7 @@ escdf_group_id_t _escdf_get_group_id(const char* name)
 
     for(i=0; i<n_known_specs; i++) {
         /* printf("searching for %s: %d %s %d \n", name, i, known_group_specs[i]->root, known_group_specs[i]->group_id ); */
-        if(strcmp(known_group_specs[i]->root, name) == 0) group_id = known_group_specs[i]->group_id;
+        if(strcmp(known_group_specs[i]->name, name) == 0) group_id = known_group_specs[i]->group_id;
     }
     /* printf("found %d.\n",group_id); */
 
@@ -276,9 +285,17 @@ escdf_group_t * escdf_group_new(escdf_group_id_t group_id)
     escdf_group_t *group = NULL;
     unsigned int ii;
 
+#ifdef DEBUG
+    printf("%s (%s, %d): group_id = %d\n", __func__, __FILE__, __LINE__, group_id); fflush(stdout);
+#endif
+
     group = (escdf_group_t *) malloc(sizeof(escdf_group_t));
     if (group == NULL)
         return group;
+
+#ifdef DEBUG
+    printf("%s (%s, %d): memory allocated.\n", __func__, __FILE__, __LINE__); fflush(stdout);
+#endif
 
     group->specs = NULL;
     for (ii = 0; ii < n_known_specs; ii++) {
@@ -293,27 +310,39 @@ escdf_group_t * escdf_group_new(escdf_group_id_t group_id)
         return NULL;
     }
 
+#ifdef DEBUG
+    printf("%s (%s, %d): specs associated.\n", __func__, __FILE__, __LINE__); fflush(stdout);
+#endif
+
     group->loc_id = ESCDF_UNDEFINED_ID; /* was -1 */
 
     if(group->specs->nattributes>0) {
         group->attr = (escdf_attribute_t **) malloc(group->specs->nattributes * sizeof(escdf_attribute_t *));
         if (group->attr == NULL) {
             free(group);
+            group = NULL;
         } else {
             for (ii=0; ii<group->specs->nattributes; ii++)
                 group->attr[ii] = NULL;
         }
     }
+#ifdef DEBUG
+    printf("%s (%s, %d): attributes allocated.\n", __func__, __FILE__, __LINE__); fflush(stdout);
+#endif
 
     if(group->specs->ndatasets>0) {
         group->datasets = (escdf_dataset_t **) malloc(group->specs->ndatasets * sizeof(escdf_dataset_t *));
         if (group->datasets == NULL) {
             free(group);
+            group = NULL;
         } else {
             for (ii=0; ii<group->specs->ndatasets; ii++)
                 group->datasets[ii] = NULL;
         }
     }
+#ifdef DEBUG
+    printf("%s (%s, %d): datasets allocated.\n", __func__, __FILE__, __LINE__); fflush(stdout);
+#endif
 
 
     group->datasets_present = (bool *) malloc(group->specs->ndatasets * sizeof(bool));
@@ -323,6 +352,9 @@ escdf_group_t * escdf_group_new(escdf_group_id_t group_id)
         group->specs->root, group->specs->nattributes, group->specs->ndatasets);
     fflush(stdout);
     */
+#ifdef DEBUG
+    printf("%s (%s, %d): end.\n", __func__, __FILE__, __LINE__); fflush(stdout);
+#endif
 
     return group;
 }
@@ -340,7 +372,7 @@ void escdf_group_free(escdf_group_t *group)
 
         free(group->datasets);
         free(group->datasets_present);
-        free(group->name);
+        free(group->root);
     }
     free(group);
 }
@@ -353,9 +385,9 @@ escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle
     FULFILL_OR_RETURN(handle != NULL, ESCDF_EVALUE)
 
     if (name == NULL)
-        sprintf(location_path, "%s", group->specs->root);
+        sprintf(location_path, "%s", group->root);
     else
-        sprintf(location_path, "%s/%s", group->specs->root, name);
+        sprintf(location_path, "%s/%s", group->root, name);
 
         /*    group->loc_id = H5Gopen2(handle->group_id, location_path, H5P_DEFAULT); */
 
@@ -370,26 +402,26 @@ escdf_errno_t escdf_group_create_location(escdf_group_t *group, const escdf_hand
 {
     char location_path[ESCDF_STRLEN_GROUP];
 
-#ifdef DEBUG__
-    printf("%s (%s, %d): before initial checks. \n",  __func__, __FILE__, __LINE__);
+#ifdef DEBUG
+    printf("%s (%s, %d): before initial checks. \n",  __func__, __FILE__, __LINE__); fflush(stdout);
 #endif
 
     FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE)
     FULFILL_OR_RETURN(handle != NULL, ESCDF_EVALUE)
 
-#ifdef DEBUG__
-    printf("%s (%s, %d): after initial checks. \n",  __func__, __FILE__, __LINE__);
+#ifdef DEBUG
+    printf("%s (%s, %d): after initial checks. \n",  __func__, __FILE__, __LINE__); fflush(stdout);
 #endif
 
     if (name == NULL)
-        sprintf(location_path, "%s", group->specs->root);
+        sprintf(location_path, "%s", group->specs->name);
     else
-        sprintf(location_path, "%s/%s", group->specs->root, name);
+        sprintf(location_path, "%s/%s", group->specs->name, name);
 
     utils_hdf5_create_group(handle->file_id, location_path, &(group->loc_id));
 
-#ifdef DEBUG__
-    printf("%s (%s, %d): after utils_hdf5_create_group. \n",  __func__, __FILE__, __LINE__);
+#ifdef DEBUG
+    printf("%s (%s, %d): after utils_hdf5_create_group. \n",  __func__, __FILE__, __LINE__); fflush(stdout);
 #endif
 
 
@@ -404,7 +436,7 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group)
 
     FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE)
 
-    /* close the group */
+    /* close the HDF5 group in the file */
     if (group->loc_id >= 0) {
         herr_status = H5Gclose(group->loc_id);
         FULFILL_OR_RETURN(herr_status >= 0, herr_status);
@@ -418,33 +450,29 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group)
  * High-level creators and destructors                                        *
  ******************************************************************************/
 
-escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group_name, const char *instance_name)
+escdf_group_t * escdf_group_open(const escdf_handle_t *handle, escdf_group_id_t group_id, const char *instance_name)
 {
     escdf_group_t *group;
-    escdf_group_id_t group_id;
 
     int i;
 
 #ifdef DEBUG
-    printf("%s (%s, %d): opening group %s \n", __func__, __FILE__, __LINE__, group_name); 
+    printf("%s (%s, %d): opening group %d \n", __func__, __FILE__, __LINE__, group_id); 
 #endif
-    /* get group_id corresponding to the group name */
 
-    FULFILL_OR_RETURN_VAL( (group_id = _escdf_get_group_id(group_name)) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
-
-    if ((group = escdf_group_new(group_id)) == NULL)
+    if ((group = escdf_group_new(group_id)) == NULL) {
+#ifdef DEBUG        
+        printf("%S (%S, %d): problem creating the group %s! \n", __func__, __FILE__, __LINE__, known_group_specs[group_id]->name);
+#endif
+        REGISTER_ERROR(ESCDF_ERROR);
         return NULL;
-
-#ifdef DEBUG
-    printf("%s (%s, %d): found id = %d for group %s \n", __func__, __FILE__, __LINE__, group_id, group_name);
-#endif
+    }
 
     /* we need to check first whether the group exist in the file */
 
 
-
     if (escdf_group_open_location(group, handle, instance_name) != ESCDF_SUCCESS) {
-        printf("escdf_group_open: opening group %s failed. \n", group_name);
+        printf("escdf_group_open: opening group %s failed. \n", group->specs->name);
         goto cleanup;
     }
 
@@ -454,14 +482,14 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group
 
     if (escdf_group_read_attributes(group) != ESCDF_SUCCESS) {
 #ifdef DEBUG
-        printf("%s (%s, %d): reading attributes for group %s failed.\n",  __func__, __FILE__, __LINE__, group_name);
+        printf("%s (%s, %d): reading attributes for group %s failed.\n",  __func__, __FILE__, __LINE__, group->specs->name);
 #endif
         escdf_group_close_location(group);
         goto cleanup;
     }
 
 #ifdef DEBUG
-    printf("%s (%s, %d): after reading attributes for group %s. \n",  __func__, __FILE__, __LINE__, group_name);
+    printf("%s (%s, %d): after reading attributes for group %s. \n",  __func__, __FILE__, __LINE__, group->specs->name);
 #endif
 
     if (escdf_group_query_datasets(group) != ESCDF_SUCCESS) {
@@ -470,7 +498,7 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group
     }
 
 #ifdef DEBUG
-    printf("escdf_group_open: queried datasets for group %s. \n", group_name); 
+    printf("escdf_group_open: queried datasets for group %s. \n", group->specs->name); 
 #endif
 
     for(i=0; i< group->specs->ndatasets; i++) {
@@ -484,32 +512,40 @@ escdf_group_t * escdf_group_open(const escdf_handle_t *handle, const char* group
     return NULL;
 }
 
-escdf_group_t * escdf_group_create(const escdf_handle_t *handle, const char *group_name, const char* instance_name)
+escdf_group_t * escdf_group_create(const escdf_handle_t *handle, escdf_group_id_t group_id, const char* instance_name)
 {
     escdf_group_t *group;
-    escdf_group_id_t group_id;
     
-    /* get group_id corresponding to the group name */
+#ifdef DEBUG
+    printf("%s (%s, %d): creating group %d \n", __func__, __FILE__, __LINE__, group_id); fflush(stdout);
+#endif
 
-    FULFILL_OR_RETURN_VAL( (group_id = _escdf_get_group_id(group_name)) != ESCDF_UNDEFINED_ID, ESCDF_ERROR, NULL);
+#ifdef DEBUG
+    printf("%s (%s, %d): creating group \"%s\" \n", __func__, __FILE__, __LINE__, known_group_specs[group_id]->name); fflush(stdout);
+#endif
 
     /* create new escdf_group instance */
 
     if ((group = escdf_group_new(group_id)) == NULL) {
-        printf("escdf_group_create: escdf_group_new failed!\n");
+        printf("escdf_group_create: escdf_group_new failed!\n"); fflush(stdout);
         return NULL;
     }
     /* create group in the file */
 
     if (escdf_group_create_location(group, handle, instance_name) != ESCDF_SUCCESS) {
-        printf("escdf_group_create: escdf_group_create_location failed!\n");
+        printf("escdf_group_create: escdf_group_create_location failed!\n"); fflush(stdout);
         escdf_group_free(group);
         return NULL;
     }
 
-    group->name = (char*) malloc( strlen(group_name)  + 1);
-    strcpy(group->name, group_name);
-
+    if(instance_name != NULL) {
+        group->root = (char*) malloc( strlen(instance_name)  + 1);
+        strcpy(group->root, instance_name);
+    } else {
+        group->root = (char*) malloc(   + 1);
+        strcpy(group->root, "");
+    }
+    
     group->escdf_handle = handle;
 
     return group;
@@ -592,7 +628,7 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, escdf_attribute_id
     FULFILL_OR_RETURN(attr_found == true, ESCDF_ERROR);
 
 #ifdef DEBUG
-    printf("%s (%s, %d): (%s,%u): found attribute %u(%u) \n", __func__, __FILE__, __LINE__, group->name, attribute_id, iattr, group->specs->nattributes);    
+    printf("%s (%s, %d): (%s,%u): found attribute %u(%u) \n", __func__, __FILE__, __LINE__, group->specs->name, attribute_id, iattr, group->specs->nattributes);    
 #endif
 
     FULFILL_OR_RETURN(group->specs->attr_specs[iattr] != NULL, ESCDF_EVALUE);
@@ -600,7 +636,7 @@ escdf_errno_t escdf_group_attribute_set(escdf_group_t *group, escdf_attribute_id
     if (group->attr[iattr] == NULL) {
         error = _escdf_group_attribute_new(group, attribute_id);
 #ifdef DEBUG
-        printf("%s (%s, %d): (%s,%u): created attribute %u(%u). Error = %d \n", __func__, __FILE__, __LINE__, group->name, attribute_id, iattr, group->specs->nattributes, error);    
+        printf("%s (%s, %d): (%s,%u): created attribute %u(%u). Error = %d \n", __func__, __FILE__, __LINE__, group->specs->name, attribute_id, iattr, group->specs->nattributes, error);    
 #endif
         SUCCEED_OR_RETURN(error = ESCDF_SUCCESS);
     }
@@ -712,7 +748,7 @@ escdf_errno_t _escdf_group_attribute_new(escdf_group_t *group, escdf_attribute_i
 
     group->attr[index] = escdf_attribute_new(group->specs->attr_specs[index], dims);
 #ifdef DEBUG
-    printf("_escdf_group_attribute_new( %s ): set group->attr[%d] \n", group->name, index);
+    printf("_escdf_group_attribute_new( %s ): set group->attr[%d] \n", group->specs->name, index);
 #endif
 
 
@@ -1094,21 +1130,21 @@ void escdf_group_print_info(const escdf_group_t* group)
 {
 
     assert(group!=NULL);
-    assert(group->name!=NULL);
     assert(group->specs!=NULL);
+    assert(group->specs->name!=NULL);
     assert(group->escdf_handle!=NULL);
 
 
-    printf("Group Information for group %s:\n\n", group->name);
+    printf("Group Information for group %s:\n\n", group->specs->name);
     printf(" Information from the specifications:\n\n");
     printf("  group ID   = %d\n", group->specs->group_id);
-    printf("  group root = %s\n", group->specs->root);
+    printf("  group name = %s\n", group->specs->name);
     printf("  Number of attributes = %d\n", group->specs->nattributes);
     printf("  Number of datasets   = %d\n", group->specs->ndatasets);
     printf("\n");
     printf(" Information from the group:\n\n");
     printf("  Group loc_id = %ld \n", group->loc_id);
-    printf("  Group name = %s\n", group->name);
+    printf("  root name = %s\n", group->root);
     printf("  ESCDF handle:\n");
     printf("    file_id  = %ld \n", group->escdf_handle->file_id);
     printf("    group_id = %ld \n", group->escdf_handle->group_id);
