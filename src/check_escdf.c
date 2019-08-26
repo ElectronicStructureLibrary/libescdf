@@ -30,8 +30,6 @@ int main(void)
     int number_failed;
     SRunner *sr;
 
-    printf("check_escdf started!!!\n");
-
     sr = srunner_create(make_info_suite());
 
     srunner_add_suite(sr, make_error_suite());
