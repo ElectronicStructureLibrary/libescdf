@@ -108,7 +108,7 @@ void escdf_group_free(escdf_group_t *group);
  * 
  * Opens a location where to access the group data. If a name is given, the
  * location path will be 'group_root/name', where 'group_root' is defined in
- * the group specifications. If name is NULL, the location path is simply
+ * the group data structure. If name is NULL, the location path is simply
  * 'group_root'. If the location does not exist, an error is returned.
  *
  * @param[in,out] group: the group.
@@ -123,7 +123,7 @@ escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle
  * 
  * Creates a new location to store the group data. If a name is given, the
  * location path will be 'group_root/name', where 'group_root' is defined in
- * the group specifications. If name is NULL, the location path is simply
+ * the group data structure. If name is NULL, the location path is simply
  * 'group_root'. If the location already exist, all previous contents of are
  * deleted.
  *

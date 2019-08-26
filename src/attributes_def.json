@@ -46,7 +46,8 @@
   { 
     "Name" : "dimension_type", 
     "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ],
+    "Dimensions": 1, 
+    "Dims_definitions": [ "number_of_physical_dimensions" ],
     "Range" : [0,2],
     "Description" : [ "This is a list defining the periodicity of the system in each of the directions given by the lattice_vectors. Valid options are: ",
                       "  - 0: The direction is non-periodic. ",
@@ -90,7 +91,6 @@
     "Dimensions" : 0,
     "Description" : ["The maximum number of component species for each site."]
   },  
-
   { 
     "Name" : "number_of_symmetry_operations", 
     "Data_type" : "ESCDF_DT_UINT", 

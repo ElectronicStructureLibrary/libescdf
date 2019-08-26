@@ -221,7 +221,7 @@ for a in attributes:
     else:
         dims_names = ''
         for p in a['Dims_definitions']:
-            dims_names += '\n  &'+specs_name(p) + ','
+            dims_names += '\n    &'+specs_name(p) + ','
     
         dims_names = dims_names.rstrip(',')
         attrib_specs_file.write('const escdf_attribute_specs_t *' + dims_name(attribute_name) 
@@ -229,7 +229,7 @@ for a in attributes:
         dims_pointer = dims_name(attribute_name)
 
     attrib_specs_file.write('const escdf_attribute_specs_t '+specs_name(attribute_name) + ' = \n')
-    attrib_specs_file.write('   { '+ ID_name + ', ' + name_string( attribute_name )+ ', ' + a['Data_type'] 
+    attrib_specs_file.write('    { '+ ID_name + ', ' + name_string( attribute_name )+ ', ' + a['Data_type'] 
                             + ', ' +str(stringlength) + ', ' 
                             + str(a['Dimensions']) +', ' + dims_pointer + ' }; \n\n')
    
@@ -257,7 +257,7 @@ for d in datasets:
     else:
         dims_names = ''
         for p in d['Dims_definitions']:
-            dims_names += '\n  &' + specs_name(p) + ','
+            dims_names += '\n    &' + specs_name(p) + ','
             aa = get_attribute(p)
             num_dims = aa['Dimensions']
             if num_dims > 0:
@@ -278,7 +278,7 @@ for d in datasets:
             disordered = 'false, '
 
     dataset_specs_file.write('const escdf_dataset_specs_t '+specs_name(dataset_name) + ' = \n')
-    dataset_specs_file.write('   { '+ ID_name + ', ' + name_string( dataset_name )+ ', ' + d['Data_type'] + ', ' +str(stringlength) + ', ' 
+    dataset_specs_file.write('    { '+ ID_name + ', ' + name_string( dataset_name )+ ', ' + d['Data_type'] + ', ' +str(stringlength) + ', ' 
                             + str(d['Dimensions']) +', '+ disordered + compact + dims_pointer + ' }; \n\n')
 
 
@@ -299,7 +299,7 @@ for g in groups:
     
         for a in g['Attributes']:
             if a in attribute_list:
-                attrib_list += '\n   &'+ specs_name(a) + ','
+                attrib_list += '\n    &'+ specs_name(a) + ','
                 g['Num_Attrib'] += 1
                 use_counter[a] += 1
             else:
@@ -314,7 +314,7 @@ for g in groups:
 
         for d in g['Datasets']:
             if d in dataset_list:
-                datas_list += '\n   &'+ specs_name(d) + ','
+                datas_list += '\n    &'+ specs_name(d) + ','
                 g['Num_Datasets'] += 1
                 use_counter[d] += 1
             else:
@@ -341,7 +341,7 @@ for g in groups:
 
         
         
-    group_specs_file.write('const escdf_group_specs_t '+specs_name(g['Name']) +' = {\n ')
+    group_specs_file.write('const escdf_group_specs_t '+specs_name(g['Name']) +' = {\n    ')
     group_specs_file.write(   def_name(g['Name']) + ', ' + name_string(g['Name'])  + ', ' 
                             + str(g['Num_Attrib']) + ', '
                             + attrib_name + ', ' 
@@ -372,9 +372,9 @@ group_specs_file.write('    escdf_errno_t error = ESCDF_SUCCESS; \n')
 
 for g in groups:
     if g['Num_Attrib'] >0:
-        group_specs_file.write('   FULFILL_OR_RETURN (escdf_group_specs_register(&'+specs_name(g['Name'])+') == ESCDF_SUCCESS, ESCDF_ERROR); \n')
+        group_specs_file.write('    FULFILL_OR_RETURN(escdf_group_specs_register(&'+specs_name(g['Name'])+') == ESCDF_SUCCESS, ESCDF_ERROR); \n')
 
-group_specs_file.write('   return ESCDF_SUCCESS;\n}; \n')
+group_specs_file.write('    return ESCDF_SUCCESS;\n}; \n')
 
 
 

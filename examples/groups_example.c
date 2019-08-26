@@ -33,8 +33,8 @@
 
 int main() {
 
-    escdf_handle_t *escdf_file;
-    escdf_group_t *group_system;
+    escdf_handle_t *escdf_file, *escdf_file2;
+    escdf_group_t *group_system, *group_system_run1;
 
     escdf_dataset_t *dataset_species_names;
     escdf_dataset_t *dataset_site_pos;
@@ -133,16 +133,22 @@ int main() {
 
     escdf_init();
     
-    escdf_file = escdf_create("escdf-test.h5", NULL);
+    escdf_file  = escdf_create("escdf-test.h5", NULL);
+    escdf_file2 = escdf_create("escdf-test.h5", "subsystem_1");
 
     group_system = escdf_group_create(escdf_file, "system", NULL); 
+    group_system_run1 = escdf_group_create(escdf_file2, "system", "run1"); 
 
     if(group_system == NULL) printf("Null pointer for group !!\n");
+    if(group_system_run1 == NULL) printf("Null pointer for group system_run1 !!\n");
 
 
     /* Should the setters and getters be more 'symmetric' in terms of handle and name parameters? */
     error = escdf_group_attribute_set(group_system, "number_of_physical_dimensions", &num_dims);
     printf("setting 'number_of_phycical dimensions' results in error = %d \n", error);
+
+    error = escdf_group_attribute_set(group_system_run1, "number_of_physical_dimensions", &num_dims);
+    printf("setting 'number_of_phycical dimensions' in run1 results in error = %d \n", error);
 
     error = escdf_group_attribute_set(group_system, "number_of_species", &num_species);
     printf("setting 'number_of_species' results in error = %d \n", error);

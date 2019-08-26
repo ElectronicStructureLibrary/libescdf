@@ -106,7 +106,7 @@ int _escdf_group_get_attribute_index(const escdf_group_t *group, escdf_attribute
 
     assert(group!=NULL);
 
-    for (found = false, i = 0; i < group->specs->nattributes; i++) {
+    for (found = false, i = 0; (!found) && (i < group->specs->nattributes); i++) {
         if ( group->specs->attr_specs[i]->id == attribute_id) {index = i; found=true;}
     }
 
@@ -125,7 +125,7 @@ int _escdf_group_get_dataset_index(const escdf_group_t *group, escdf_dataset_id_
 
     assert(group!=NULL);
 
-    for (found = false, i = 0; i < group->specs->ndatasets; i++) {
+    for (found = false, i = 0; (!found) && (i < group->specs->ndatasets); i++) {
         if ( group->specs->data_specs[i]->id == dataset_id) {index = i; found=true;}
     }
 
@@ -143,7 +143,7 @@ const escdf_attribute_specs_t * escdf_group_get_attribute_specs(escdf_group_t *g
 
     assert(group != NULL);
 
-    for (found = false, i = 0; i < group->specs->nattributes && found == false; i++) {
+    for (found = false, i = 0; (!found) && (i < group->specs->nattributes); i++) {
         if ( strcmp(group->specs->attr_specs[i]->name, name) == 0 ) {result = i; found=true;}
     }
 
@@ -160,7 +160,7 @@ const escdf_dataset_specs_t * escdf_group_get_dataset_specs(escdf_group_t *group
 
     assert(group != NULL);
 
-    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+    for (found = false, i = 0; (!found) && (i < group->specs->ndatasets); i++) {
         if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
     }
 
@@ -179,7 +179,7 @@ escdf_attribute_t * _escdf_group_get_arribute_from_name(escdf_group_t *group, co
 
     assert(group != NULL);
 
-    for (found = false, i = 0; i < group->specs->nattributes && found == false; i++) {
+    for (found = false, i = 0; (!found) && (i < group->specs->nattributes); i++) {
         if ( strcmp(group->specs->attr_specs[i]->name, name) == 0 ) {result = i; found=true;}
     }
 
@@ -197,7 +197,7 @@ escdf_dataset_t * _escdf_group_get_dataset_from_name(escdf_group_t *group, const
 
     assert(group != NULL);
 
-    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+    for (found = false, i = 0; (!found) && (i < group->specs->ndatasets); i++) {
         if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
     }
 
@@ -215,7 +215,7 @@ escdf_dataset_t * _escdf_group_get_dataset_form_id(escdf_group_t *group, hid_t d
 
     assert(group != NULL);
 
-    for (found = false, i = 0; i < group->specs->ndatasets && found == false; i++) {
+    for (found = false, i = 0; (!found) && (i < group->specs->ndatasets); i++) {
         if ( escdf_dataset_get_id(group->datasets[i])  == dtset_id ) {result = i; found=true;}
     }
 
@@ -236,9 +236,9 @@ int _escdf_group_get_dataset_number_from_name(escdf_group_t *group, const char *
 
     /* printf("searching for dataset_number of %s. ndatasets = %d \n", name, group->specs->ndatasets); fflush(stdout); */
 
-    found = false;
+    
 
-    for(i = 0; i < group->specs->ndatasets; i++) {
+    for(found = false,i = 0; (!found) && (i < group->specs->ndatasets); i++) {
         /* printf("searching for %s: %d %s\n", name, i, group->specs->data_specs[i]->name); fflush(stdout); */
         if ( strcmp(group->specs->data_specs[i]->name, name) == 0 ) {result = i; found=true;}
     }
@@ -291,17 +291,17 @@ escdf_group_t * escdf_group_new(escdf_group_id_t group_id)
 
     group = (escdf_group_t *) malloc(sizeof(escdf_group_t));
     if (group == NULL)
-        return group;
+        return NULL;
 
 #ifdef DEBUG
     printf("%s (%s, %d): memory allocated.\n", __func__, __FILE__, __LINE__); fflush(stdout);
 #endif
 
     group->specs = NULL;
-    for (ii = 0; ii < n_known_specs; ii++) {
+    for (bool found=false, ii = 0; (!found) && (ii < n_known_specs); ii++) {
         if (known_group_specs[ii]->group_id == group_id) {
             group->specs = known_group_specs[ii];
-            break;
+            found = true;
         }
     }
     if (group->specs == NULL) {
@@ -336,8 +336,7 @@ escdf_group_t * escdf_group_new(escdf_group_id_t group_id)
             free(group);
             group = NULL;
         } else {
-            for (ii=0; ii<group->specs->ndatasets; ii++)
-                group->datasets[ii] = NULL;
+            for (ii=0; ii<group->specs->ndatasets; ii++) group->datasets[ii] = NULL;
         }
     }
 #ifdef DEBUG
@@ -345,7 +344,17 @@ escdf_group_t * escdf_group_new(escdf_group_id_t group_id)
 #endif
 
 
+    group->root = (char*) malloc(strlen(group->specs->name));
+    assert(group->root!=NULL);
+    strcpy(group->root, group->specs->name);
+
+#ifdef DEBUG
+    printf("%s (%s, %d): group_name = %s\n", __func__, __FILE__, __LINE__, group->root); fflush(stdout);
+#endif
+
+
     group->datasets_present = (bool *) malloc(group->specs->ndatasets * sizeof(bool));
+    for (ii=0; ii<group->specs->ndatasets; ii++)group->datasets_present[ii] = false;
 
     /*
     printf("escdf_group_new: created new escdf_group_t %s with %d attributes and %d datasets\n", 
@@ -418,7 +427,8 @@ escdf_errno_t escdf_group_create_location(escdf_group_t *group, const escdf_hand
     else
         sprintf(location_path, "%s/%s", group->specs->name, name);
 
-    utils_hdf5_create_group(handle->file_id, location_path, &(group->loc_id));
+//    utils_hdf5_create_group(handle->file_id, location_path, &(group->loc_id));
+    utils_hdf5_create_group(handle->group_id, location_path, &(group->loc_id));
 
 #ifdef DEBUG
     printf("%s (%s, %d): after utils_hdf5_create_group. \n",  __func__, __FILE__, __LINE__); fflush(stdout);

@@ -48,7 +48,7 @@ extern "C" {
 
 /**
  * This handle is an abstract reference to an ESCDF file and all access to a file
- * through Libescd is done through it.
+ * through Libescdf is done through it.
  */
 typedef struct {
     hid_t file_id;  /**< HDF5 file identifier */
@@ -57,7 +57,7 @@ typedef struct {
 
     int mpi_size, mpi_rank;
 
-    hid_t transfer_mode;
+    hid_t transfer_mode; /**< HDF5 transfer mode (default H5P_default) */
 
     escdf_lookuptable_t *data_transfer; 
 

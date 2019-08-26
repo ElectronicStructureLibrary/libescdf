@@ -34,7 +34,10 @@
 int main() {
 
     escdf_handle_t *escdf_file;
+    escdf_handle_t *escdf_file_2;
+
     escdf_group_t *group_system;
+    escdf_group_t *group_system_run1;
 
     escdf_dataset_t *dataset_species_names;
     escdf_dataset_t *dataset_site_pos;
@@ -135,9 +138,11 @@ int main() {
 
     printf("\n");
     
-    escdf_file = escdf_create("escdf-test.h5", NULL);
+    // escdf_file = escdf_create("escdf-test.h5", NULL);
+    escdf_file = escdf_create("escdf-test.h5", "subsystem_1");
 
     group_system = escdf_group_create(escdf_file, SYSTEM, NULL); 
+    group_system_run1 = escdf_group_create(escdf_file, SYSTEM, "run1"); 
 
     if(group_system == NULL) printf("Null pointer for group !!\n");
 
@@ -146,10 +151,18 @@ int main() {
     error = escdf_group_attribute_set(group_system, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims);
     printf("setting 'number_of_phycical_dimensions' results in error = %i \n\n", error);
 
+    error = escdf_group_attribute_set(group_system_run1, NUMBER_OF_PHYSICAL_DIMENSIONS, &num_dims);
+    printf("setting 'number_of_phycical_dimensions' results in error = %i \n\n", error);
+
+
+
     error = escdf_group_attribute_set(group_system, NUMBER_OF_SPECIES, &num_species);
     printf("setting 'number_of_species' results in error = %i \n\n", error);
 
     error = escdf_group_attribute_set(group_system, NUMBER_OF_SITES, &num_sites);
+    printf("setting 'number_of_sites' results in error = %i \n\n", error);
+
+    error = escdf_group_attribute_set(group_system_run1, NUMBER_OF_SITES, &num_sites);
     printf("setting 'number_of_sites' results in error = %i \n\n", error);
 
     error = escdf_group_attribute_set(group_system, NUMBER_OF_SPECIES_AT_SITE, num_species_at_site);
@@ -175,11 +188,10 @@ int main() {
     printf("dataset_species_names written with error = %d\n\n\n", error);
     */
    
-    /*
-    error = escdf_hl_dataset_write_simple(group_system, CARTESIAN_SITE_POSITIONS, coords);
+    
+    error = escdf_hl_dataset_write_simple(group_system_run1, CARTESIAN_SITE_POSITIONS, coords);
     printf("dataset_species_pos written with error = %d\n", error);
-    */
-
+    
     /*
     for(i=0; i<num_sites; i++) {
 
@@ -212,6 +224,11 @@ int main() {
     error = escdf_group_close(group_system);
 
     printf("Group closed. error = %d \n\n", error);
+
+    error = escdf_group_close(group_system_run1);
+
+    printf("Group closed. error = %d \n\n", error);
+
 
     error = escdf_close(escdf_file);
 

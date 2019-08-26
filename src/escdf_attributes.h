@@ -71,9 +71,6 @@ hid_t escdf_attribute_specs_hdf5_mem_type(const escdf_attribute_specs_t *specs);
 hid_t escdf_attribute_specs_hdf5_disk_type(const escdf_attribute_specs_t *specs);
 
 
-
-
-
 typedef struct escdf_attribute escdf_attribute_t;
 
 /**

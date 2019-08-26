@@ -20,7 +20,6 @@
  * 02110-1301  USA.
  */
 
-
 #include <stdlib.h>
 #include <check.h>
 
@@ -31,26 +30,26 @@ int main(void)
     int number_failed;
     SRunner *sr;
 
+    printf("check_escdf started!!!\n");
+
     sr = srunner_create(make_info_suite());
-    
-    srunner_add_suite(sr, make_error_suite()); 
+
+    srunner_add_suite(sr, make_error_suite());
     srunner_add_suite(sr, make_utils_suite());
     srunner_add_suite(sr, make_utils_hdf5_suite());
     srunner_add_suite(sr, make_handle_suite());
 
     srunner_add_suite(sr, make_attributes_suite());
     srunner_add_suite(sr, make_datasets_suite());
-    
+
     /*
     */
-   
+
     /* 
     srunner_add_suite(sr, make_group_suite()); 
     */
-    
-    
-    srunner_add_suite(sr, make_new_group_suite()); 
-    
+
+    srunner_add_suite(sr, make_new_group_suite());
 
     /*
     srunner_add_suite(sr, make_system_suite());
@@ -59,9 +58,8 @@ int main(void)
 
     /* dirty workaround for debian test suite */
 
-    srunner_set_fork_status (sr, CK_NOFORK);
+    srunner_set_fork_status(sr, CK_NOFORK);
 
-    
     srunner_run_all(sr, CK_VERBOSE);
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);

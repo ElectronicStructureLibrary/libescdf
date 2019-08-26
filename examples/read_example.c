@@ -76,16 +76,19 @@ int main() {
     printf("escdf_init() done.\n");
 
 
-    escdf_file = escdf_open("escdf-test.h5", NULL);
+    escdf_file = escdf_open("escdf-test.h5", "subsystem_1");
 
     if(escdf_file == NULL) {
         printf("Opening file failed.")  ;
         return -1;
     }
 
-    group_system = escdf_group_open(escdf_file, "system", NULL); 
+    group_system = escdf_group_open(escdf_file, SYSTEM, NULL); 
 
-    if(group_system == NULL) printf("Null pointer for group !!\n");
+    if(group_system == NULL) {
+        printf("Null pointer for group !!\n");
+        exit(-1);
+    };
     printf("escdf_group_open() done for system.\n");
 
 
