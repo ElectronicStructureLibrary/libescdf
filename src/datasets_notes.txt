@@ -1,0 +1,67 @@
+
+
+struct escdf_dataset_specs {
+    int id;
+    char * name;
+    int datatype;
+
+    unsigned int stringlength;
+    unsigned int ndims;
+
+    bool disordered_storage_allowed;
+
+    /* If the specifications indicate a non-regular shape for a dataset,
+     * e.g. species_at_site, we will store it as an effective one-dimensional array.
+     *
+     * This is currently allowed only for irregular 2D arrays.
+     * 
+     * The bool 'compact' indicates whether a dataset is stored that way.
+     */
+
+    bool compact;
+
+    const escdf_attribute_specs_t **dims_specs;
+
+    /** 
+     * the reordering table specs are not necessary in the dataset_specs.
+     * 
+     *  const escdf_dataset_specs_t *reordering_table_specs;
+     */
+
+    
+};
+
+struct escdf_dataset {
+
+    const escdf_dataset_specs_t *specs;
+
+    /* bool is_set; */
+    bool is_ordered;
+    bool ordered_flag_set;
+
+    bool transfer_on_disk;
+
+    hsize_t *dims;
+
+    escdf_attribute_t **dims_attr;
+
+    /* In case of irregular arrays (only two-dimensional allowed) the data is stored
+     * as one dimensional array, and we need the additional index array to map to the array.
+     * 
+     * Whether or not this compact storage is used, is determined by specs->compact.
+     */
+
+    hsize_t *index_array; /* only used for compact storage */
+
+    /* int *reordering_table; */
+
+    escdf_datatransfer_t *transfer;
+    
+    hid_t type_id;
+    hid_t xfer_id;
+
+    hid_t dtset_id;
+
+/*    hid_t *dtset_ptr; */
+
+};

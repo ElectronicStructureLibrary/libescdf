@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libescdf
+Description: Electronic Structure Common Data Format Library
+Requires: hdf5
+Version: 0.1.0
+Libs: -L${libdir} -lescdf
+Cflags: -I${includedir}

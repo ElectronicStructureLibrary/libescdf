@@ -59,7 +59,8 @@ void system_setup_file(const char *file, const char *sys_path)
 {
     hid_t file_id, escdf_root_id, sys_root_id, silicon_sys_id;
     hid_t dataset_id, string_len_3, string_len_80;
-    hsize_t dims_1D, dims_2D[2], dims_3D[3];
+    /* OLD hsize_t dims_1D, dims_2D[2], dims_3D[3]; */
+    unsigned int dims_1D, dims_2D[2], dims_3D[3];
     herr_t status;
 
     /* set up the data to write */
@@ -111,7 +112,9 @@ void system_setup_file(const char *file, const char *sys_path)
     /* Write metadata */
 
     /* --system_name */
-    status = utils_hdf5_write_string(silicon_sys_id, "system_name", system_name, 80);
+    /*
+    status = utils_hdf5_write_string_old(silicon_sys_id, "system_name", system_name, 80);
+    */ 
 
     /* --number_of_physical_dimensions */
     status = utils_hdf5_write_attr(silicon_sys_id, "number_of_physical_dimensions", H5T_NATIVE_UINT, NULL, 0, H5T_NATIVE_UINT, &number_of_physical_dimensions);
@@ -121,8 +124,10 @@ void system_setup_file(const char *file, const char *sys_path)
     status = utils_hdf5_write_attr(silicon_sys_id, "dimension_types", H5T_NATIVE_INT, &dims_1D, 1, H5T_NATIVE_INT, &dimension_types);
 
     /* --embedded_system */
+    /*
     dims_1D = 1;
-    status = utils_hdf5_write_bool(silicon_sys_id, "embedded_system", embedded_system);
+    status = utils_hdf5_write_bool_old(silicon_sys_id, "embedded_system", embedded_system);
+    */ 
 
     /* --number_of_species */
     status = utils_hdf5_write_attr(silicon_sys_id, "number_of_species", H5T_NATIVE_UINT, NULL, 0, H5T_NATIVE_UINT, &number_of_species);
@@ -142,10 +147,14 @@ void system_setup_file(const char *file, const char *sys_path)
     status = utils_hdf5_write_attr(silicon_sys_id, "spacegroup_3D_number", H5T_NATIVE_UINT, NULL, 0, H5T_NATIVE_UINT, &spacegroup_3D_number);
 
     /* --symmorphic */
-    status = utils_hdf5_write_bool(silicon_sys_id, "symmorphic", symmorphic);
+    /*
+    status = utils_hdf5_write_bool_old(silicon_sys_id, "symmorphic", symmorphic);
+    */
 
     /* --time_reversal_symmetry */
-    status = utils_hdf5_write_bool(silicon_sys_id, "time_reversal_symmetry", time_reversal_symmetry);
+    /*
+    status = utils_hdf5_write_bool_old(silicon_sys_id, "time_reversal_symmetry", time_reversal_symmetry);
+    */
 
     /* --bulk_regions_for_semi_infinite_dimension */
     dims_1D = 2;

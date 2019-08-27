@@ -15,7 +15,6 @@ opensuse-serial-test:
   stage: test
   script:
     - sh utils/build-serial-opensuse.sh 
-    - make check
 
 opensuse-mpi:
   image: drfaustroll/esl:opensuse-tumbleweed
@@ -28,7 +27,6 @@ opensuse-mpi-test:
   stage: test
   script:
     - sh utils/build-mpi-opensuse.sh
-    - make check
 
 debian-serial:
   image: drfaustroll/esl:debian-latest

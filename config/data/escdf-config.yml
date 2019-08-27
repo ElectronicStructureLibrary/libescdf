@@ -1,0 +1,52 @@
+%YAML 1.1
+---
+
+timestamp: "20190826T195908+0200"
+
+target:
+    cpu: "x86_64"
+    vendor: "pc"
+    os: "linux-gnu"
+
+compilers:
+    CPP: "gcc -E"
+    CPPFLAGS: " "
+    CC: "gcc"
+    MPICC: ""
+    CFLAGS: "-g -O2"
+    LDFLAGS: ""
+    LIBS: "-lhdf5 -lm "
+
+defaults:
+    debug_enable: "no"
+    hdf5_enable: "yes"
+    mpi_enable: "auto"
+    hdf5_ser_incs: ""
+    hdf5_ser_libs: "-lhdf5"
+    hdf5_mpi_incs: ""
+    hdf5_mpi_libs: "-lhdf5_mpi -lhdf5"
+
+options:
+    enable_debug: ""
+    with_hdf5: ""
+    with_mpi: ""
+
+triggers:
+    debug_enable: "no"
+    hdf5_enable: "yes"
+    mpi_enable: "no"
+
+inits:
+    debug: "def"
+    hdf5: "def"
+    mpi: "def"
+
+deps:
+    hdf5_incs: ""
+    hdf5_libs: "-lhdf5"
+
+mpi_internals:
+    cc_set: "no"
+    cc_wrap: "no"
+
+...

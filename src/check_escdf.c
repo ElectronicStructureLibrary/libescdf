@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+/* Copyright (C) 2016-2018 Damien Caliste <dcaliste@free.fr>
  *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
  *                         Yann Pouillon <devops@materialsevolution.es>
  *
@@ -20,7 +20,6 @@
  * 02110-1301  USA.
  */
 
-
 #include <stdlib.h>
 #include <check.h>
 
@@ -32,16 +31,35 @@ int main(void)
     SRunner *sr;
 
     sr = srunner_create(make_info_suite());
+
     srunner_add_suite(sr, make_error_suite());
     srunner_add_suite(sr, make_utils_suite());
     srunner_add_suite(sr, make_utils_hdf5_suite());
     srunner_add_suite(sr, make_handle_suite());
+
+    srunner_add_suite(sr, make_attributes_suite());
+    srunner_add_suite(sr, make_datasets_suite());
+
+    /*
+    */
+
+    /* 
+    srunner_add_suite(sr, make_group_suite()); 
+    */
+
+    srunner_add_suite(sr, make_new_group_suite());
+
+    /*
     srunner_add_suite(sr, make_system_suite());
     srunner_add_suite(sr, make_grid_scalarfield_suite());
+    */
+
+    /* dirty workaround for debian test suite */
+
+    srunner_set_fork_status(sr, CK_NOFORK);
 
     srunner_run_all(sr, CK_VERBOSE);
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

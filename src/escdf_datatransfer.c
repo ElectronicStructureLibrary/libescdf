@@ -1,6 +1,6 @@
-/* Copyright (C) 2016-2017 Micael Oliveira <micael.oliveira@mpsd.mpg.de>
- *                         Yann Pouillon <devops@materialsevolution.es>
- *
+/* Copyright (C) 2018 Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                    Martin Lueders <martin.lueders@stfc.ac.uk>
+ * 
  * This file is part of ESCDF.
  *
  * ESCDF is free software: you can redistribute it and/or modify it under the
@@ -19,30 +19,15 @@
  * 02110-1301  USA.
  */
 
-#ifndef LIBESCDF_ESCDF_INFO_H
-#define LIBESCDF_ESCDF_INFO_H
+#include "escdf_datatransfer.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct escdf_datatransfer {
 
-/**
- * Provide the version number of the library.
- * @param[out] major major version number, -1 if not found
- * @param[out] minor minor version number, -1 if not found
- * @param[out] micro micro version number, -1 if not found
- */
-void escdf_info_version(int *major, int *minor, int *micro);
+    hid_t id;
 
-/**
- * Provide the package string of the library.
- * @param[out] info: package name and version.
- */
-void escdf_info_string(char *info);
+};
 
-
-#ifdef __cplusplus
+hid_t escdf_datatransfer_get_id(escdf_datatransfer_t *trans)
+{
+    return trans->id;
 }
-#endif
-
-#endif

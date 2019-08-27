@@ -1,0 +1,194 @@
+Typical calling sequences:
+
+1. Calculation creating data and writing a file.
+------------------------------------------------
+
+BEGIN:
+
+escdf_handle_ptr = escdf_create(filename, path)
+
+/* Creating the file implies:
+ *
+ * - Setting a WRITE access flag
+ * - Create some global lookup tables (e.g. for ordering lists) ✓
+ */
+
+
+group_system = escdf_group_create(escdf_handle_ptr, "system", flags); 
+
+/**
+ * Creating the group implies:
+ *
+ * - creating an instance of the escdf_group_t memory structure ✓
+ * - create group on disk ✓
+ */
+
+
+escdf_group_attribute_set(group_system, "system_name", "Test System"); ✓
+
+dataset_positions = escdf_group_dataset_create(group_system, "cartesian_site_positions");
+
+/**
+ * Creating the dataset implies:
+ *
+ * - Create an instance of escdf_dataset ✓
+ * - Create the dataset in the file ✓
+ * - Open the dataset in the file ? (this should be implied by H5Dcreate) check !
+ */
+
+data_transfer_write = escdf_group_dataset_prepare_write(dims, memory_layout, disk_layout, flags ); // optional
+
+/**
+ * Ordering tables contain all information about how to read or write the data.
+ * This can be one or more of the following:
+ * - strategy (re-indexing / communication)
+ * - reindexing array
+ * - comminication plan (whatever that might be...?)
+ * - adds datatransfer object to lookup table
+ */
+
+
+escdf_group_dataset_set_write_reordering_table(dataset_positions, data_tranfer_write); // optional
+
+escdf_group_dataset_write(dataset_positions, selection, data);
+
+escdf_group_dataset_close(dataset_positions); // (optional??)
+
+escdf_group_close(group_system);  // (optional??)
+
+/**
+ * Closing the group implies:
+ * 
+ * - writing ordering tables to disk
+ * - garbage collection (closing open datasets)
+ * - close the group data structure and release memory
+ */
+
+
+escdf_close(escdf_handle_ptr);
+
+/**
+ * Closing the escdf_handle imples:
+ *
+ * - Garbage collection (closeing open groups)
+ * - closing any datatypes
+ * - closing the file
+ * - closing the HDF5 interface
+ */
+
+END
+
+
+2. Programm reading a file and using the data.
+----------------------------------------------
+
+
+BEGIN:
+
+escdf_handle_ptr = escdf_open(filename, path)
+
+/* Opening the file implies:
+ *
+ * - Setting a READ access flag
+ */
+
+
+group_system = escdf_group_open(escdf_handle, "system"); 
+
+/**
+ * Opening the group implies:
+ *
+ * - creating an instance of the escdf_group_t memory structure ✓
+ * - reading the attributes registered with this group ✓
+ * - checking the existence of the datasets registered with the group 
+ */
+ 
+
+escdf_group_attribute_get(group_system, "system_name", value);
+
+dataset_pos = escdf_group_dataset_open(group_system, "cartesian_site_positions");
+
+/**
+ * Opening the dataset implies:
+ *
+ * - opening the dataset in the file
+ * - check dimensions 
+ * - get ID for reordering table, used for writing (ordering_table_write)
+ * - if not yet loaded, load ordering_table_write
+ */
+
+
+ordering_table_read = escdf_group_dataset_prepare_read(dims, memory_layout, disk_layout, flags ); // optional
+
+/**
+ * Ordering tables contain all information about how to read or write the data.
+ * This can be one or more of the following:
+ * - strategy (re-indexing / communication)
+ * - reindexing array
+ * - comminication plan (whatever that might be...?)
+ */
+
+
+escdf_group_dataset_set_read_reordering_table(dataset_pos, ordering_table_read); // optional
+
+/**
+ * Setting the reordering table implies:
+ *
+ * - If a table already exists (used for writing), combine the tables
+ */
+
+
+escdf_group_dataset_read(dataset_pos, selection, data);
+
+escdf_group_dataset_close(dataset_pos); (optional??)
+
+escdf_group_close(group_system); (optional??)
+
+/**
+ * Closing the group implies:
+ * 
+ * - writing ordering tables to disk (if file does not have the WRITE access flag)
+ * - garbage collection (closing open datasets)
+ * - close the group data structure and release memory
+ */
+
+
+escdf_close(escdf_handle_ptr);
+
+/**
+ * Closing the escdf_handle imples:
+ *
+ * - Garbage collection (closeing open groups)
+ * - closing any datatypes
+ * - closing the file
+ * - closing the HDF5 interface
+ */
+
+END
+
+
+About the data_transfer structure:
+
+Necessary data:
+
+- strategy (for later): 
+    * order on read
+    * order on write
+    * re-order via communication
+
+Memory layout (both memory and disk):
+
+- dimensions (ndims, dims[ndims])
+- stay close to the HDF5 dataspace model.
+
+
+
+
+
+QUESTIONS:
+
+Where do we store the data transfer objects?
+
+- where in the file?
+- where in the memory?
+

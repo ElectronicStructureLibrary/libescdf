@@ -30,6 +30,7 @@ extern "C" {
 #include <hdf5.h>
 
 #include "escdf_error.h"
+#include "escdf_lookuptable.h" 
 
 #if defined HAVE_CONFIG_H
 #include "config.h"
@@ -47,7 +48,7 @@ extern "C" {
 
 /**
  * This handle is an abstract reference to an ESCDF file and all access to a file
- * through Libescd is done through it.
+ * through Libescdf is done through it.
  */
 typedef struct {
     hid_t file_id;  /**< HDF5 file identifier */
@@ -55,7 +56,10 @@ typedef struct {
     hid_t group_id; /**< HDF5 group identifier that is to be considered as root */
 
     int mpi_size, mpi_rank;
-    hid_t transfer_mode;
+
+    hid_t transfer_mode; /**< HDF5 transfer mode (default H5P_default) */
+
+    escdf_lookuptable_t *data_transfer; 
 
 #ifdef HAVE_MPI
     MPI_Comm comm;

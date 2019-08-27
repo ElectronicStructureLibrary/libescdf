@@ -39,20 +39,6 @@ mkdir -p config/gnu config/m4
 #echo "Generating makefiles..."
 #echo "done."
 
-# Generate libtool scripts
-echo "Generating libtool scripts..."
-my_libtoolize="libtoolize"
-${my_libtoolize} --version >/dev/null 2>&1
-if test "${?}" != "0"; then 
-  my_libtoolize="glibtoolize"
-fi
-${my_libtoolize} --version >/dev/null 2>&1
-if test "${?}" != "0"; then 
-  echo "Error: could not find a working version of libtoolize" >&2
-  exit 1
-fi
-${my_libtoolize} --automake --copy --force
-echo "done."
 
 # Generate M4 includes
 echo "Generating aclocal.m4..."
@@ -69,8 +55,25 @@ echo "Generating configure script..."
 autoconf
 echo "done."
 
+# Generate libtool scripts
+echo "Generating libtool scripts..."
+my_libtoolize="libtoolize"
+${my_libtoolize} --version >/dev/null 2>&1
+if test "${?}" != "0"; then 
+  my_libtoolize="glibtoolize"
+fi
+${my_libtoolize} --version >/dev/null 2>&1
+if test "${?}" != "0"; then 
+  echo "Error: could not find a working version of libtoolize" >&2
+  exit 1
+fi
+${my_libtoolize} --automake --copy --force
+echo "done."
+
+
 # Generate makefile inputs
 # Do not use "automake --force-missing", as it overwrites the INSTALL file.
 echo "Generating Makefile.in for each directory..."
 automake --add-missing --copy
 echo "done."
+

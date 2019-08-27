@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+/* Copyright (C) 2016-2018 Damien Caliste <dcaliste@free.fr>
  *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
  *                         Yann Pouillon <devops@materialsevolution.es>
  *
@@ -33,7 +33,15 @@ Suite *make_error_suite(void);
 Suite *make_utils_suite(void);
 Suite *make_utils_hdf5_suite(void);
 Suite *make_handle_suite(void);
-Suite *make_system_suite(void);
+Suite *make_attributes_suite(void);
+Suite *make_datasets_suite(void);
+Suite *make_group_suite(void);
+
+Suite *make_new_group_suite(void);
+
+
+/*
 Suite *make_grid_scalarfield_suite(void);
+*/
 
 #endif

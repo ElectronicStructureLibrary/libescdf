@@ -1,0 +1,22 @@
+SYSTEM system_name                   ESCDF_DT_STRING 0 
+SYSTEM number_of_physical_dimensions ESCDF_DT_UINT   0 
+SYSTEM dimension_type                ESCDF_DT_INT    1 number_of_physical_dimensions
+SYSTEM embedded_system               ESCDF_DT_BOOL   0 
+SYSTEM number_of_species             ESCDF_DT_UINT   0 
+SYSTEM number_of_sites               ESCDF_DT_UINT   0 
+SYSTEM number_of_symmetry_operations ESCDF_DT_UINT   0 
+SYSTEM lattice_vectors               ESCDF_DT_DOUBLE 2 number_of_physical_dimensions number_of_physical_dimensions
+SYSTEM spacegroup_3D_number          ESCDF_DT_UINT   0 
+SYSTEM symmprphic                    ESCDF_DT_BOOL   0 
+SYSTEM time_reversal_symmetry        ESCDF_DT_BOOL   0 
+
+
+DENSITY dim1 ESCDF_DT_UINT 0 
+DENSITY dim2 ESCDF_DT_UINT 0 
+DENSITY dim3 ESCDF_DT_UINT 0 
+DENSITY dim4 ESCDF_DT_UINT 0 
+
+DENSITY field1 ESCDF_DT_DOUBLE 1 dim1
+DENSITY field2 ESCDF_DT_DOUBLE 2 dim1 dim2
+DENSITY field3 ESCDF_DT_DOUBLE 3 dim1 dim2 dim3
+DENSITY field4 ESCDF_DT_DOUBLE 4 dim1 dim2 dim3 dim4

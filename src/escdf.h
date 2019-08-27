@@ -27,7 +27,15 @@ extern "C" {
 
 #include "escdf_common.h"
 #include "escdf_handle.h"
-#include "escdf_system.h"
+
+#include "escdf_attributes.h"
+#include "escdf_datasets.h"
+#include "escdf_group.h"
+
+#include "escdf_hl.h"
+
+void escdf_init();
+
 
 #ifdef __cplusplus
 }

@@ -143,7 +143,7 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *sca
         return err;
     }
 
-    if ((err = utils_hdf5_read_bool(loc_id, "use_default_ordering",
+    if ((err = utils_hdf5_read_bool_old(loc_id, "use_default_ordering",
                                     &scalarfield->use_default_ordering))
         != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
@@ -241,11 +241,13 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
         return err;
     }
 
-    if ((err = utils_hdf5_write_bool
-         (gid, "use_default_ordering", scalarfield->use_default_ordering.value)) != ESCDF_SUCCESS) {
+    /*
+    if ((err = utils_hdf5_write_bool_old
+            (gid, "use_default_ordering", scalarfield->use_default_ordering.value)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
     }
+    */
 
     /* Only create shapes for data. */
     dims[0] = scalarfield->number_of_components.value;
