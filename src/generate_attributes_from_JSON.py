@@ -240,6 +240,8 @@ for d in datasets:
 
     dataset_name = d['Name']
 
+    print('Processing: ' + dataset_name+' \n')
+
     ID_name = def_name(dataset_name)
 
     dataset_list.append(dataset_name)
@@ -318,7 +320,7 @@ for g in groups:
                 g['Num_Datasets'] += 1
                 use_counter[d] += 1
             else:
-                print ('WARNING: attribute '+ d + ' not found!')
+                print ('WARNING: dataset '+ d + ' not found!')
         if g['Num_Datasets'] > 0:
             group_specs_file.write('const escdf_dataset_specs_t *'+datasets_name(g['Name'])+'[] = { ')
             group_specs_file.write(datas_list.rstrip(',') + '\n')

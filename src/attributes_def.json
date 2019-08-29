@@ -1,258 +1,965 @@
 { 
-  "Version"    : "0.0.2",
+  "Version"    : "0.1.0",
   "Author"     : "Martin Lueders",
   "Comment"    : [ 
-           "How to use this definitions file:",
-           "",
-           "This file contains the definitions of all Attributes, Datasets and Groups",
-           "The 'Attributes' object contains a list of specifications, with the fields:",
-           "  'Name'      : string,  obligatory  : attribute name (case sensitive)",
-           "  'Data_type' : string,  obligatory  : name of the ESCDF datatype as defined in 'escdf_common.h'",
-           "  'Dimensions': integer, obligatory  : number of dimensions of the attribute",
-           "  'Dims_definitions': list of strings, obligatory IF Dimensions  : names of the attributes, defining the dimensions",
-           "  'String_length' : integer : length of the string for datatype ESCDF_DT_STRING; this determines how big the buffer is",
-           "  'Range' : optional, list of two numbers : [min, max], the data type has to be consistent with 'Data_type'",
-           "  'Dependencies' : dependencies on other attributes or datasets besides dimensions",
-           "  'Description' : optional, string_array : Documentation for the attribute",
-           "  'Optional' : string ('yes'/'no') determining whether an attribute of dataset is optional"
+            "How to use this definitions file:",
+            "",
+            "This file contains the definitions of all Attributes, Datasets and Groups",
+            "The 'Attributes' object contains a list of specifications, with the fields:",
+            "  'Name'      : string,  obligatory  : attribute name (case sensitive)",
+            "  'Data_type' : string,  obligatory  : name of the ESCDF datatype as defined in 'escdf_common.h'",
+            "  'Dimensions': integer, obligatory  : number of dimensions of the attribute",
+            "  'Dims_definitions': list of strings, obligatory IF Dimensions  : names of the attributes, defining the dimensions",
+            "  'String_length' : integer : length of the string for datatype ESCDF_DT_STRING; this determines how big the buffer is",
+            "  'Range' : optional, list of two numbers : [min, max], the data type has to be consistent with 'Data_type'",
+            "  'Dependencies' : dependencies on other attributes or datasets besides dimensions",
+            "  'Description' : optional, string_array : Documentation for the attribute",
+            "  'Category' : string to arrange the documentation into categories within a group",
+            "The 'Datasets' objects contain the same fields as 'Attributes', and can contain in addition: ",
+            "  'Disordered_Allowed' : to indicate that data can be written out of order."
 	       ],
 
   "Attributes" :
   [
-  {
-    "Name":"file_format",
-    "Data_type":"ESCDF_DT_STRING",
-    "Dimensions":0,
-    "String_length":80,
-    "Optional":"no"
-  },
-  { 
-    "Name" : "system_name", 
-    "Data_type"  : "ESCDF_DT_STRING", 
-    "Dimensions" : 0, 
-    "String_length" : 80,
-    "Description" : ["Specifies the name of the system. This information is stored for debugging or visualization purposes."],
-    "Optional" : "no" 
-  },
-  { 
-    "Name" : "number_of_physical_dimensions", 
-    "Data_type" : "ESCDF_DT_UINT", 
-    "Dimensions":  0, 
-    "Range" : [3,3],
-    "Description" : ["The number of physical dimensions in space. Note that this is not the same as the number of periodic directions,", 
-                     "which might be less than or equal to this number."],
-    "Optional" : "no"
-  },
-  { 
-    "Name" : "dimension_type", 
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions": 1, 
-    "Dims_definitions": [ "number_of_physical_dimensions" ],
-    "Range" : [0,2],
-    "Description" : [ "This is a list defining the periodicity of the system in each of the directions given by the lattice_vectors. Valid options are: ",
-                      "  - 0: The direction is non-periodic. ",
-                      "  - 1: The direction is periodic. ",
-                      "  - 2: The direction is semi-infinite. Only one direction can take this value; ",
-                      "       if it is present, then additional variables are required (see variables relating to a semi-infinite setup)." ],
-    "Optional" : "no"
-  },
-  { 
-    "Name" : "embedded_system", 
-    "Data_type" : "ESCDF_DT_BOOL", 
-    "Dimensions" : 0,
-    "Description" : ["Is the system embedded into a host geometry? If yes, then additional variables are required, ",
-                     "and the host geometry should be described in a separate group (see variables relating to an embedded system)."],
-    "Optional" : "no"
-  },
-  { 
-    "Name" : "number_of_species", 
-    "Data_type" : "ESCDF_DT_UINT", 
-    "Dimensions" :  0, 
-    "Description" : ["The number of different species in the system."],
-    "Optional" : "no"
-  },
-  { 
-    "Name" : "number_of_sites", 
-    "Data_type" : "ESCDF_DT_UINT", 
-    "Dimensions" : 0,
-    "Description" : ["The number of sites in the unit cell."],
-    "Optional" : "no"
-  },
-  {
-    "Name" : "number_of_species_at_site",
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions" : 1,
-    "Dims_definitions" : ["number_of_sites"],
-    "Description" : ["The number of component species for each site. If not present, it is taken to be 1 for all sites (i.e., no statistical mixing)."]
-  },  
-  {
-    "Name" : "max_number_of_species_at_site",
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions" : 0,
-    "Description" : ["The maximum number of component species for each site."]
-  },  
-  { 
-    "Name" : "number_of_symmetry_operations", 
-    "Data_type" : "ESCDF_DT_UINT", 
-    "Dimensions" :   0,
-    "Description" : ["The number of sites in the unit cell."],
-    "Optional" : "no" 
-  },
-  { 
-    "Name" : "lattice_vectors", 
-    "Data_type" : "ESCDF_DT_DOUBLE", 
-    "Dimensions" :  2, 
-    "Dims_definitions": [ "number_of_physical_dimensions", "number_of_physical_dimensions" ],
-    "Description" : ["Holds the real-space lattice vectors (in Cartesian coordinates) of the simulation cell.",
-                    "The last (fastest) index runs over the x,y,z Cartesian coordinates, and the first index runs over the 3 lattice vectors."],
-    "Optional" : "no" 
-  },
-  { 
-    "Name" : "spacegroup_3D_number", 
-    "Data_type" : "ESCDF_DT_UINT", 
-    "Dimensions" : 0 ,
-    "Range" : [1,232],
-    "Description" : ["Specifies the International Union of Crystallography (IUC) number of the 3D space group that defines the symmetry group of the simulated physical system."],
-    "Optional" : "no"
-  },
-  { 
-    "Name" : "symmorphic", 
-    "Data_type" : "ESCDF_DT_BOOL", 
-    "Dimensions" : 0 ,
-    "Description" : ["Is the space group symmorphic? Set to yes if all translations are zero."] 
+    {
+      "Name":"file_format",
+      "Data_type":"ESCDF_DT_STRING",
+      "Dimensions":0,
+      "String_length":80,
+      "Category" : ["general"],
+      "Description": ["The name of the data standard (always ESCDF)."]
+    },
+    {
+      "Name": "file_format_version",
+      "Data_type": "ESCDF_DT_DOUBLE",
+      "Dimensions": 0,
+      "Category" : ["general"],
+      "Description": ["Version number for the data standard."]
+    },
+    {
+      "Name": "conventions",
+      "Data_type": "ESCDF_DT_STRING",
+      "Dimensions":0,
+      "String_length":80,
+      "Category" : ["general"],
+      "Description":["Where the data standard specification can be found on the internet."]
+    },
+    {
+      "Name":"history",
+      "Data_type":"ESCDF_DT_STRING",
+      "Dimensions":0,
+      "String_length":1024,
+      "Category" : ["general"],
+      "Description":["Each code modifying/writing the file is encouraged to add aline about itself in the history attribute. ",
+                     "char(1024) allows for 12 additions of at most 80 characters."]
+    },
+    {
+      "Name":"title",
+      "Data_type":"ESCDF_DT_STRING",
+      "Dimensions":0,
+      "String_length":80,
+      "Category" : ["general"],
+      "Description":["A short description of the contents of the file (i.e. the physical system)."]
+    },
+    { 
+      "Name" : "system_name", 
+      "Data_type"  : "ESCDF_DT_STRING", 
+      "Dimensions" : 0, 
+      "String_length" : 80,
+      "Description" : ["Specifies the name of the system. This information is stored for debugging or visualization purposes."],
+      "Category" : ["general"]
+    },
+    { 
+      "Name" : "number_of_physical_dimensions", 
+      "Data_type" : "ESCDF_DT_UINT", 
+      "Dimensions":  0, 
+      "Range" : [3,3],
+      "Description" : ["The number of physical dimensions in space. Note that this is not the same as the number of periodic directions,", 
+                       "which might be less than or equal to this number."],
+      "Category" : ["general"]
+    },
+    {
+      "Name" : "number_of_half_spaces",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Range" : [2,2],
+      "Description" : ["Dummy attribute for dimension of 'bulk_region_for_semi_infinite_dimension'."]
+    },
+    {
+      "Name" : "scale_to_atomic_units",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" :0,
+      "Category" : ["general"],
+      "Description" : ["The appropriate value in atomic units is obtained by multiplying the number found in the variable ",
+                       "by this scaling factor. For example, if an energy variable is recorded in eV, scale_to_atomic_units ",
+                       "should be set to 0.036749326."]
+    },
+    {
+      "Name" : "units",
+      "Data_type" : "ESCDF_DT_STRING",
+      "Dimensions" : 0,
+      "String_length" : 80,
+      "Category" : ["general"],
+      "Description" : ["The name or definition of the units being used. This attribute is only used for informative purposes;",
+                       "only scale_to_atomic_units should be used to read the file."]
+    },
+    { 
+      "Name" : "dimension_type", 
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions": 1, 
+      "Dims_definitions": [ "number_of_physical_dimensions" ],
+      "Range" : [0,2],
+      "Description" : [ "This is a list defining the periodicity of the system in each of the directions given by the lattice_vectors. Valid options are: ",
+                        "  - 0: The direction is non-periodic. ",
+                        "  - 1: The direction is periodic. ",
+                        "  - 2: The direction is semi-infinite. Only one direction can take this value; ",
+                        "       if it is present, then additional variables are required (see variables relating to a semi-infinite setup)." ],
+      "Category" : ["general"]
+    },
+    { 
+      "Name" : "embedded_system", 
+      "Data_type" : "ESCDF_DT_BOOL", 
+      "Dimensions" : 0,
+      "Description" : ["Is the system embedded into a host geometry? If yes, then additional variables are required, ",
+                       "and the host geometry should be described in a separate group (see variables relating to an embedded system)."],
+      "Category" : ["general"]
+    },
+    { 
+      "Name" : "number_of_species", 
+      "Data_type" : "ESCDF_DT_UINT", 
+      "Dimensions" :  0, 
+      "Description" : ["The number of different species in the system."],
+      "Category" : ["species"]
+    },
+    { 
+      "Name" : "number_of_sites", 
+      "Data_type" : "ESCDF_DT_UINT", 
+      "Dimensions" : 0,
+      "Description" : ["The number of sites in the unit cell."],
+      "Category" : ["sites"]
+    },
+    {
+      "Name" : "number_of_species_at_site",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 1,
+      "Dims_definitions" : ["number_of_sites"],
+      "Description" : ["The number of component species for each site. If not present, it is taken to be 1 for all sites (i.e., no statistical mixing)."],
+      "Category" : ["species"]
+    },
+    { 
+      "Name" : "lattice_vectors", 
+      "Data_type" : "ESCDF_DT_DOUBLE", 
+      "Dimensions" :  2, 
+      "Dims_definitions": [ "number_of_physical_dimensions", "number_of_physical_dimensions" ],
+      "Description" : ["Holds the real-space lattice vectors (in Cartesian coordinates) of the simulation cell.",
+                      "The last (fastest) index runs over the x,y,z Cartesian coordinates, and the first index runs over the 3 lattice vectors."],
+      "Category" : ["cell"]
+    },
+    { 
+      "Name" : "spacegroup_3D_number", 
+      "Data_type" : "ESCDF_DT_UINT", 
+      "Dimensions" : 0,
+      "Range" : [1,232],
+      "Description" : ["Specifies the International Union of Crystallography (IUC) number of the 3D space group that defines the symmetry group of the simulated physical system."],
+      "Category" : ["symmetry"]
+    },
+    { 
+      "Name" : "symmorphic", 
+      "Data_type" : "ESCDF_DT_BOOL", 
+      "Dimensions" : 0 ,
+      "Description" : ["Is the space group symmorphic? Set to yes if all translations are zero."],
+      "Category" : ["symmetry"]
+    },
+    { 
+      "Name" : "time_reversal_symmetry", 
+      "Data_type" : "ESCDF_DT_BOOL", 
+      "Dimensions" :  0 ,
+      "Description" : ["Is time-reversal symmetry present?"],
+      "Category" : ["symmetry"]
+    },
+    {
+      "Name" : "number_of_symmetry_operations",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["The number of symmetry operations."],
+      "Category" : ["symmetry"]
+    },
+    {
+      "Name" : "number_of_grid_points", 
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions": 1, 
+      "Dims_definitions": [ "number_of_physical_dimensions" ],
+      "Description" : [ "Defines the number of grid points in every directions" ],
+      "Category" : ["grid"],
+      "Disordered_Allowed" : "No"
+    },
+    {
+      "Name" : "product_number_of_grid_points", 
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions": 0, 
+      "Range" : ["PRODUCT(number_of_grid_points)"],
+      "Description" : [ "Gives the prodyct of number of grid points over the directions. This is an auxilliary attribute." ],
+      "Category" : ["grid"]
+    },
+    {
+      "Name" : "number_of_components", 
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions": 0,
+      "Range" : [1,4],
+      "Description" : [ "For a scalarfield, provides the number of components, like spin-up, spin-down for a colinear density." ]
+    },
+    {
+      "Name" : "real_or_complex", 
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions": 0,
+      "Range" : [1,2],
+      "Description" : [ "either we use one or to values to represent a real or a complex number." ]
+    },
+    {
+      "Name" : "use_default_ordering",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["This attribute specifies if the default z, y, and x ordering is used or not. ",
+                       "When false, the optional variable grid_ordering must be present."]
+    },
 
-  },
-  { 
-    "Name" : "time_reversal_symmetry", 
-    "Data_type" : "ESCDF_DT_BOOL", 
-    "Dimensions" :  0 ,
-    "Description" : ["Is time-reversal symmetry present?"],
-    "Optional" : "no"
-  },
-  {
-    "Name" : "number_of_grid_points", 
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions": 1, "Dims_definitions": [ "number_of_physical_dimensions" ],
-    "Description" : [ "Defines the number of grid points in every directions" ],
-    "Disordered_Allowed" : "No",
-    "Optional" : "no"
-  },
-  {
-    "Name" : "number_of_components", 
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions": 0,
-    "Range" : [1,4],
-    "Description" : [ "For a scalarfield, provides the number of components, like spin-up, spin-down for a colinear density." ]
-  },
-  {
-    "Name" : "real_or_complex", 
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions": 0,
-    "Range" : [1,2],
-    "Description" : [ "either we use one or to values to represent a real or a complex number." ]
-  }
+    {
+      "Name" : "kind",
+      "Data_type" : "ESCDF_DT_STRING",
+      "Dimensions" : 0,
+      "String_length" : 80,
+      "Range" : ["plane_waves", "wavelets", "realspace_grids"],
+      "Description" : ["String representing the type of basis set used. Must be one of plane_waves, wavelets, or realspace_grids."]
+    },
+    {
+      "Name" : "number_of_coefficients",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["Total number of basis function coefficients."]
+    },
+    {
+      "Name" : "order_of_daubechies_wavelets",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["This number gives the order of the Daubechies wavelet basis, e.g. if order_of_daubechies_wavelets is 14, ",
+                       "the Daubechies wavelets are made from a piecewise polynomial of order 14."]
+    },
+    {
+      "Name" : "number_of_spins",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["Used to distinguish collinear spin-up and spin-down components:\n",
+        "1 for non-spin-polarized or spinor wavefunctions\n",
+        "2 for collinear spin (spin-up and spin-down)\n"],
+      "Category" : ["general"]
+    },
+    {
+      "Name" : "number_of_spinor_components",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["For non-spinor wavefunctions, this dimension must be present and equal to 1:\n", 
+        "For spinor wavefunctions, this dimension must be equal to 2."],
+      "Category" : ["general"]
+    },
+    {
+      "Name" : "k_dependent",
+      "Data_type" : "ESCDF_DT_BOOL",
+      "Dimensions" : 0,
+      "Description" : ["Whether states depend on k."],
+      "Category" : ["k-points"]
+    },
+    {
+      "Name" : "max_state_index",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["Index of state with highest energy."],
+      "Category" : ["general"]
+    },
+    {
+      "Name" : "min_state_index",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["Index of state with lowest energy."],
+      "Category" : ["general"]
+    },
+    {
+      "Name" : "highest_state_index",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["Highest index of a state for each kpoint, if varying (the attribute k_dependent must be set to yes). \n",
+                       "Otherwise (the attribute k_dependent must be set to no), might not contain any information, ",
+                       "the highest index of states being set to max_state_index."],
+      "Category" : ["k-points"]
+    },
+    {
+      "Name" : "lowest_state_index",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["Lowest index of a state for each kpoint, if varying (the attribute k_dependent must be set to yes). \n",
+        "Otherwise (the attribute k_dependent must be set to no), might not contain any information, ",
+        "the highest index of states being set to min_state_index."],
+      "Category" : ["k-points"]
+    },
+    {
+      "Name" : "max_number_of_states",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 0,
+      "Description" : ["maximal number of states for dimentioning purposes."],
+      "Category" : ["general"]
+    },
+    {
+      "Name" : "number_of_kpoints",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" :0,
+      "Description" : ["Number of k-points."],
+      "Category" : ["general", "k-points"]
+    }
   ],
+
   "Datasets" :
   [
-  { "Name" : "cartesian_site_positions", 
-    "Data_type" : "ESCDF_DT_DOUBLE", 
-    "Dimensions" : 2, 
-    "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
-    "Disordered_Allowed" : "No",
-    "Description" : ["The position of each site in cartesian (absolute) coordinates"]
-  },
-  { "Name" : "fractional_site_positions", 
-    "Data_type" : "ESCDF_DT_DOUBLE", 
-    "Dimensions" : 2, 
-    "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
-    "Disordered_Allowed" : "No",
-    "Description" : ["The position of each site in fractional (reduced/crystallographic) coordinates"]
-  },
-  {
-    "Name" : "species_at_site",
-    "Data_type" : "ESCDF_DT_UINT",
-    "Dimensions" : 2,
-    "Dims_definitions" : ["number_of_sites", "number_of_species_at_site"],
-    "Description" : ["This variable defines the species at each site, according to the list specified previously (see variables relating to species).",
-                     "If [number_of_species_at_site(site_index)] is set to 1, the site is simply a single species;",
-                     "otherwise, it will be a mixture of more species"]
-  },
-  {
-    "Name" : "species_names",
-    "Data_type" : "ESCDF_DT_STRING",
-    "String_length" : 80,
-    "Dimensions" : 1,
-    "Dims_definitions" : [ "number_of_species" ],
-    "Description" : ["Descriptive name for each species. Could simply be equal to chemical_symbols or contain extra information (e.g., Ga-semicore, C-1s-corehole, C-sp2, C1, etc.)"]
-  },
-  {
-    "Name" : "chemical_symbols",
-    "Data_type" : "ESCDF_DT_STRING",
-    "String_length" : 3,
-    "Dimensions" : 1,
-    "Dims_definitions" : [ "number_of_species" ],
-    "Description" : ["The chemical symbol for each species. X may be used for a non-traditional atom (see atomic_numbers)."]
-  },
-  {
-    "Name" : "atomic_numbers",
-    "Data_type" : "ESCDF_DT_DOUBLE",
-    "Dimensions" : 1,
-    "Dims_definitions" : [ "number_of_species" ],
-    "Disordered_Allowed" : "No",
-    "Description" : ["The atomic number for each species. This could be non-integer for a number of reasons (e.g., a VCA atom), or zero (e.g., an empty site).",
-                     "In such cases we recommend using species_names to clarify the nature of the site"]
-  },
-  {
-    "Name" : "values_on_grid",
-    "Data_type" : "ESCDF_DT_DOUBLE",
-    "Dimensions" : 3,
-    "Dims_definitions" : [ "number_of_components", "number_of_grid_points", "real_or_complex" ],
-    "Description" : ["The values on a grid."]
-  }
+    {
+      "Name" : "bulk_regions_for_semi_infinite_dimension",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 1, 
+      "Dims_definitions" : ["number_of_half_spaces"], 
+      "Description" : ["The length of the lattice vector in the semi-infinite direction for the two crystals (see figure below)."],
+      "Category" : ["semi_infinite"]
+    },
+    {
+      "Name" : "site_regions",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 1, 
+      "Dims_definitions" : ["number_of_sites"],
+      "Range" : [0,2],
+      "Description" : ["Each site in the system can either belong to the central region (0), ",
+                      "or be part of the unit cell of crystal 1 (1) or crystal 2 (2)."],
+      "Category" : ["semi_infinite"]
+    },
+    { "Name" : "cartesian_site_positions", 
+      "Data_type" : "ESCDF_DT_DOUBLE", 
+      "Dimensions" : 2, 
+      "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
+      "Disordered_Allowed" : "No",
+      "Description" : ["The position of each site in cartesian (absolute) coordinates"],
+      "Category" : ["sites"]
+    },
+    { "Name" : "fractional_site_positions", 
+      "Data_type" : "ESCDF_DT_DOUBLE", 
+      "Dimensions" : 2, 
+      "Dims_definitions" : [ "number_of_sites", "number_of_physical_dimensions" ],
+      "Disordered_Allowed" : "No",
+      "Description" : ["The position of each site in fractional (reduced/crystallographic) coordinates"],
+      "Category" : ["sites"]
+    },
+    {
+      "Name" : "species_at_site",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_sites", "number_of_species_at_site"],
+      "Description" : ["This variable defines the species at each site, according to the list specified previously (see variables relating to species).",
+                       "If [number_of_species_at_site(site_index)] is set to 1, the site is simply a single species;",
+                       "otherwise, it will be a mixture of more species"],
+      "Category" : ["sites", "species"]                 
+    },
+    {
+      "Name" : "number_of_species_at_site",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 1,
+      "Dims_definitions" : ["number_of_sites"],
+      "Category" : ["sites", "species"],
+      "Description" : ["The number of component species for each site. If not present, it is taken to be 1 ",
+                       "for all sites (i.e., no statistical mixing)."]
+    },
+    {
+      "Name" : "concentration_of_species_at_site",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_sites", "number_of_species_at_site"],
+      "Description" : ["The statistical concentration of each component species at each site.\n",
+                       "This variable needs to be present if number_of_species_at_site is present; ",
+                       "otherwise, it is not used."],
+      "Category" : ["sites", "species"]
+    },
+    {
+      "Name" : "species_names",
+      "Data_type" : "ESCDF_DT_STRING",
+      "String_length" : 80,
+      "Dimensions" : 1,
+      "Dims_definitions" : [ "number_of_species" ],
+      "Description" : ["Descriptive name for each species. Could simply be equal to chemical_symbols or contain extra information (e.g., Ga-semicore, C-1s-corehole, C-sp2, C1, etc.)"],
+      "Category" : ["species"]
+    },
+    {
+      "Name" : "chemical_symbols",
+      "Data_type" : "ESCDF_DT_STRING",
+      "String_length" : 3,
+      "Dimensions" : 1,
+      "Dims_definitions" : [ "number_of_species" ],
+      "Description" : ["The chemical symbol for each species. X may be used for a non-traditional atom (see atomic_numbers)."],
+      "Category" : ["species"]
+    },
+    {
+      "Name" : "atomic_numbers",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 1,
+      "Dims_definitions" : [ "number_of_species" ],
+      "Disordered_Allowed" : "No",
+      "Description" : ["The atomic number for each species. This could be non-integer for a number of reasons (e.g., a VCA atom), or zero (e.g., an empty site).",
+                       "In such cases we recommend using species_names to clarify the nature of the site"],
+      "Category" : ["species"]
+    },
+    {
+      "Name" : "cell_in_host",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_sites", "number_of_physical_dimensions"],
+      "Category" : ["embedded_system"],
+      "Description" : ["The cell indices of the equivalent site in the host supercell.", 
+                       "If the site is one that does not exist in the host (i.e., for an interstitial defect), ", 
+                       "the values are not referenced (we suggest setting them to 0). If a direction is semi-infinite, ", 
+                       "the corresponding index will depend on which region the equivalent host site is in: ", 
+                       "if it is in the central region, the value must be 0; if it is in one of the two crystal regions, ", 
+                       "the value must be greater than or equal to 0, denoting the cell index of the semi-infinite crystal it belongs to."]
+    },
+    { 
+      "Name" : "site_in_host",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 1,
+      "Dims_definitions" : ["number_of_sites"],
+      "Category" : ["embedded_system"],
+      "Range" : [0, "number_of_site"],
+      "Description" : ["The site index of the equivalent site in the host geometry ", 
+                       "(between 1 and number_of_sites specified in the host geometry). If", 
+                       "the site is one that does not exist in the host, this should be", 
+                       "indicated by setting the value to 0."]
+    },
+    {
+      "Name" : "local_rotations",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 3,
+      "Dims_definitions" : ["number_of_sites","number_of_physical_dimensions","number_of_physical_dimensions"],
+      "Description" : ["A rotation matrix defining the orientation of each site. If the rotation matrix only needs ",
+                      "to be specified for some sites, the remaining sites should set it to the zero matrix (not the identity!)"],
+      "Category" : ["sites"]
+    },
+    {
+      "Name" : "magnetic_moments",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 3,
+      "Dims_definitions" : ["number_of_sites", "number_of_species_at_site", "number_of_physical_dimensions"],
+      "Category" : ["sites"],
+      "Description" : [" (dimensional variable: magnetic moment) The magnetic moment of each component at each site. ",
+                       "If the magnitude is not important, we recommend to normalize the vector. \n",
+                       "Please remember that the Bohr magneton has a value of 1/2 in atomic units!"]
+    },
+    {
+      "Name" : "reduced_symmetry_matrices",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 3,
+      "Dims_definitions" : ["number_of_symmetry_operations", "number_of_physical_dimensions", "number_of_physical_dimensions"],
+      "Category" : ["symmetry"],
+      "Description" : ["The transformation matrix in reduced coordinates and real space for each symmetry operation. ",
+                       "For periodic crystals, these can be expressed purely in integers, but for arbitrary point groups, ",
+                       "this is not possible."]
+    },
+    {
+      "Name" : "reduced_symmetry_translations",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" :2,
+      "Dims_definitions" : ["number_of_symmetry_operations", "number_of_physical_dimensions"],
+      "Category" : ["symmetry"],
+      "Description" : ["The translation vector in reduced coordinates (without a factor of 2 pi) for each symmetry operation."]
+    },
+    {
+      "Name" : "forces",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_sites", "number_of_physical_dimensions"],
+      "Description" : ["(dimentional variable: force) Forces on each site"],
+      "Category" : ["relaxation"]
+    },
+    {
+      "Name" : "stress_tensor",
+      "Data_type" :"ESCDF_DT_DOUBLE",
+      "Dimensions" :2,
+      "Dims_definitions":["number_of_physical_dimensions", "number_of_physical_dimensions"],
+      "Description" : ["(dimensional variable: pressure) Stress tensor. Express any relevant conventions here!"],
+      "Category" : ["relaxation"]
+    },
+
+    {
+      "Name" : "values_on_grid",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 3,
+      "Dims_definitions" : [ "number_of_components", "number_of_grid_points", "real_or_complex" ],
+      "Description" : ["The values on a grid."]
+    },
+    {
+      "Name" : "grid_ordering",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 1,
+      "Dims_definitions" : ["product_number_of_grid_points"],
+      "Description" : ["This array provides a lookup table. ``grid\\_ordering``[i] = j means that values_on_grid[:,i,:] is the jth",
+                       "component of the density. This variable is optional, when not present the default ordering for the density is implicit."]
+
+    },
+    {
+      "Name" : "coordinates_of_basis_grid_points",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_grid_points", "number_of_physical_dimensions"],
+      "Category" : ["cell_dependent_basis"],
+      "Description" : ["(dimensional variable: length) Coordinates of the grid points where coefficients can be stored. ",
+                       "This is used to define a real-space basis set where a reduced set of points is used. ",
+                       "This array may be used in conjunction with the variable number_of_coefficients_per_grid_points."]
+    },
+    {
+      "Name" : "coordinates_of_coefficients_per_grid_points",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" :2,
+      "Dims_definitions" : ["number_of_grid_points","number_of_physical_dimensions"],
+      "Category" : ["cell_dependent_basis"],
+      "Description" : ["(dimensional variable: length) Coordinates of the grid points where coefficients can be stored. This", 
+                       "is used to define a real-space basis set where a reduced set of points is used. This array may be used ",
+                       "in conjunction with the variable number_of_coefficients_per_grid_points."]
+    },
+    {
+      "Name" : "number_of_coefficients_per_grid_points",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 1,
+      "Dims_definitions" : ["number_of_grid_points"],
+      "Description" : ["This array gives the number of coefficients stored on basis set grid points. ",
+                       "The coordinates of corresponding grid points are given in the coordinates_of_basis_grid_points array. ",
+                       "If it is omitted, all the values are assumed to be 1, that is, there is only one coefficient stored ",
+                       "on each basis set grid point. The sum of all its values must be equal to number_of_coefficients."],
+      "Category" : ["cell_dependent_basis"]
+    },
+    {
+      "Name" : "reduced_coordinates_of_plane_waves",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_coefficients", "number_of_physical_dimensions"],
+      "Description" : ["Plane-wave G-vectors in relative / reduced coordinates."],
+      "Category" : ["plane_waves"]
+    },
+
+    {
+      "Name" : "number_of_states",
+      "Data_type" : "ESCDF_DT_UINT",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_spins","number_of_kpoints"],
+      "Category" : ["general"],
+      "Description" : ["The attribute k_dependent must be defined."]
+    },
+    {
+      "Name" : "eigenvalues",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 3,
+      "Dims_definitions" : ["number_of_spins", "number_of_kpoints", "max_number_of_states"],
+      "Description" : ["One-particle eigenvalues/eigenenergies (real-part). \n ",
+                      "The units attribute is required. The attribute scale_to_atomic_units might also be mandatory."]
+    },
+    {
+      "Name" : "eigenvalues_imaginary",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 3,
+      "Dims_definitions" : ["number_of_spins", "number_of_kpoints", "max_number_of_states"],
+      "Description" : ["One-particle eigenvalues/eigenenergies (imaginary-part)."]
+    },
+    {
+      "Name" : "occupations",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 3,
+      "Dims_definitions" : ["number_of_spins","number_of_kpoints","max_number_of_states"],
+      "Category" : ["general"],
+      "Description" : ["Occupation numbers. Full occupation for spin-unpolarized cases (number_of_spins = 1 AND ",
+                       "number_of_spinor_components = 1) is 2, otherwise it is 1."]
+    },
+    {
+      "Name" : "reduced_coordinates_of_kpoints",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 2,
+      "Dims_definitions" : ["number_of_kpoints", "max_number_of_states"],
+      "Category" : ["k-points"],
+      "Description" : ["k-point in relative / reduced coordinates, e.g. in the interval [0,1]. ",
+                       "The values in non-periodic dimensions should be zero."]
+    },
+    {
+      "Name" : "kpoint_weights",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 1,
+      "Dims_definitions" : ["number_of_kpoints"],
+      "Category" : ["k-points"],
+      "Description" : ["k-point integration weights. The weights must sum to 1."]
+    },
+    {
+      "Name" : "coefficients_of_wavefunctions",
+      "Data_type" : "ESCDF_DT_DOUBLE",
+      "Dimensions" : 0
+    }
   ],
+
+
   "Groups" :
-  [   
-  {
-    "Name":"global",
-    "Attributes":["file_format"]
-  },
-   { "Name" : "system" , 
-     "Attributes" : [
-       "system_name", 
-       "number_of_physical_dimensions", 
-       "dimension_type",
-       "embedded_system",
-       "number_of_species", 
-       "number_of_sites",
-       "number_of_species_at_site",
-       "max_number_of_species_at_site",
-       "number_of_symmetry_operations",
-       "lattice_vectors",
-       "spacegroup_3D_number",
-       "symmorphic",
-       "time_reversal_symmetry"
-     ],
+  [  
+    {
+      "Name" : "auxilliary",
+      "Description" : ["This group contains auxilliary attributes for fixed dimensions."],
+      "Attributes" : [
+        "number_of_half_spaces"
+      ]
+    },
+    {
+      "Name":"global",
+      "Description":["The 'global' group contains global information about the file."],
+      "Attributes" : [
+        "file_format", 
+        "file_format_version", 
+        "conventions", 
+        "history", 
+        "title",
+        "units",
+        "scale_to_atomic_units"
+      ]
+    },
+    { 
+      "Name" : "system" , 
+      "Description" : [
+        "System\n",
+        "======\n\n",
+        "Data defining the system, like crystallographic data, is stored in groups within system. ",
+        "If more than one system are to be stored in the same system group, then each should go ",
+        "to its own subgroup. The choice of name for the subgroup is left to the user, with the ",
+        "restriction that it cannot be any of the names already in use in these specifications. ",
+        "If only one system is to be specified, then it can be stored directly in the system ",
+        "group or in its own subgroup."
+      ],
+      "Category_Order" : [ "general", "cell", "density" ],
+      "Category_Descriptions" : {
+        "general" : [
+          "General Variables\n",
+          "-----------------\n",
+          "These variables convey the most basic information regarding the geometry ",
+          "of the system. They are all mandatory.\n\n"],
+        "symmetry" : ["Variables related to symmetry\n",
+                      "-----------------------------\n\n"],
+        "cell" : [
+          "Variables relating to the cell\n",
+          "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+          "\n",
+          "These variables define and describe properties of the unit cell. Only ",
+          "the first is mandatory. Note that the number of lattice vectors must be ",
+          "equal to the number of physical dimensions, even if some of these are ",
+          "non-periodic (see **dimension\\_types**). In this case, lattice vectors ",
+          "in non-periodic directions are not used, other than for defining ",
+          "**fractional\\_site\\_positions**; we suggest to set them either to an ",
+          "orthonormalized set or to a large box containing the molecule. The ",
+          "latter would be particularly useful for a periodic code reading in the geometry. \n"
+        ],
+        "species" : [
+          "Variables relating to species\n",
+          "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+          "\n",
+          "These variables define the available species (i.e., possible types of ",
+          "inequivalent sites). The species can be described in three different ",
+          "ways, at least one of which must be included; however, more than one ",
+          "might be necessary to provide a complete description.\n\n"
+        ]
+      },
+      "Attributes" : [
+        "system_name", 
+        "number_of_physical_dimensions", 
+        "dimension_type",
+        "embedded_system",
+        "number_of_species", 
+        "number_of_sites",
+        "number_of_species_at_site",
+        "number_of_symmetry_operations",
+        "lattice_vectors",
+        "spacegroup_3D_number",
+        "symmorphic",
+        "time_reversal_symmetry"
+       ],
      "Datasets" : [
        "cartesian_site_positions",
        "fractional_site_positions",
        "species_at_site", 
+       "concentration_of_species_at_site",
+       "local_rotations",
+       "magnetic_moments",
        "species_names", 
        "chemical_symbols", 
-       "atomic_numbers" 
+       "atomic_numbers",
+       "bulk_regions_for_semi_infinite_dimension",
+       "site_regions",
+       "cell_in_host",
+       "site_in_host",
+       "forces",
+       "stress_tensor" 
       ]
-   },
-   { "Name" : "density",
-    "Attributes" : [
-      "number_of_physical_dimensions",
-      "dimension_type",
-      "lattice_vectors",
-      "number_of_grid_points",
-      "number_of_components",
-      "real_or_complex"  
+    },
+    { 
+      "Name" : "density",
+      "Description" : [
+        "Densities\n",
+        "=========\n",
+        "\n",   
+        "General overview\n",
+        "----------------\n",
+        "\n",
+        "Overall strategy\n",
+        "~~~~~~~~~~~~~~~~\n",
+        "\n",
+        "To represent densities, we have to follow the way they are decomposed ",
+        "within the different methods in use:\n",
+        "\n",
+        "-  norm-conserving pseudopotentials:\n",
+        "   :math:`\\tilde{\\rho}(r) = \\sum_{n} \\langle \\tilde{\\Psi}_n \\vert r \\rangle \\langle r \\vert\\tilde{\\Psi}_n \\rangle`;\n",
+        "-  ultrasoft pseudopotentials and PAW:\n",
+        "   :math:`\\rho(r) = \\tilde{\\rho}(r) + \\hat{\\rho}(r)`;\n",
+        "-  all-electrons:\n",
+        "   :math:`\\rho(r) = \\left\\lbrace \\rho_{sph}^{core}(r) + \\rho_{sph}^{val}(r) \\right\\rbrace + \\rho_{inter}^{val}(r)`.\n",
+        "\n",
+        "Mandatory components\n",
+        "~~~~~~~~~~~~~~~~~~~~\n",
+        "\n",
+        "For the use cases considered, the cell-associated electronic density can ",
+        "be represented in the following ways:\n",
+        "\n",
+        "-  norm-conserving pseudopotentials method: :math:`\\tilde{\\rho}(r)`;\n",
+        "-  ultrasoft pseudopotentials and PAW methods: ",
+        "   :math:`\\tilde{\\rho}(r) + \\hat{\\rho}(r)`;\n",
+        "-  all-electrons methods: :math:`\\rho_{inter}^{val}(r)`.\n",
+        "\n",
+        "For the use cases considered, the atom-centered electronic density can ",
+        "be represented in the following ways:\n",
+        "\n",
+        "-  all-electrons methods:\n",
+        "   :math:`\\rho_{sph}^{core}(r) + \\rho_{sph}^{val}(r)`;\n",
+        "-  gaussians (?): :math:`\\tilde{\\rho}(r)`.\n",
+        "\n",
+        "Optional components\n",
+        "~~~~~~~~~~~~~~~~~~~\n",
+        "\n",
+        "In the case of PAW, providing the occupancy matrix elements ",
+        ":math:`\\rho_{ij}` in addition to the density components allows the ",
+        "rebuilding of all necessary quantities to restart a calculation.\n",
+        "\n",
+        "Spinors\n",
+        "~~~~~~~\n",
+        "\n",
+        "In the presence of spinors, there are 2 possible ways of representing ",
+        "the 4 density components:\n",
+        "\n",
+        "-  total density :math:`\\rho(r)` + magnetic moment :math:`\\vec{m}(r)` \n",
+        "   (well-suited for visualisation);\n",
+        "-  the matrix elements :math:`\\rho^{\\alpha\\beta}(r)`, for\n",
+        "   :math:`\\alpha,\\beta = \\uparrow,\\downarrow`;\n",
+        "\n",
+        "which means that the chosen representation must be indicated as\n",
+        "metadata.\n",
+        "\n",
+        "Detailed description of variables\n",
+        "---------------------------------\n",
+        "\n",
+        "All densities should be stored in the **densities** group of a ESCDF\n",
+        "file.\n",
+        "\n",
+        "If several densities are present, they should be put in subgroups, with ",
+        "explicit names.\n",
+        "\n",
+        "Variables relating to the cell associated densities\n",
+        "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+        "\n",
+        "-  **number\\_of\\_grid\\_points**: unsigned int\n",
+        "   [**number\\_of\\_physical\\_dimensions**]\n",
+        "   When a direction is defined as periodic, the grid points in that ",
+        "   direction do not contain the last plane, while for the other cases, ",
+        "   the last plane in that direction contains a value.\n",
+        "\n",
+        "-  **values\\_on\\_grid**: double [**'number\\_of\\_components**, ",
+        "   product(\\ **number\\_of\\_grid\\_points**), **real\\_or\\_complex**] ",
+        "   The default order is along z, y, and x (values along x axis are ",
+        "   contiguous in memory). If the default ordering is not used, the ",
+        "   attribute **use\\_default\\_ordering** must be set to false and ",
+        "   **grid\\_ordering** must be provided.\n",
+        "\n",
+        "-  **use\\_default\\_ordering**: int\n",
+        "   This attribute specifies if the default z, y, and x ordering is used ",
+        "   or not. When false, the optional variable **grid\\_ordering** must be ",
+        "   present.\n",
+        "\n",
+        "-  **grid\\_ordering**: unsigned int ",
+        "   [product(**number\\_of\\_grid\\_points**]\n",
+        "   This array provides a lookup table. **``grid_ordering``**\\ ``[i]`` ",
+        "   ``=`` ``j`` means that **values\\_on\\_grid**\\ [:,i,:] is the jth ",
+        "   component of the density. This variable is optional, when not present ",
+        "   the default ordering for the density is implicit.\n",
+        "\n"
+        ],
+      "Category_Order" : [ "general", "cell", "density" ],
+      "Category_Descriptions" : {
+        "general" : [
+          "General variables\n",
+          "^^^^^^^^^^^^^^^^^\n"
+        ],
+        "cell": [
+          "Cell description\n",
+          "^^^^^^^^^^^^^^^^\n",
+          "\n",
+          "The cell description is identical to the one in the `ESCDF - ",
+          "Geometries <ESCDF_-_Geometries>`__. It must contain the following ",
+          "information:\n",
+          "\n"
+        ],
+        "density" : [
+          "Densities description\n",
+          "^^^^^^^^^^^^^^^^^^^^^\n",
+          "\n",
+          "These variables are designed to represent densities that are stored on a ",
+          "regular real-space grid. This grid is defined by its mesh size.\n",
+          "\n"
+        ]
+      },
+      "Attributes" : [
+        "number_of_physical_dimensions",
+        "dimension_type",
+        "lattice_vectors",
+        "number_of_grid_points",
+        "product_number_of_grid_points",
+        "number_of_components",
+        "real_or_complex",
+        "use_default_ordering"  
+      ],
+      "Datasets" : [
+        "values_on_grid",
+        "grid_ordering"
+      ]
+    },
+    {
+      "Name" : "basis_sets",
+      "Description" : [""],
+      "Attributes" : [
+        "kind",
+        "number_of_physical_dimensions",
+        "number_of_coefficients",
+        "number_of_grid_points",
+        "order_of_daubechies_wavelets"
+      ],
+      "Datasets" : [
+        "reduced_coordinates_of_plane_waves",
+        "coordinates_of_basis_grid_points",
+        "number_of_coefficients_per_grid_points"
+      ]
+    },
+    {
+      "Name" : "states",
+      "Description" : [""],
+      "Attributes" : [
+        "number_of_spins",
+        "number_of_spinor_components",
+        "number_of_components",
+        "k_dependent",
+        "max_state_index",
+        "min_state_index",
+        "number_of_kpoints",
+        "highest_state_index",
+        "lowest_state_index",
+        "max_number_of_states"
+      ],
+      "Datasets" : [
+        "number_of_states",
+        "eigenvalues",
+        "eigenvalues_imaginary",
+        "occupations",
+        "reduced_coordinates_of_kpoints",
+        "kpoint_weights",
+        "coefficients_of_wavefunctions"
+      ]
+    }
+  ],
+
+  "Dependencies" : {
+    "Comments" : [
+      "The 'Dependencies' object describes rules about the ESCDF file. ",
+      "Required_Attributes and Required_Datasets in the top level means mandatory data, independent of anything else. ",
+      "They are organized as a list of lists. A list entry with only one string means that this item is mandatory, ",
+      "while a list with several string denotes that ONE of them is mandatory. ",
+      "", 
+      "'Conditions' defines a set of rules, such as attributes, which are mandatory only under certain conditions. "
     ],
-    "Datasets" : [
-      "values_on_grid"
+    "Required_Groups" : [
+      "global",
+      "system"
+    ],
+    "Required_Attributes" : [
+      ["system_name"],
+      ["number_of_physical_dimensions"],
+      ["dimensions_type"],
+      ["embedded_system"],
+      ["number_of_species"],
+      ["number_of_sites"]
+    ],
+    "Required_Datasets" : [
+      ["latice_vectors"],
+      ["species_at_sites"],
+      ["cartesian_site_positions", "fractional_site_positions"],
+      ["species_names", "chemical_symbols", "atomic_numbers"]
+    ],
+
+    "Conditions" : [
+      {
+        "Attribute" : "embedded_system", "Value" : "yes",
+        "Rules" : [ 
+          { "Required_Datasets" : [ 
+              ["cell_in_host"], 
+              ["site_in_host"]
+            ] 
+          },
+          { "Required_Value" : {"Attribute" : "dimension_types", "Value": "[0,0,0]" } }
+        ]
+      },
+      {
+        "Dataset" : "bulk_region_for_semi_infinite_dimension", "Present" : "yes",
+        "Rules" : [
+          { "Required_Attributes" : [ ["number_of_half_spaces"] ] }
+        ]
+      },
+      {
+        "Attribute" : "use_default_ordering", "Value" : "no",
+        "Rules": [
+          { "Required_Datasets" : [ ["grid_ordering"] ] }
+        ]
+      },
+      {
+        "Dataset" : "grid_ordering", "Present" : "yes",
+        "Rules" : [
+          { "Required_Datasets" : [ ["product_number_of_grid_points"] ] }
+        ]
+      },
+      {
+        "Attribute" : "kind", "Value" : "plane_waves",
+        "Rules" : [
+          { "Required_Datasets" : [ ["reduced_coordinates_of_plane_waves"] ] }
+        ]
+      },
+      {
+        "Attribute" : "kind", "Value" : "realspace_grids",
+        "Rules" : [
+          { "Required_Attributes" : [ ["number_of_grid_points"] ] },
+          { "Required_Datasets" : [ ["coordinates_of_basis_grid_points"] ] }
+        ]
+      },
+      {
+        "Attribute" : "kind", "Value" : "wavelets",
+        "Rules" : [
+          { "Required_Attributes" : [ 
+            ["number_of_grid_points"],
+            ["order_of_daubechies_wavelets"] ] },
+          { "Required_Datasets" : [ ["coordinates_of_basis_grid_points"] ] }
+        ]
+      }
     ]
   }
- ] 
 }
