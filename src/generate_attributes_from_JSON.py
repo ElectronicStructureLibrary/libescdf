@@ -24,6 +24,8 @@ def attributes_name(name):
 def datasets_name(name):
     return name.lower() + '_datasets'
 
+def subgroups_name(name):
+    return name.lower() + '_subgroups'
 
 # access routine
 
@@ -107,16 +109,30 @@ if 'Datasets' in definitions:
 else:
     datasets   = dict()
 
+if 'SubGroups' in definitions:
+    groups    += definitions['SubGroups']
+    subgroups  = definitions['SubGroups']
+else:
+    subgroups  = dict()
+
 
 
 print('Found ' + str(len(attributes)) + ' attribute specs definitions. \n')
 print('Found ' + str(len(datasets)) + ' dataset specs definitions. \n')
 print('Found ' + str(len(groups)) + ' group specs definitions. \n')
+print('Found ' + str(len(subgroups)) + ' subgroup specs definitions. \n')
 
+for s in subgroups:
+    print(s['Name'])
 
 write_ID_file(definitions,'Attributes')
 write_ID_file(definitions,'Datasets')
 write_ID_file(definitions,'Groups')
+
+# On the file level, subgroups are treated the same way as groups.
+# Hence no extra file is used for subgroup definitions.
+
+
 
 # Create header files and write general code lines:
 
@@ -186,12 +202,14 @@ group_specs_file.write('#include \"escdf_datasets_specs.h\" \n\n')
 # ===============================
 
 
-# List of all found attributes
+# Lists of all found symbols
 #
-#   use that to check whether an attribute, assigned to a group, does actually exist.
+#   use that to check whether an attribute, dataset or subgroup, assigned to a group, does actually exist.
 
 attribute_list = []       
 dataset_list   = []
+subgroup_list  = []
+
 
 # Count how often a given attribute is used
 #
@@ -286,17 +304,25 @@ for d in datasets:
 
 # Create group specs definitions:
 
- 
+for s in subgroups:
+
+    subgroup_list.append(s['Name'])
+    group_specs_file.write('const escdf_group_specs_t '+specs_name(s['Name']) +';\n')
+
+group_specs_file.write('\n\n')
+
 for g in groups:
 
     ID_name = def_name(g['Name'])
 
     attrib_list = ''
     datas_list = ''
+    subs_list = ''
 
     g['Num_Attrib'] = 0
     g['Num_Datasets'] = 0
-    
+    g['Num_SubGroups'] = 0
+
     if 'Attributes' in g:
     
         for a in g['Attributes']:
@@ -326,8 +352,21 @@ for g in groups:
             group_specs_file.write(datas_list.rstrip(',') + '\n')
             group_specs_file.write('};\n\n')
 
+    if 'SubGroups' in g:
 
+        for s in g['SubGroups']:
+            if s in subgroup_list:
+                subs_list += '\n   &'+ specs_name(s) + ','
+                g['Num_SubGroups'] += 1
+                use_counter[s] += 1
+                print('Adding subgroup '+s+' to group '+g['Name'])
+            else:
+                print ( 'WARNING: subgroup '+ s +' not found!')
 
+        if g['Num_SubGroups'] > 0:
+            group_specs_file.write('const escdf_group_specs_t *'+subgroups_name(g['Name'])+'[] = { ')
+            group_specs_file.write(subs_list.rstrip(',') + '\n')
+            group_specs_file.write('};\n\n')
 
 for g in groups:
 
@@ -341,6 +380,10 @@ for g in groups:
     else:   
         datas_name = datasets_name(g['Name'])
 
+    if g['Num_SubGroups'] == 0:
+        subs_name = 'NULL'
+    else:
+        subs_name = subgroups_name(g['Name'])
         
         
     group_specs_file.write('const escdf_group_specs_t '+specs_name(g['Name']) +' = {\n    ')
@@ -348,7 +391,10 @@ for g in groups:
                             + str(g['Num_Attrib']) + ', '
                             + attrib_name + ', ' 
                             + str(g['Num_Datasets']) + ', ' 
-                            + datas_name + '\n')
+                            + datas_name + ', '
+                            + str(g['Num_SubGroups']) + ', '
+                            + subs_name + '\n' )
+
     group_specs_file.write('};\n \n')
     
 
@@ -373,8 +419,8 @@ group_specs_file.write('escdf_errno_t escdf_register_all_group_specs() { \n\n')
 group_specs_file.write('    escdf_errno_t error = ESCDF_SUCCESS; \n')
 
 for g in groups:
-    if g['Num_Attrib'] >0:
-        group_specs_file.write('    FULFILL_OR_RETURN(escdf_group_specs_register(&'+specs_name(g['Name'])+') == ESCDF_SUCCESS, ESCDF_ERROR); \n')
+#    if g['Num_Attrib'] + g['Num_Datasets'] + g['Num_SubGroups']>0:
+    group_specs_file.write('    FULFILL_OR_RETURN(escdf_group_specs_register(&'+specs_name(g['Name'])+') == ESCDF_SUCCESS, ESCDF_ERROR); \n')
 
 group_specs_file.write('    return ESCDF_SUCCESS;\n}; \n')
 

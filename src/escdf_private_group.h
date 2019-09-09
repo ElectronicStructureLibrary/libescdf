@@ -52,6 +52,7 @@ struct escdf_group {
 
     escdf_attribute_t **attr;          /**< List of attributes */
     escdf_dataset_t   **datasets;      /**< List of datasets */
+    escdf_group_t     **subgroups;     /**< List of subgroups */
 
     bool *datasets_present;            /**< Flag whether datasets are present */
 };
@@ -62,6 +63,8 @@ escdf_dataset_t * _escdf_group_get_dataset(const escdf_group_t *, escdf_dataset_
 
 escdf_errno_t _escdf_group_attribute_new(escdf_group_t *, escdf_attribute_id_t ); 
 escdf_errno_t _escdf_group_dataset_new(escdf_group_t *, escdf_dataset_id_t );
+escdf_errno_t _escdf_group_subgroup_new(escdf_group_t *, escdf_group_id_t );
+
 
 #ifdef __cplusplus
 }

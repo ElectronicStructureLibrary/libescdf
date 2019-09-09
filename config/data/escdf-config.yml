@@ -1,7 +1,7 @@
 %YAML 1.1
 ---
 
-timestamp: "20190827T112122+0200"
+timestamp: "20190906T111017+0200"
 
 target:
     cpu: "x86_64"
@@ -13,7 +13,7 @@ compilers:
     CPPFLAGS: " "
     CC: "gcc"
     MPICC: ""
-    CFLAGS: "-g -O2"
+    CFLAGS: "-DDEBUG"
     LDFLAGS: ""
     LIBS: "-lhdf5 -lm "
 

@@ -43,11 +43,14 @@ extern "C" {
  * This struct contains the public information about the group.
  * 
  */
+
+typedef struct escdf_group_specs escdf_group_specs_t;
+
+
 struct escdf_group_specs {
     escdf_group_id_t group_id;                    /**< ESCDF group ID */
 
     const char * name;                            /**< Group name */
-
 
     unsigned int nattributes;                      /**< Number of attributes in the group */
     const escdf_attribute_specs_t **attr_specs;    /**< List of attribute specifications */
@@ -55,12 +58,14 @@ struct escdf_group_specs {
     unsigned int ndatasets;                        /**< Number of datasets in the group */
     const escdf_dataset_specs_t **data_specs;      /**< List of dataset specifications */
 
+    unsigned int nsubgroups;                       /**< Number of subgroups in the group */
+    const escdf_group_specs_t **subgroup_specs;  /**< List of subgroup specifications */
+
     /* NOTE: The index imn the above arrays is NOT the same as the attribute_ID or dataset_ID!
      *       We need to implement another lookuo functionality
      */
 };
 
-typedef struct escdf_group_specs escdf_group_specs_t;
 
 typedef struct escdf_group escdf_group_t;
 

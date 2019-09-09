@@ -51,7 +51,7 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
     n_known_specs++;
 
 #ifdef DEBUG
-    printf("Registering group %d, %s: %d %d\n", specs->group_id, specs->name, specs->nattributes, specs->ndatasets);
+    printf("Registering group %d, %s: %d %d %d\n", specs->group_id, specs->name, specs->nattributes, specs->ndatasets, specs->nsubgroups);
     
     for(i=0; i<specs->nattributes; i++) printf("   attribute %d: %s, %d %d %d \n",
         i, specs->attr_specs[i]->name, specs->attr_specs[i]->datatype,
@@ -61,6 +61,9 @@ escdf_errno_t escdf_group_specs_register(const escdf_group_specs_t *specs) {
         i, specs->data_specs[i]->name, specs->data_specs[i]->datatype, 
         specs->data_specs[i]->stringlength, specs->data_specs[i]->ndims, 
         specs->data_specs[i]->disordered_storage_allowed?"yes":"no");
+
+    for(i=0; i<specs->nsubgroups; i++) printf("   subgroup %d: %s \n",
+        i, specs->subgroup_specs[i]->name);
 
     fflush(stdout);
 #endif
@@ -400,9 +403,17 @@ escdf_errno_t escdf_group_open_location(escdf_group_t *group, const escdf_handle
 
         /*    group->loc_id = H5Gopen2(handle->group_id, location_path, H5P_DEFAULT); */
 
+#ifdef DEBUG
+    printf("%s (%s, %d): opening location for %s. \n",  __func__, __FILE__, __LINE__, location_path); fflush(stdout);
+#endif
+
     FULFILL_OR_RETURN( utils_hdf5_open_group(handle->group_id, location_path, &group->loc_id) == ESCDF_SUCCESS, group->loc_id);
 
     /*  FULFILL_OR_RETURN(group->loc_id >= 0, group->loc_id); */
+
+#ifdef DEBUG
+    printf("%s (%s, %d): opened location for %s resulting in loc_id =  %d. \n",  __func__, __FILE__, __LINE__, location_path, group->loc_id); fflush(stdout);
+#endif
 
     return ESCDF_SUCCESS;
 }
@@ -445,6 +456,10 @@ escdf_errno_t escdf_group_close_location(escdf_group_t *group)
     herr_t herr_status;
 
     FULFILL_OR_RETURN(group != NULL, ESCDF_EVALUE)
+
+#ifdef DEBUG
+    printf("%s (%s, %d): closing location for %s. \n",  __func__, __FILE__, __LINE__, group->specs->name); fflush(stdout);
+#endif
 
     /* close the HDF5 group in the file */
     if (group->loc_id >= 0) {
@@ -527,12 +542,9 @@ escdf_group_t * escdf_group_create(const escdf_handle_t *handle, escdf_group_id_
     escdf_group_t *group;
     
 #ifdef DEBUG
-    printf("%s (%s, %d): creating group %d \n", __func__, __FILE__, __LINE__, group_id); fflush(stdout);
+    printf("%s (%s, %d): creating group %d : %s \n", __func__, __FILE__, __LINE__, group_id, known_group_specs[group_id]->name); fflush(stdout);
 #endif
 
-#ifdef DEBUG
-    printf("%s (%s, %d): creating group \"%s\" \n", __func__, __FILE__, __LINE__, known_group_specs[group_id]->name); fflush(stdout);
-#endif
 
     /* create new escdf_group instance */
 
@@ -564,6 +576,10 @@ escdf_group_t * escdf_group_create(const escdf_handle_t *handle, escdf_group_id_
 escdf_errno_t escdf_group_close(escdf_group_t *group)
 {
     escdf_errno_t err;
+
+#ifdef DEBUG
+    printf("%s (%s, %d): closing group: %s \n", __func__, __FILE__, __LINE__, group->specs->name); fflush(stdout);
+#endif
 
     if (group != NULL) {
         if ((err = escdf_group_close_location(group)) != ESCDF_SUCCESS)
@@ -792,13 +808,6 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 
     /* determine storage index of the dataset from the dataset_id */
 
-    /* moved to function call: 
-    for (found = false, i = 0; i < group->specs->ndatasets; i++) {
-        if ( group->specs->data_specs[i]->id == dataset_id) {idata = i; found=true;}
-    }
-    FULFILL_OR_RETURN(found == true, ESCDF_ERROR);
-    */
-
     idata = _escdf_group_get_dataset_index(group, dataset_id);
 
     assert(idata >= 0);
@@ -895,11 +904,13 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
 
 
 #ifdef DEBUG
-    size_t *dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
-    for(i=0; i<ndims; i++) {
-        printf("%s (%s, %d): Dims_check[%d] = %lu\n", __func__, __FILE__, __LINE__, i,dims_check[i]);
-    }
-    if(dims_check != NULL) free(dims_check);
+    if(!group->specs->data_specs[idata]->compact) {
+        size_t *dims_check = escdf_dataset_get_dimensions(group->datasets[idata]);
+        for(i=0; i<ndims; i++) {
+            printf("%s (%s, %d): Dims_check[%d] = %lu\n", __func__, __FILE__, __LINE__, i,dims_check[i]);
+        }
+        if(dims_check != NULL) free(dims_check);
+    } 
 #endif
 
     if(dims != NULL) free(dims);
@@ -918,6 +929,40 @@ escdf_errno_t _escdf_group_dataset_new(escdf_group_t *group, escdf_dataset_id_t 
     return ESCDF_SUCCESS;
 
 };
+
+
+escdf_errno_t _escdf_group_subgroup_new(escdf_group_t *group, escdf_group_id_t subgroup_id)
+{ 
+
+    unsigned int i, ii, index;
+    bool subgroup_found;
+
+    escdf_attribute_t **dims = NULL;
+
+    /* need to create the attribute */ 
+
+    assert(group!=NULL);
+    
+    FULFILL_OR_EXIT(group->specs != NULL, ESCDF_EVALUE);
+
+    for (subgroup_found = false, i = 0; i < group->specs->nsubgroups; i++) {
+        if ( group->specs->subgroup_specs[i]->group_id == subgroup_id) {index = i; subgroup_found=true;}
+    }
+    FULFILL_OR_RETURN(subgroup_found == true, ESCDF_ERROR);
+
+
+    group->subgroups[index] = escdf_group_new(group->specs->subgroup_specs[index]->group_id);
+#ifdef DEBUG
+    printf("_escdf_group_subgroup_new( %s ): set group->subgroup[%d] \n", group->specs->name, index);
+#endif
+
+
+    assert(group->subgroups[index]!=NULL);
+
+
+    return ESCDF_SUCCESS;
+}
+
 
 
 escdf_errno_t escdf_group_query_datasets(const escdf_group_t *group)

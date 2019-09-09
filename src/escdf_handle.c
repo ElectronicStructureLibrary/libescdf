@@ -188,14 +188,24 @@ escdf_handle_t * escdf_open_mpi(const char *filename, const char *path,
 #endif
 
 escdf_errno_t escdf_close(escdf_handle_t *handle) {
-    herr_t err;
+    herr_t err1, err2, err3;
 
-    err = 0;
+    err1 = 0;
+    err1 = 0;
+    err2 = 0;
+
     if (handle->transfer_mode != H5P_DEFAULT) {
-        DEFER_TEST_ERROR((err = H5Pclose(handle->transfer_mode)) < 0, err);
+        DEFER_TEST_ERROR((err1 = H5Pclose(handle->transfer_mode)) < 0, err1);
     }
-    DEFER_TEST_ERROR((err = H5Gclose(handle->group_id)) < 0, err);
-    DEFER_TEST_ERROR((err = H5Fclose(handle->file_id)) < 0, err);
+
+    DEFER_TEST_ERROR((err2 = H5Gclose(handle->group_id)) < 0, err2);
+    DEFER_TEST_ERROR((err3 = H5Fclose(handle->file_id)) < 0, err3);
+
+#ifdef DEBUG
+    printf("%s (%s, %d): closing file %d. Errors = %d %d %d \n", __func__, __FILE__, __LINE__, handle->file_id, err1, err2, err3); 
+#endif
+
+
     free(handle);
-    return (err < 0) ? ESCDF_EIO : ESCDF_SUCCESS;
+    return ( (err1 < 0) && (err2 < 0) && (err3 < 0) ) ? ESCDF_EIO : ESCDF_SUCCESS;
 }
