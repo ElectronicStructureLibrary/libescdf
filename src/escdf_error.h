@@ -1,24 +1,31 @@
-/*
- Copyright (C) 2011 J. Alberdi, M. Oliveira, Y. Pouillon, and M. Verstraete
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or 
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-*/
+/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+ *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
+ *
+ * This file is part of ESCDF.
+ *
+ * ESCDF is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, version 2.1 of the License, or (at your option) any
+ * later version.
+ *
+ * ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301  USA.
+ */
 
 #ifndef LIBESCDF_ERROR_H
 #define LIBESCDF_ERROR_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @file escdf_error.h 
@@ -67,9 +74,9 @@ escdf_errno_t escdf_error_add(const escdf_errno_t error_id, const char *filename
 
 /**
  * Fetch and clear the error chain.
- * @param[out] err_str: string pointer describing the chain of errors.
+ * @return string pointer describing the chain of errors
  */
-void escdf_error_fetchall(char **err_str);
+char *escdf_error_fetchall(void);
 
 /**
  * Flush and clear the error chain.
@@ -126,6 +133,8 @@ const char *escdf_error_string(const escdf_errno_t error_id);
 /**********************************************************************
  * Macros                                                             *
  **********************************************************************/
+
+
 
 /**
  * Macro to break loops when there are deferred errors, in order to propagate
@@ -187,6 +196,19 @@ const char *escdf_error_string(const escdf_errno_t error_id);
     if (!(condition)) {		    \
         return escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
     }
+
+/**
+ * Macro to return from a routine when a condition is unsatisfied with additional deallocating
+ * @param[in] condition: condition to check
+ * @param[in] error_id: error code to set before returning
+ */
+#define FULFILL_OR_RETURN_CLEAN(condition, error_id, ptr) \
+    if (!(condition)) {		    \
+        if(ptr != NULL) free(ptr); \
+        return escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
+    }
+
+
 /**
  * Macro to return a specific value from a routine when a condition is unsatisfied
  * @param[in] condition: condition to check
@@ -259,5 +281,19 @@ const char *escdf_error_string(const escdf_errno_t error_id);
     if ( (escdf_error_get_last(__func__) == ESCDF_SUCCESS) && !(condition) ) { \
         escdf_error_add(error_id, __FILE__, __LINE__, __func__); \
     }
+
+
+/**
+ * Error handler macro ensuring that errors are properly registered
+ * 
+ * @param[in] error_id: error code
+ */
+#define REGISTER_ERROR(error_id) \
+    escdf_error_add(error_id, __FILE__, __LINE__, __func__);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

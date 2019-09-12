@@ -1,22 +1,24 @@
-/*  -*- c-basic-offset: 4 -*- */
-/*
- Copyright (C) 2016 M. Oliveira
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-*/
+/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+ *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
+ *
+ * This file is part of ESCDF.
+ *
+ * ESCDF is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, version 2.1 of the License, or (at your option) any
+ * later version.
+ *
+ * ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301  USA.
+ */
 
 #include <stdlib.h>
 
@@ -51,12 +53,18 @@ escdf_handle_t * escdf_create(const char *filename, const char *path)
     handle->file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     FULFILL_OR_RETURN_VAL(handle->file_id >= 0, ESCDF_EFILE_CORRUPT, NULL)
 
-    if (_create_root(handle, path) != ESCDF_SUCCESS) {
-        free(handle);
-        return NULL;
+    if (path != NULL) {
+        utils_hdf5_create_group(handle->file_id, path, &(handle->group_id));
     } else {
-        return handle;
+        handle->group_id = H5Gopen(handle->file_id, "/", H5P_DEFAULT);
     }
+    FULFILL_OR_RETURN_VAL(handle->group_id >= 0, ESCDF_EOBJECT, NULL);
+
+    handle->data_transfer = escdf_lookuptable_new();
+    FULFILL_OR_RETURN_VAL(handle->data_transfer != NULL, ESCDF_ENOMEM, NULL);
+    escdf_lookuptable_init(handle->data_transfer);
+
+    return handle;
 }
 
 escdf_handle_t * escdf_open(const char *filename, const char *path) {
@@ -69,12 +77,21 @@ escdf_handle_t * escdf_open(const char *filename, const char *path) {
     handle->file_id = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT);
     FULFILL_OR_RETURN_VAL(handle->file_id >= 0, ESCDF_EFILE_CORRUPT, NULL)
 
-    if (_create_root(handle, path) != ESCDF_SUCCESS) {
-        free(handle);
-        return NULL;
+    if (path != NULL) {
+        FULFILL_OR_RETURN_VAL(utils_hdf5_check_present_recursive(handle->file_id, path), ESCDF_EFILE_CORRUPT, NULL)
+        handle->group_id = H5Gopen(handle->file_id, path, H5P_DEFAULT);
     } else {
-        return handle;
+        handle->group_id = H5Gopen(handle->file_id, "/", H5P_DEFAULT);
     }
+
+    FULFILL_OR_RETURN_VAL(handle->group_id >= 0, ESCDF_EFILE_CORRUPT, NULL)
+
+    handle->data_transfer = escdf_lookuptable_new();
+    FULFILL_OR_RETURN_VAL(handle->data_transfer != NULL, ESCDF_ENOMEM, NULL);
+    escdf_lookuptable_init(handle->data_transfer);
+
+
+    return handle;
 }
 
 #ifdef HAVE_MPI

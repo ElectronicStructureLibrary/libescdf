@@ -1,4 +1,24 @@
-#                                               -*- Autoconf -*-
+# Copyright (C) 2015-2017 Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+#                         Yann Pouillon <devops@materialsevolution.es>
+#
+# This file is part of ESCDF.
+#
+# ESCDF is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, version 2.1 of the License, or (at your option) any
+# later version.
+#
+# ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to the
+# Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301  USA.
+
+#
 # Process this file with autoconf to produce a configure script.
 #
 
@@ -14,7 +34,7 @@ Electronic Structure Library Wiki.])
 
 # Init Autoconf
 AC_PREREQ([2.69])
-AC_INIT([LibESCDF], [0.1.0], [https://github.com/ElectronicStructureLibrary/libescdf/issues], [libescdf])
+AC_INIT([LibESCDF], [0.1.0], [https://gitlab.e-cam2020.eu/esl/escdf/issues], [libescdf])
 AC_CONFIG_AUX_DIR([config/gnu])
 AC_CONFIG_MACRO_DIR([config/m4])
 AC_CONFIG_SRCDIR([src/escdf.h])
@@ -172,7 +192,6 @@ AC_ARG_WITH([mpi],
     fi],
   [escdf_mpi_enable="${escdf_mpi_enable_def}"; escdf_mpi_type="def"])
 AC_ARG_VAR([MPICC], [MPI-aware C compiler (usually called 'mpicc'). Please note that this variable conflicts with the --with-mpi option.])
-AC_ARG_VAR([MPIFC], [MPI-aware Fortran compiler (usually called 'mpif90'. Please note that this variable conflicts with the --with-mpi option.])
 AC_SUBST(with_mpi)
 
                     # ------------------------------------ #
@@ -209,11 +228,7 @@ if test -n "${tmp_hdf5_vars}" -a \
         \( -z "${HDF5_INCLUDES}" -o -z "${HDF5_LIBS}" \); then
   AC_MSG_ERROR([HDF5_INCLUDES and HDF5_LIBS must both be set])
 fi
-tmp_mpi_vars="${MPICC}${MPIFC}"
-if test -n "${tmp_mpi_vars}" -a \
-        \( -z "${MPICC}" -o -z "${MPIFC}" \); then
-  AC_MSG_ERROR([MPICC and MPIFC must both be set])
-fi
+tmp_mpi_vars="${MPICC}"
 
 # Environment variables conflict with --with-* options
 if test -n "${tmp_hdf5_vars}" -a -n "${with_hdf5}"; then
@@ -223,7 +238,7 @@ if test -n "${tmp_hdf5_vars}" -a -n "${with_hdf5}"; then
 fi
 if test -n "${tmp_mpi_vars}" -a -n "${with_mpi}"; then
   AC_MSG_ERROR([conflicting option settings
-                  Please use MPICC + MPIFC or --with-mpi,
+                  Please use MPICC or --with-mpi,
                   not both.])
 fi
 
@@ -271,8 +286,6 @@ AC_SUBST(escdf_mpi_type)
 # Internal MPI parameters
 AC_SUBST(escdf_mpi_cc_set)
 AC_SUBST(escdf_mpi_cc_wrap)
-AC_SUBST(escdf_mpi_fc_set)
-AC_SUBST(escdf_mpi_fc_wrap)
 
 # Build flags for external dependencies
 AC_SUBST(escdf_hdf5_incs)
@@ -307,15 +320,6 @@ AC_LANG_POP([C])
 
 # Unit test framework: the Check package
 ESCDF_SEARCH_CHECK
-
-                    # ------------------------------------ #
-
-#
-# Fortran language support
-#
-
-# Init Fortran compiler
-AC_PROG_FC
 
                     # ------------------------------------ #
 
@@ -446,7 +450,6 @@ AC_MSG_CHECKING([whether to enable code coverage (GCC only)])
 AC_MSG_RESULT([${enable_gcov}])
 
 CFLAGS_COVERAGE=""
-FCFLAGS_COVERAGE=""
 LDFLAGS_COVERAGE=""
 LIBS_COVERAGE=""
 
@@ -472,7 +475,6 @@ AM_CONDITIONAL([DO_COVERAGE], [test "${enable_gcov}" = "yes"])
 
 AC_SUBST(GCOV)
 AC_SUBST(CFLAGS_COVERAGE)
-AC_SUBST(FCFLAGS_COVERAGE)
 AC_SUBST(LDFLAGS_COVERAGE)
 AC_SUBST(LIBS_COVERAGE)
 
@@ -482,10 +484,6 @@ AC_SUBST(LIBS_COVERAGE)
 #
 # Prepare data for the test suite
 #
-
-# Make data location available to check
-AC_DEFINE_UNQUOTED([ESCDF_CHK_DATADIR], "${ac_abs_top_srcdir}/escdf_references",
-  [Directory containing ESCDF files for the tests.])
 
 # Generate explicit dependencies for GCOV tests
 if test "${enable_gcov}" = "yes"; then
@@ -508,7 +506,7 @@ fi
                     # ------------------------------------ #
 
 # Write down YAML configuration
-AC_OUTPUT([config/data/libescdf-config.yml])
+AC_OUTPUT([config/data/escdf-config.yml])
 
 # Inform Automake
 AM_CONDITIONAL([DO_BUILD_MPI], [test "${escdf_mpi_enable}" = "yes"])
@@ -521,8 +519,8 @@ AC_MSG_NOTICE([])
 AC_MSG_NOTICE([TSTAMP   = ${escdf_timestamp}])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([DEBUG     = ${escdf_debug_enable} (init: ${escdf_debug_type})])
-AC_MSG_NOTICE([COVERAGE  = ${escdf_enable_gcov} (init: ${escdf_gcov_type})])
-AC_MSG_NOTICE([PROFILING = ${escdf_enable_memprof} (init: ${escdf_memprof_type})])
+AC_MSG_NOTICE([COVERAGE  = ${escdf_gcov_enable} (init: ${escdf_gcov_type})])
+AC_MSG_NOTICE([PROFILING = ${escdf_memprof_enable} (init: ${escdf_memprof_type})])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([MPI      = ${escdf_mpi_enable} (init: ${escdf_mpi_type})])
 AC_MSG_NOTICE([HDF5     = ${escdf_hdf5_enable} (init: ${escdf_hdf5_type})])
@@ -532,9 +530,6 @@ AC_MSG_NOTICE([CPPFLAGS = ${CPPFLAGS}])
 AC_MSG_NOTICE([CC       = ${CC}])
 AC_MSG_NOTICE([MPICC    = ${MPICC}])
 AC_MSG_NOTICE([CFLAGS   = ${CFLAGS}])
-AC_MSG_NOTICE([FC       = ${FC}])
-AC_MSG_NOTICE([MPIFC    = ${MPIFC}])
-AC_MSG_NOTICE([FCFLAGS  = ${FCFLAGS}])
 AC_MSG_NOTICE([LDFLAGS  = ${LDFLAGS}])
 AC_MSG_NOTICE([LIBS     = ${LIBS}])
 AC_MSG_NOTICE([])
@@ -550,12 +545,13 @@ AC_CONFIG_COMMANDS([script-perms],
 
 AC_CONFIG_FILES([
   Makefile
+  config/data/escdf.pc
   doc/Makefile
+  examples/Makefile
   src/Makefile
   src/gcov_check_coverage
   src/gcov_clean
   src/gcov_report
-  src/test_memory
-  config/data/libescdf.pc])
+  src/test_memory])
 
 AC_OUTPUT

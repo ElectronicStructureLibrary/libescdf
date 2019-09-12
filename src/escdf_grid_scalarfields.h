@@ -1,24 +1,31 @@
-/*
-  Copyright (C) 2016 D. Caliste, F. Corsetti, M. Oliveira, Y. Pouillon, and D. Strubbe
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as published by
-  the Free Software Foundation; either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-*/
+/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+ *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
+ *
+ * This file is part of ESCDF.
+ *
+ * ESCDF is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, version 2.1 of the License, or (at your option) any
+ * later version.
+ *
+ * ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301  USA.
+ */
 
 #ifndef LIBESCDF_SCALARFIELDS_H
 #define LIBESCDF_SCALARFIELDS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "escdf_error.h"
 #include "escdf_handle.h"
@@ -33,7 +40,7 @@
 struct _escdf_grid_scalarfield_t;
 typedef struct _escdf_grid_scalarfield_t escdf_grid_scalarfield_t;
 
-/* To be moved in a common cell definition with geometry. */
+/* To be moved in a common cell definition with system. */
 typedef enum {
     ESCDF_DIRECTION_FREE = 0,
     ESCDF_DIRECTION_PERIODIC,
@@ -86,9 +93,9 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
                                                     escdf_handle_t *file_id);
 
 /**
- * Sets the value of number_of_physical_dimensions in the geometry data type.
+ * Sets the value of number_of_physical_dimensions in the system data type.
  *
- * @param[in,out] geometry: instance of the geometry group.
+ * @param[in,out] system: instance of the system group.
  * @param[in] number_of_physical_dimensions: the value of the variable to be set.
  * @return error code.
  */
@@ -167,5 +174,10 @@ escdf_errno_t escdf_grid_scalarfield_read_values_on_grid_sliced(const escdf_grid
                                                                 double *buf,
                                                                 const unsigned int *tbl,
                                                                 const hsize_t len);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

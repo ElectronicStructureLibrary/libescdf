@@ -1,22 +1,24 @@
-/*  -*- c-basic-offset: 4 -*- */
-/*
-  Copyright (C) 2016 D. Caliste, F. Corsetti, M. Oliveira, Y. Pouillon, and D. Strubbe
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as published by
-  the Free Software Foundation; either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-*/
+/* Copyright (C) 2016-2017 Damien Caliste <dcaliste@free.fr>
+ *                         Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
+ *
+ * This file is part of ESCDF.
+ *
+ * ESCDF is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, version 2.1 of the License, or (at your option) any
+ * later version.
+ *
+ * ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301  USA.
+ */
 
 #include <math.h>
 
@@ -141,7 +143,7 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *sca
         return err;
     }
 
-    if ((err = utils_hdf5_read_bool(loc_id, "use_default_ordering",
+    if ((err = utils_hdf5_read_bool_old(loc_id, "use_default_ordering",
                                     &scalarfield->use_default_ordering))
         != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
@@ -154,14 +156,14 @@ escdf_errno_t escdf_grid_scalarfield_read_metadata(escdf_grid_scalarfield_t *sca
         valDims[1] *= scalarfield->number_of_grid_points[i];
     }
     valDims[2] = scalarfield->real_or_complex.value;
-    if ((err = utils_hdf5_check_dtset(loc_id, "values_on_grid", valDims, 3, NULL)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_dataset(loc_id, "values_on_grid", valDims, 3, NULL)) != ESCDF_SUCCESS) {
         H5Gclose(loc_id);
         return err;
     }
     scalarfield->values_on_grid_is_present = true;
 
     if (!scalarfield->use_default_ordering.value) {
-        if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering", valDims + 1, 1, NULL)) != ESCDF_SUCCESS) {
+        if ((err = utils_hdf5_check_dataset(loc_id, "grid_ordering", valDims + 1, 1, NULL)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }
@@ -239,13 +241,13 @@ escdf_errno_t escdf_grid_scalarfield_write_metadata(const escdf_grid_scalarfield
         return err;
     }
 
-    value = (int)scalarfield->use_default_ordering.value;
-    if ((err = utils_hdf5_write_attr
-         (gid, "use_default_ordering", H5T_STD_U32LE, NULL, 0, H5T_NATIVE_INT,
-          &value)) != ESCDF_SUCCESS) {
+    /*
+    if ((err = utils_hdf5_write_bool_old
+            (gid, "use_default_ordering", scalarfield->use_default_ordering.value)) != ESCDF_SUCCESS) {
         H5Gclose(gid);
         return err;
     }
+    */
 
     /* Only create shapes for data. */
     dims[0] = scalarfield->number_of_components.value;
@@ -536,8 +538,8 @@ static escdf_errno_t _get_values_on_grid(const escdf_grid_scalarfield_t *scalarf
     }
     bounds[2] = scalarfield->real_or_complex.value;
     /* Get the dataset for this variable and check its dimensions. */
-    FULFILL_OR_RETURN(utils_hdf5_check_dtset(loc_id, "values_on_grid",
-                                             bounds, 3, dtset_id) == ESCDF_SUCCESS,
+    FULFILL_OR_RETURN(utils_hdf5_check_dataset(loc_id, "values_on_grid",
+                                               bounds, 3, dtset_id) == ESCDF_SUCCESS,
                       ESCDF_ERROR);
     return ESCDF_SUCCESS;
 }
@@ -563,8 +565,8 @@ static escdf_errno_t _get_g2d(const escdf_grid_scalarfield_t *scalarfield,
     }
 
     /* Get the lookup table for this variable and check its dimensions. */
-    if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering",
-                                      &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
+    if ((err = utils_hdf5_check_dataset(loc_id, "grid_ordering",
+                                        &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
         return err;
     }
     /* Actual read of all the lookup table. */
@@ -721,8 +723,8 @@ escdf_errno_t escdf_grid_scalarfield_write_values_on_grid(const escdf_grid_scala
             len *= scalarfield->number_of_grid_points[i];
         }
 
-        if ((err = utils_hdf5_check_dtset(loc_id, "grid_ordering",
-                                          &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
+        if ((err = utils_hdf5_check_dataset(loc_id, "grid_ordering",
+                                            &len, 1, &dtset_id)) != ESCDF_SUCCESS) {
             H5Gclose(loc_id);
             return err;
         }

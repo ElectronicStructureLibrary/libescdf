@@ -1,22 +1,23 @@
 #!/bin/sh
 #
-# Copyright (C) 2015 Y. Pouillon
+# Copyright (C) 2015-2017 Yann Pouillon <devops@materialsevolution.es>
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or 
-# (at your option) any later version.
+# This file is part of ESCDF.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+# ESCDF is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, version 2.1 of the License, or (at your option) any
+# later version.
+#
+# ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-#
-#
+# along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to the
+# Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301  USA.
 
 # Stop at first error encountered
 set -e
@@ -37,6 +38,7 @@ mkdir -p config/gnu config/m4
 # Generate makefiles
 #echo "Generating makefiles..."
 #echo "done."
+
 
 # Generate M4 includes
 echo "Generating aclocal.m4..."
@@ -68,8 +70,10 @@ fi
 ${my_libtoolize} --automake --copy --force
 echo "done."
 
+
 # Generate makefile inputs
 # Do not use "automake --force-missing", as it overwrites the INSTALL file.
 echo "Generating Makefile.in for each directory..."
 automake --add-missing --copy
 echo "done."
+

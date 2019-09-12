@@ -1,22 +1,23 @@
 #!/bin/bash
 #
-# Copyright (C) 2015 Y. Pouillon
+# Copyright (C) 2015-2017 Yann Pouillon <devops@materialsevolution.es>
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or 
-# (at your option) any later version.
+# This file is part of ESCDF.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+# ESCDF is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, version 2.1 of the License, or (at your option) any
+# later version.
+#
+# ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-#
-#
+# along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to the
+# Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301  USA.
 
 # Note: this script is temporary and will be removed upon release.
 
@@ -43,33 +44,33 @@ sleep 3
 echo ""
 echo "### SERIAL ###"
 ../configure \
-  CC="gcc" CFLAGS="${DBGFLAGS}" FC="gfortran" FCFLAGS="${DBGFLAGS}"
+  CC="gcc" CFLAGS="${DBGFLAGS}"
 sleep 3
 #echo ""
 #echo "### MPI(def) ###"
 #../configure \
-#  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
+#  CC="mpicc" CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(dir) ###"
 #../configure \
-#  --with-mpi=/usr CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  --with-mpi=/usr CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(env) ###"
 #../configure \
-#  MPICC="mpicc" MPIFC="mpif90" CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  MPICC="mpicc" CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(wrap) ###"
 #../configure \
-#  CC="gcc" FC="gfortran" MPICC="mpicc" MPIFC="mpif90" \
-#  CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  CC="gcc" MPICC="mpicc" \
+#  CFLAGS="${DBGFLAGS}"
 #sleep 3
 #echo ""
 #echo "### MPI(yon) ###"
 #../configure \
-#  --with-mpi CFLAGS="${DBGFLAGS}" FCFLAGS="${DBGFLAGS}"
+#  --with-mpi CFLAGS="${DBGFLAGS}"
 #sleep 3
 cd ..
 
@@ -77,7 +78,7 @@ cd ..
 mkdir tmp-minimal
 cd tmp-minimal
 ../configure \
-  CC="gcc" CFLAGS="${DBGFLAGS}" FC="gfortran" FCFLAGS="${DBGFLAGS}"
+  CC="gcc" CFLAGS="${DBGFLAGS}"
 sleep 3
 make dist
 make
@@ -91,7 +92,7 @@ cd ..
 #mkdir tmp-mpi
 #cd tmp-mpi
 #../configure \
-#  CC="mpicc" CFLAGS="${DBGFLAGS}" FC="mpif90" FCFLAGS="${DBGFLAGS}"
+#  CC="mpicc" CFLAGS="${DBGFLAGS}"
 #sleep 3
 #make
 #make clean && make -j4
@@ -102,7 +103,7 @@ cd ..
 mkdir tmp-distcheck
 cd tmp-distcheck
 ../configure \
-  CC="gcc" CFLAGS="${DBGFLAGS}" FC="gfortran" FCFLAGS="${DBGFLAGS}"
+  CC="gcc" CFLAGS="${DBGFLAGS}"
 sleep 3
 make distcheck -j4
 make distcleancheck

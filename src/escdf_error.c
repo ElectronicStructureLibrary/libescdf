@@ -1,21 +1,23 @@
-/*
- Copyright (C) 2011-2012 J. Alberdi, M. Oliveira, Y. Pouillon, and M. Verstraete
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 3 of the License, or 
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-*/
+/* Copyright (C) 2016-2017 Micael Oliveira <micael.oliveira@mpsd.mpg.de>
+ *                         Yann Pouillon <devops@materialsevolution.es>
+ *
+ * This file is part of ESCDF.
+ *
+ * ESCDF is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, version 2.1 of the License, or (at your option) any
+ * later version.
+ *
+ * ESCDF is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ESCDF.  If not, see <http://www.gnu.org/licenses/> or write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301  USA.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -112,20 +114,23 @@ escdf_errno_t escdf_error_add(const escdf_errno_t error_id, const char *filename
     return error_id;
 }
 
-void escdf_error_fetchall(char **err_str) 
+char *escdf_error_fetchall()
 {
     char buf[8];
-    char *tmp_str;
+    char *err_str, *tmp_str;
     int err_len;
     escdf_error_t *cursor = ESCDF_error_chain;
 
-    *err_str = NULL;
+    err_str = NULL;
 
     if ( cursor != NULL ) {
-        *err_str  = (char *) malloc (20*sizeof(char));
-        assert(*err_str != NULL);
-        sprintf(*err_str, "%s\n", "libescdf: ERROR:");
+        err_str  = (char *) malloc (20*sizeof(char));
     }
+    if ( err_str == NULL) {
+        return NULL;
+    }
+
+    sprintf(err_str, "%s\n", "libescdf: ERROR:");
 
     while ( cursor != NULL ) {
         assert(cursor->filename != NULL);
@@ -142,19 +147,21 @@ void escdf_error_fetchall(char **err_str)
         assert(tmp_str != NULL);
         sprintf(tmp_str, "  * in %s(%s):%d:\n      %s\n", cursor->filename,
                 cursor->routine, cursor->line, escdf_error_string(cursor->id));
-        *err_str = realloc(*err_str, strlen(*err_str)+err_len+1);
-        if ( *err_str == NULL ) {
-        fprintf(stderr, "libescdf: FATAL:\n      could not build error message"
-                ".\n");
-        exit(1);
+        err_str = realloc(err_str, strlen(err_str)+err_len+1);
+        if ( err_str == NULL ) {
+            fprintf(stderr,
+                "libescdf: FATAL:\n      could not build error message.\n");
+            return NULL;
         }
-        strcat(*err_str, tmp_str);
+        strcat(err_str, tmp_str);
         free(tmp_str);
 
         cursor = cursor->next;
     }
 
     escdf_error_free();
+
+    return err_str;
 }
 
 void escdf_error_flush(FILE *fd)
@@ -163,7 +170,7 @@ void escdf_error_flush(FILE *fd)
 
     assert(fd != NULL);
 
-    escdf_error_fetchall(&err_str);
+    err_str = escdf_error_fetchall();
     if ( err_str != NULL ) {
         fprintf(fd, "%s", err_str);
         fflush(fd);
@@ -242,17 +249,17 @@ const char *escdf_error_string(const escdf_errno_t error_id)
 {
     switch (error_id) {
     case ESCDF_SUCCESS:
-        return "success (ESCDF_SUCCESS)" ;
+        return "success (ESCDF_SUCCESS)";
     case ESCDF_ERROR:
-        return "error (ESCDF_ERROR)" ;
+        return "error (ESCDF_ERROR)";
     case ESCDF_EFILE_CORRUPT:
         return "file corrupted (ESCDF_EFILE_CORRUPT)";
     case ESCDF_EFILE_FORMAT:
         return "unknown file format (ESCDF_EFILE_FORMAT)";
     case ESCDF_EIO:
-        return "input/output error (ESCDF_EIO)" ;
+        return "input/output error (ESCDF_EIO)";
     case ESCDF_ENOFILE:
-        return "file does not exist (ESCDF_ENOFILE)" ;
+        return "file does not exist (ESCDF_ENOFILE)";
     case ESCDF_ENOMEM:
         return "malloc failed (ESCDF_ENOMEM)";
     case ESCDF_ENOSUPPORT:

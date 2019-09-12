@@ -30,7 +30,7 @@ Example:
     mkdir my-build-with-gcc
     cd my-build-with-gcc
     ../configure --prefix="$HOME/dft-libs/libescdf" CC="gcc" \
-      FC="gfortran" CFLAGS="-O3 -march=native" FCFLAGS="-g -O2"
+      CFLAGS="-O3 -march=native"
     make -j4   # Run make using 4 processors
     make check
     make install
@@ -71,9 +71,6 @@ the build system will enable MPI support if all corresponding tests pass, or
 stop with an error otherwise, except for `--without-mpi` which disables MPI
 support.
 
-Please note that MPI is considered as working only if both the C and Fortran
-compilers are MPI-aware.
-
 
 ### Using the --with-mpi option ###
 
@@ -85,11 +82,11 @@ example, if you type:
     ../configure --with-mpi=/usr/local/my_mpi
 
 the build system will look for */usr/local/my_mpi/bin/mpicc* and
-*/usr/local/my_mpi/bin/mpif90*, check that they are executable, and set CC and
-FC accordingly if they were previously unset.
+*/usr/local/my_mpi/bin/mpif90*, check that they are executable, and set CC
+accordingly if it was previously unset.
 
 If the `--with-mpi` option is specified without argument, the build system
-will check that the compilers set in *$CC* and *$FC* are actually MPI-aware
+will check that the compiler set in *$CC* is actually MPI-aware
 and stop with an error if not. On the other hand, if the `--without-mpi`
 option is used, MPI support will be completely disabled.
 
@@ -100,10 +97,9 @@ environment variables.
 ### Using environment variables ###
 
 Alternatively to the `--with-mpi` option, you can specify MPI-aware compilers
-through environment variables, either via CC and FC, or MPICC and MPIFC.
-Please note that when using MPICC and MPIFC, both variables must be specified
-or the build system will stop with an error, and that using environment
-variables conflicts with the use of the `--with-mpi` option.
+through environment variables, either via CC or MPICC.
+Please note that using environment variables conflicts with the use of the
+`--with-mpi` option.
 
 
 ### Special case: adjustable MPI implementations ###
@@ -136,14 +132,14 @@ wrapper afterwards. This how the shell script schematically looks like:
 
 The Autotools are then pointed to this script as if it were the real compiler.
 
-You can activate this feature by setting *CC* and *FC* to actual serial
-compilers and either use the `--with-mpi` option or the *MPICC* and *MPIFC*
-environment variables. The build system will detect this double setting and
+You can activate this feature by setting *CC* to an actual serial
+compiler and either use the `--with-mpi` option or the *MPICC*
+environment variable. The build system will detect this double setting and
 activate internal MPI wrapping.
 
 
 HDF5 parameters
-----------------
+---------------
 
 ### Default behaviour ###
 

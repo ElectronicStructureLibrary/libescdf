@@ -1,5 +1,6 @@
 %YAML 1.1
 ---
+
 timestamp: "@escdf_timestamp@"
 
 target:
@@ -13,9 +14,6 @@ compilers:
     CC: "@CC@"
     MPICC: "@MPICC@"
     CFLAGS: "@CFLAGS@"
-    FC: "@FC@"
-    MPIFC: "@MPIFC@"
-    FCFLAGS: "@FCFLAGS@"
     LDFLAGS: "@LDFLAGS@"
     LIBS: "@LIBS@"
 
@@ -50,6 +48,5 @@ deps:
 mpi_internals:
     cc_set: "@escdf_mpi_cc_set@"
     cc_wrap: "@escdf_mpi_cc_wrap@"
-    fc_set: "@escdf_mpi_fc_set@"
-    fc_wrap: "@escdf_mpi_fc_wrap@"
 
+...
